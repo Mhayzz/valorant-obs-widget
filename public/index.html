@@ -17,7 +17,7 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   padding: 2px;
   opacity: 0;
   transform: translateY(6px);
@@ -25,7 +25,6 @@ body {
 }
 .container.show { opacity:1; transform:translateY(0); }
 
-/* Bloc commun */
 .card {
   position: relative;
   border-radius: 10px;
@@ -42,16 +41,16 @@ body {
   align-items: center;
   gap: 10px;
   padding: 10px 14px 10px 10px;
-  height: 72px;
+  height: 70px;
 }
 
 .rank-icon {
   flex-shrink: 0;
-  width: 48px; height: 48px;
+  width: 46px; height: 46px;
   display: flex; align-items:center; justify-content:center;
 }
 .rank-icon img {
-  width: 48px; height: 48px;
+  width: 46px; height: 46px;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,.6));
 }
@@ -60,7 +59,7 @@ body {
 
 .rank-name {
   font-weight: 600;
-  font-size: 17px;
+  font-size: 16px;
   color: #fff;
   line-height: 1;
 }
@@ -71,7 +70,7 @@ body {
 .rr-label {
   font-family: 'DM Mono', monospace;
   font-size: 11px;
-  color: rgba(255,255,255,.38);
+  color: rgba(255,255,255,.35);
   min-width: 34px;
 }
 .track {
@@ -81,93 +80,155 @@ body {
 }
 .fill {
   height:100%; border-radius:2px;
-  background: rgba(255,255,255,.42);
+  background: rgba(255,255,255,.4);
   transition: width 1.2s cubic-bezier(.4,0,.2,1);
 }
 
 .rr-badge {
   font-family: 'DM Mono', monospace;
-  font-size: 14px; font-weight: 500;
-  min-width: 38px; text-align:right;
-  line-height: 1;
+  font-size: 13px; font-weight: 500;
+  min-width: 36px; text-align:right;
+  line-height: 1; flex-shrink:0;
 }
 .rr-badge .sub {
   display:block; font-size:8px;
-  letter-spacing:1px; opacity:.38;
+  letter-spacing:1px; opacity:.35;
   margin-top:2px; text-align:right;
   font-family:'DM Sans',sans-serif;
 }
 .rr-badge.pos { color:#5fffb5; }
 .rr-badge.neg { color:#ff5060; }
-.rr-badge.neu { color:rgba(255,255,255,.22); }
+.rr-badge.neu { color:rgba(255,255,255,.2); }
 .rr-badge.pop { animation: pop .35s ease; }
 
 /* ── STREAM CARD ── */
 .stream-card {
+  padding: 10px 14px;
   display: flex;
-  align-items: center;
-  padding: 9px 14px;
-  gap: 0;
-  height: 44px;
+  flex-direction: column;
+  gap: 8px;
 }
 
-/* Dot live */
+.stream-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .live-dot {
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: #ff4040;
-  margin-right: 8px;
   flex-shrink: 0;
-  box-shadow: 0 0 0 0 rgba(255,64,64,.5);
+  background: rgba(255,255,255,.2);
 }
-.live-dot.live { animation: pulse-dot 1.8s ease infinite; }
-.live-dot.offline { background: rgba(255,255,255,.2); }
+.live-dot.live {
+  background: #ff4040;
+  box-shadow: 0 0 0 0 rgba(255,64,64,.4);
+  animation: pulse-dot 1.8s ease infinite;
+}
 
 @keyframes pulse-dot {
-  0%   { box-shadow: 0 0 0 0 rgba(255,64,64,.5); }
+  0%   { box-shadow: 0 0 0 0 rgba(255,64,64,.4); }
   70%  { box-shadow: 0 0 0 5px rgba(255,64,64,0); }
   100% { box-shadow: 0 0 0 0 rgba(255,64,64,0); }
 }
 
-.stream-info { flex:1; display:flex; flex-direction:column; gap:2px; }
+.stream-left { flex:1; }
 
 .stream-status {
-  font-size: 12px; font-weight: 600;
+  font-size: 11px; font-weight: 600;
   color: rgba(255,255,255,.9);
   line-height: 1;
+  letter-spacing: .3px;
 }
 
 .stream-timer {
   font-family: 'DM Mono', monospace;
   font-size: 10px;
-  color: rgba(255,255,255,.35);
+  color: rgba(255,255,255,.32);
+  margin-top: 2px;
 }
 
-.divider {
-  width: 1px; height: 24px;
-  background: rgba(255,255,255,.08);
-  margin: 0 12px;
-  flex-shrink: 0;
-}
-
-.viewers {
-  display: flex; align-items:center; gap:5px;
+.viewers-wrap {
+  display: flex; align-items:center; gap:4px;
   flex-shrink: 0;
 }
 .viewers-num {
   font-family: 'DM Mono', monospace;
-  font-size: 14px; font-weight: 500;
-  color: rgba(255,255,255,.85);
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,.8);
 }
-.viewers-icon {
-  font-size: 12px;
-  opacity: .45;
+.icon-small { font-size:11px; opacity:.4; }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,.04);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex; flex-direction:column; gap:2px;
+}
+
+.stat-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 14px; font-weight: 500;
+  color: #fff;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .8px;
+  color: rgba(255,255,255,.3);
+  text-transform: uppercase;
+}
+
+/* Last follow */
+.last-follow {
+  display: flex; align-items:center; gap:6px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,.03);
+  border-radius: 6px;
+}
+.last-follow-icon { font-size:11px; opacity:.35; }
+.last-follow-text {
+  font-size: 11px;
+  color: rgba(255,255,255,.4);
+  flex-shrink: 0;
+}
+.last-follow-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Auth warning */
+.auth-warn {
+  font-size: 10px;
+  color: rgba(255,160,0,.6);
+  text-align: center;
+  padding: 2px 0;
 }
 
 @keyframes pop {
   0%   { transform:scale(.8); opacity:0; }
   60%  { transform:scale(1.1); }
   100% { transform:scale(1); opacity:1; }
+}
+
+/* Anim entrée stat */
+.stat-val.updated { animation: flash-val .4s ease; }
+@keyframes flash-val {
+  0%   { opacity:.3; }
+  100% { opacity:1; }
 }
 </style>
 </head>
@@ -195,37 +256,74 @@ body {
 
   <!-- Stream -->
   <div class="card stream-card">
-    <div class="live-dot offline" id="liveDot"></div>
-    <div class="stream-info">
-      <div class="stream-status" id="streamStatus">Offline</div>
-      <div class="stream-timer" id="streamTimer">—</div>
+
+    <!-- Live + timer + viewers -->
+    <div class="stream-top">
+      <div class="live-dot" id="liveDot"></div>
+      <div class="stream-left">
+        <div class="stream-status" id="streamStatus">Offline</div>
+        <div class="stream-timer" id="streamTimer">—</div>
+      </div>
+      <div class="viewers-wrap">
+        <span class="icon-small">👁</span>
+        <span class="viewers-num" id="viewersNum">0</span>
+      </div>
     </div>
-    <div class="divider"></div>
-    <div class="viewers">
-      <span class="viewers-icon">👁</span>
-      <span class="viewers-num" id="viewersNum">0</span>
+
+    <!-- Followers + Subs -->
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="stat-val" id="followersVal">—</div>
+        <div class="stat-lbl">Followers</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="subsVal">—</div>
+        <div class="stat-lbl">Subs</div>
+      </div>
     </div>
+
+    <!-- Dernier follow -->
+    <div class="last-follow">
+      <span class="last-follow-icon">❤️</span>
+      <span class="last-follow-text">Dernier follow :</span>
+      <span class="last-follow-name" id="lastFollowName">—</span>
+    </div>
+
+    <!-- Auth warning si subs pas dispo -->
+    <div class="auth-warn" id="authWarn" style="display:none">
+      ⚠️ Subs: <a href="/auth" style="color:rgba(255,160,0,.8)" target="_blank">Autoriser ici</a>
+    </div>
+
   </div>
 
 </div>
 
 <script>
-const container    = document.getElementById('container');
-const ico          = document.getElementById('ico');
-const rankName     = document.getElementById('rankName');
-const rrLabel      = document.getElementById('rrLabel');
-const fill         = document.getElementById('fill');
-const badge        = document.getElementById('badge');
-const badgeNum     = document.getElementById('badgeNum');
-const liveDot      = document.getElementById('liveDot');
-const streamStatus = document.getElementById('streamStatus');
-const streamTimer  = document.getElementById('streamTimer');
-const viewersNum   = document.getElementById('viewersNum');
+const container     = document.getElementById('container');
+const ico           = document.getElementById('ico');
+const rankName      = document.getElementById('rankName');
+const rrLabel       = document.getElementById('rrLabel');
+const fill          = document.getElementById('fill');
+const badge         = document.getElementById('badge');
+const badgeNum      = document.getElementById('badgeNum');
+const liveDot       = document.getElementById('liveDot');
+const streamStatus  = document.getElementById('streamStatus');
+const streamTimer   = document.getElementById('streamTimer');
+const viewersNum    = document.getElementById('viewersNum');
+const followersVal  = document.getElementById('followersVal');
+const subsVal       = document.getElementById('subsVal');
+const lastFollowName= document.getElementById('lastFollowName');
+const authWarn      = document.getElementById('authWarn');
 
 let prevChange = undefined;
 let firstLoad  = true;
 let streamStart = null;
 let timerInterval = null;
+
+function fmt(n) {
+  if (n >= 1000) return (n/1000).toFixed(1).replace('.0','') + 'k';
+  return String(n);
+}
 
 // ── Rank ──────────────────────────────────────────────────
 async function refreshRank() {
@@ -274,22 +372,45 @@ async function refreshStream() {
   } catch(e) {}
 }
 
+function animVal(el, val) {
+  el.textContent = val;
+  el.classList.remove('updated');
+  void el.offsetWidth;
+  el.classList.add('updated');
+}
+
 function renderStream(d) {
+  // Live dot + status
   if (d.live) {
     liveDot.className = 'live-dot live';
     streamStatus.textContent = 'EN DIRECT';
-    viewersNum.textContent = d.viewers.toLocaleString('fr-FR');
+    viewersNum.textContent = fmt(d.viewers);
     streamStart = new Date(d.started_at);
     if (!timerInterval) timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
   } else {
-    liveDot.className = 'live-dot offline';
+    liveDot.className = 'live-dot';
     streamStatus.textContent = 'Offline';
     streamTimer.textContent = '—';
     viewersNum.textContent = '0';
     streamStart = null;
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
   }
+
+  // Followers
+  animVal(followersVal, d.followers >= 0 ? fmt(d.followers) : '—');
+
+  // Subs
+  if (d.subs !== null && d.subs !== undefined) {
+    animVal(subsVal, fmt(d.subs));
+    authWarn.style.display = 'none';
+  } else {
+    subsVal.textContent = '—';
+    authWarn.style.display = d.auth_needed ? 'block' : 'none';
+  }
+
+  // Dernier follow
+  lastFollowName.textContent = d.last_follower || '—';
 }
 
 function updateTimer() {
@@ -306,7 +427,7 @@ function updateTimer() {
 // ── Init ───────────────────────────────────────────────────
 refreshRank();
 refreshStream();
-setInterval(refreshRank,  30000);
+setInterval(refreshRank,   30000);
 setInterval(refreshStream, 20000);
 </script>
 </body>

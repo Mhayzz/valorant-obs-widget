@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Alertes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:transparent; width:420px; height:140px; overflow:hidden; font-family:'DM Sans',sans-serif; }
+
+.alert-wrap {
+  position:absolute;
+  bottom:0; left:0; right:0;
+  display:flex;
+  justify-content:center;
+  pointer-events:none;
+}
+
+.alert {
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:14px 20px;
+  border-radius:14px;
+  background:rgba(0,0,0,0.82);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.08);
+  min-width:280px;
+  max-width:400px;
+  overflow:hidden;
+
+  /* hidden by default */
+  opacity:0;
+  transform:translateY(30px) scale(0.94);
+  transition:none;
+}
+
+.alert.enter {
+  animation: alert-in .45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+.alert.exit {
+  animation: alert-out .35s ease-in forwards;
+}
+
+@keyframes alert-in {
+  0%   { opacity:0; transform:translateY(30px) scale(0.92); }
+  100% { opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes alert-out {
+  0%   { opacity:1; transform:translateY(0) scale(1); }
+  100% { opacity:0; transform:translateY(-20px) scale(0.95); }
+}
+
+/* Barre de progression en bas */
+.alert-progress {
+  position:absolute;
+  bottom:0; left:0;
+  height:2px;
+  border-radius:0 0 14px 14px;
+  width:100%;
+  transform-origin:left;
+  animation:none;
+}
+.alert-progress.running {
+  animation:progress-shrink var(--duration,6s) linear forwards;
+}
+@keyframes progress-shrink {
+  0%   { transform:scaleX(1); }
+  100% { transform:scaleX(0); }
+}
+
+/* Shimmer bg */
+.alert::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  opacity:0;
+  background:linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 50%, transparent 60%);
+  animation:shimmer 2s ease infinite;
+}
+@keyframes shimmer {
+  0%   { opacity:0; transform:translateX(-100%); }
+  50%  { opacity:1; }
+  100% { opacity:0; transform:translateX(100%); }
+}
+
+/* Icône */
+.alert-icon {
+  font-size:30px;
+  flex-shrink:0;
+  animation:icon-pop .5s cubic-bezier(0.34,1.56,0.64,1) .1s both;
+}
+@keyframes icon-pop {
+  0%   { transform:scale(0) rotate(-20deg); }
+  100% { transform:scale(1) rotate(0deg); }
+}
+
+/* Texte */
+.alert-body { flex:1; }
+.alert-title {
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  opacity:.45;
+  line-height:1;
+  margin-bottom:4px;
+}
+.alert-name {
+  font-size:20px;
+  font-weight:700;
+  color:#fff;
+  line-height:1;
+  animation:name-slide .4s ease .15s both;
+}
+@keyframes name-slide {
+  0%   { opacity:0; transform:translateX(-10px); }
+  100% { opacity:1; transform:translateX(0); }
+}
+.alert-sub {
+  font-size:12px;
+  font-weight:500;
+  opacity:.45;
+  margin-top:3px;
+}
+
+/* Couleurs par type */
+.alert.follow   .alert-progress { background:linear-gradient(90deg,#ff4655,#ff8c94); }
+.alert.follow   .alert-title    { color:#ff8c94; }
+.alert.sub      .alert-progress { background:linear-gradient(90deg,#9147ff,#bf94ff); }
+.alert.sub      .alert-title    { color:#bf94ff; }
+.alert.subgift  .alert-progress { background:linear-gradient(90deg,#00c8ff,#7ef9ff); }
+.alert.subgift  .alert-title    { color:#7ef9ff; }
+.alert.cheer    .alert-progress { background:linear-gradient(90deg,#f5a623,#ffd166); }
+.alert.cheer    .alert-title    { color:#ffd166; }
+
+/* Particules */
+.particles {
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  overflow:hidden;
+}
+.particle {
+  position:absolute;
+  width:4px; height:4px;
+  border-radius:50%;
+  animation:particle-fly var(--dur,.8s) ease forwards var(--delay,0s);
+  opacity:0;
+}
+@keyframes particle-fly {
+  0%   { opacity:1; transform:translate(0,0) scale(1); }
+  100% { opacity:0; transform:translate(var(--tx,20px),var(--ty,-40px)) scale(0); }
+}
+</style>
+</head>
+<body>
+
+<div class="alert-wrap">
+  <div class="alert" id="alert">
+    <div class="particles" id="particles"></div>
+    <div class="alert-icon" id="alertIcon">🎉</div>
+    <div class="alert-body">
+      <div class="alert-title" id="alertTitle">NOUVEAU FOLLOW</div>
+      <div class="alert-name" id="alertName">Username</div>
+      <div class="alert-sub" id="alertSub"></div>
+    </div>
+    <div class="alert-progress" id="alertProgress"></div>
+  </div>
+</div>
+
+<script>
+const alertEl    = document.getElementById('alert');
+const alertIcon  = document.getElementById('alertIcon');
+const alertTitle = document.getElementById('alertTitle');
+const alertName  = document.getElementById('alertName');
+const alertSub   = document.getElementById('alertSub');
+const alertProg  = document.getElementById('alertProgress');
+const particles  = document.getElementById('particles');
+
+let hideTimer = null;
+const DURATION = 6000;
+
+const CONFIGS = {
+  follow:  { icon:'❤️',  title:'NOUVEAU FOLLOW',    sub: null,                color:'follow'  },
+  sub:     { icon:'⭐',  title:'NOUVEAU SUB',        sub: d => tierLabel(d.tier), color:'sub' },
+  subgift: { icon:'🎁',  title:'GIFT SUBS',          sub: d => `${d.count} subs offerts`, color:'subgift' },
+  cheer:   { icon:'💎',  title:'CHEER',              sub: d => `${d.bits} bits`, color:'cheer' },
+};
+
+function tierLabel(tier) {
+  if (tier === '3000') return 'Tier 3';
+  if (tier === '2000') return 'Tier 2';
+  return 'Tier 1';
+}
+
+function spawnParticles(color) {
+  particles.innerHTML = '';
+  const colors = { follow:'#ff4655', sub:'#9147ff', subgift:'#00c8ff', cheer:'#f5a623' };
+  const c = colors[color] || '#fff';
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = c;
+    p.style.left = (20 + Math.random() * 60) + '%';
+    p.style.top  = (20 + Math.random() * 60) + '%';
+    p.style.setProperty('--tx', (Math.random() * 80 - 40) + 'px');
+    p.style.setProperty('--ty', (Math.random() * -60 - 20) + 'px');
+    p.style.setProperty('--dur', (.5 + Math.random() * .6) + 's');
+    p.style.setProperty('--delay', (Math.random() * .2) + 's');
+    particles.appendChild(p);
+  }
+}
+
+function showAlert(data) {
+  const cfg = CONFIGS[data.type];
+  if (!cfg) return;
+
+  // Clear previous
+  if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+  alertEl.className = 'alert';
+  alertEl.style.opacity = '0';
+  alertProg.className = 'alert-progress';
+
+  void alertEl.offsetWidth; // reflow
+
+  alertIcon.textContent  = cfg.icon;
+  alertTitle.textContent = cfg.title;
+  alertName.textContent  = data.user || '—';
+  alertSub.textContent   = cfg.sub ? cfg.sub(data) : '';
+
+  alertProg.style.setProperty('--duration', (DURATION/1000) + 's');
+
+  alertEl.classList.add(cfg.color, 'enter');
+  spawnParticles(cfg.color);
+
+  // Démarre la barre après l'anim d'entrée
+  setTimeout(() => alertProg.classList.add('running'), 450);
+
+  hideTimer = setTimeout(() => {
+    alertEl.classList.remove('enter');
+    alertEl.classList.add('exit');
+    setTimeout(() => { alertEl.style.opacity = '0'; alertEl.className = 'alert'; }, 350);
+  }, DURATION);
+}
+
+// ── WebSocket ──────────────────────────────────────────────
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${proto}://${location.host}`);
+
+  ws.onmessage = e => {
+    try {
+      const data = JSON.parse(e.data);
+      if (['follow','sub','subgift','cheer'].includes(data.type)) showAlert(data);
+    } catch(err) {}
+  };
+
+  ws.onclose = () => setTimeout(connectWS, 3000);
+  ws.onerror = () => ws.close();
+}
+
+connectWS();
+</script>
+</body>
+</html>

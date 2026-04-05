@@ -7,21 +7,22 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, "public")));
 
-// Cache 30s
-let cache = { data: null, ts: 0 };
+// Caches
+let rankCache   = { data: null, ts: 0 };
+let twitchCache = { data: null, ts: 0 };
+let twitchToken = { token: null, ts: 0 };
 
+// ── Valorant rank ──────────────────────────────────────────
 app.get("/api/rank", async (req, res) => {
-  const name = process.env.RIOT_NAME;
-  const tag  = process.env.RIOT_TAG;
+  const name   = process.env.RIOT_NAME;
+  const tag    = process.env.RIOT_TAG;
   const region = process.env.RIOT_REGION || "eu";
   const apiKey = process.env.HENRIK_API_KEY || "";
 
-  if (!name || !tag) {
-    return res.status(400).json({ error: "Configure RIOT_NAME et RIOT_TAG dans Railway Variables" });
-  }
+  if (!name || !tag) return res.status(400).json({ error: "RIOT_NAME / RIOT_TAG manquants" });
 
   const now = Date.now();
-  if (cache.data && now - cache.ts < 30000) return res.json(cache.data);
+  if (rankCache.data && now - rankCache.ts < 30000) return res.json(rankCache.data);
 
   try {
     const headers = { "Content-Type": "application/json" };
@@ -31,13 +32,12 @@ app.get("/api/rank", async (req, res) => {
     const r = await fetch(url, { headers });
     const json = await r.json();
 
-    console.log("Henrik API response:", JSON.stringify(json).slice(0, 500));
-
-    if (!r.ok) return res.status(r.status).json({ error: json.errors?.[0]?.message || json.message || "Erreur Henrik API" });
+    if (!r.ok) return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur Henrik API" });
 
     const d = json.data;
     const current = d?.current;
     const tier = current?.tier?.id ?? 0;
+
     const result = {
       name: `${name}#${tag}`,
       rank: current?.tier?.name || "Unranked",
@@ -47,7 +47,7 @@ app.get("/api/rank", async (req, res) => {
       rank_icon: current?.images?.large || current?.images?.small || `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/${tier}/largeicon.png`,
     };
 
-    cache = { data: result, ts: now };
+    rankCache = { data: result, ts: now };
     res.json(result);
   } catch (e) {
     console.error(e);
@@ -55,6 +55,54 @@ app.get("/api/rank", async (req, res) => {
   }
 });
 
-app.get("/health", (_, res) => res.send("ok"));
+// ── Twitch helpers ─────────────────────────────────────────
+async function getTwitchToken() {
+  const now = Date.now();
+  if (twitchToken.token && now - twitchToken.ts < 3600000) return twitchToken.token;
 
-app.listen(PORT, "0.0.0.0", () => console.log(`Running on ${PORT}`));
+  const clientId     = process.env.TWITCH_CLIENT_ID;
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+  if (!clientId || !clientSecret) return null;
+
+  const r = await fetch(`https://id.twitch.tv/oauth2/token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`, { method: "POST" });
+  const json = await r.json();
+  twitchToken = { token: json.access_token, ts: now };
+  return json.access_token;
+}
+
+// ── Twitch stream info ─────────────────────────────────────
+app.get("/api/stream", async (req, res) => {
+  const channel  = process.env.TWITCH_CHANNEL;
+  const clientId = process.env.TWITCH_CLIENT_ID;
+  if (!channel || !clientId) return res.status(400).json({ error: "TWITCH_CHANNEL / TWITCH_CLIENT_ID manquants" });
+
+  const now = Date.now();
+  if (twitchCache.data && now - twitchCache.ts < 20000) return res.json(twitchCache.data);
+
+  try {
+    const token = await getTwitchToken();
+    if (!token) return res.status(500).json({ error: "Token Twitch indisponible" });
+
+    const r = await fetch(`https://api.twitch.tv/helix/streams?user_login=${channel}`, {
+      headers: { "Client-ID": clientId, "Authorization": `Bearer ${token}` }
+    });
+    const json = await r.json();
+    const stream = json.data?.[0];
+
+    const result = stream ? {
+      live: true,
+      viewers: stream.viewer_count,
+      started_at: stream.started_at,
+      title: stream.title,
+    } : { live: false, viewers: 0, started_at: null, title: "" };
+
+    twitchCache = { data: result, ts: now };
+    res.json(result);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Erreur Twitch" });
+  }
+});
+
+app.get("/health", (_, res) => res.send("ok"));
+app.listen(PORT, "0.0.0.0", () => console.log(`Running on port ${PORT}`));

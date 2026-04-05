@@ -28,7 +28,7 @@ body {
 .card {
   position: relative;
   border-radius: 10px;
-  background: rgba(0,0,0,0.52);
+  background: var(--card-bg, rgba(0,0,0,0.75));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,0.07);
@@ -314,6 +314,13 @@ const followersVal  = document.getElementById('followersVal');
 const subsVal       = document.getElementById('subsVal');
 const lastFollowName= document.getElementById('lastFollowName');
 const authWarn      = document.getElementById('authWarn');
+
+// Opacité du fond via URL param ?opacity=0.8
+const params = new URLSearchParams(window.location.search);
+const op = parseFloat(params.get('opacity'));
+if (!isNaN(op)) {
+  document.documentElement.style.setProperty('--card-bg', `rgba(0,0,0,${Math.min(1, Math.max(0, op))})`);
+}
 
 let prevChange = undefined;
 let firstLoad  = true;

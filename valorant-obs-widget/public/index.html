@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valorant Rank Widget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Barlow+Condensed:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    font-family: 'Rajdhani', sans-serif;
+    overflow: hidden;
+    width: 340px;
+    height: 90px;
+  }
+
+  .widget {
+    position: relative;
+    width: 340px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 12px;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .widget.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Fond principal */
+  .widget::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg,
+      rgba(10, 10, 15, 0.96) 0%,
+      rgba(20, 15, 25, 0.94) 60%,
+      rgba(30, 10, 20, 0.92) 100%
+    );
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+    border: 1px solid rgba(255, 70, 85, 0.25);
+  }
+
+  /* Ligne rouge accent gauche */
+  .widget::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    background: linear-gradient(180deg, transparent, #ff4655, transparent);
+  }
+
+  /* Rank icon */
+  .rank-icon {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rank-icon img {
+    width: 54px;
+    height: 54px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px rgba(255, 70, 85, 0.5));
+    transition: filter 0.4s ease;
+  }
+
+  .rank-icon img.glow {
+    filter: drop-shadow(0 0 16px rgba(255, 70, 85, 0.9));
+    animation: pulse-glow 0.6s ease-in-out;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 70, 85, 0.5)); }
+    50% { filter: drop-shadow(0 0 22px rgba(255, 70, 85, 1)); }
+  }
+
+  /* Info block */
+  .info {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .rank-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 70, 85, 0.4);
+    line-height: 1;
+  }
+
+  .player-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.45);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* RR bar */
+  .rr-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .rr-bar-track {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .rr-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #ff4655, #ff8c94);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
+  }
+
+  .rr-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* RR Change badge */
+  .rr-change {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    padding: 6px 8px;
+    border-radius: 2px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: 0.5px;
+    transition: all 0.4s ease;
+  }
+
+  .rr-change.positive {
+    color: #4fffb0;
+    text-shadow: 0 0 12px rgba(79, 255, 176, 0.7);
+    background: rgba(79, 255, 176, 0.06);
+    border: 1px solid rgba(79, 255, 176, 0.2);
+  }
+
+  .rr-change.negative {
+    color: #ff4655;
+    text-shadow: 0 0 12px rgba(255, 70, 85, 0.7);
+    background: rgba(255, 70, 85, 0.06);
+    border: 1px solid rgba(255, 70, 85, 0.2);
+  }
+
+  .rr-change.neutral {
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .rr-change .label {
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    opacity: 0.6;
+    margin-top: 1px;
+  }
+
+  /* Animation entrée change */
+  @keyframes pop-in {
+    0% { transform: scale(0.7); opacity: 0; }
+    70% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .rr-change.animate {
+    animation: pop-in 0.4s ease forwards;
+  }
+
+  /* Loading state */
+  .loading-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ff4655, transparent);
+    animation: loading-sweep 1.5s linear infinite;
+    width: 40%;
+  }
+
+  @keyframes loading-sweep {
+    0% { left: -40%; }
+    100% { left: 140%; }
+  }
+
+  /* Error state */
+  .error-text {
+    position: relative;
+    z-index: 1;
+    font-size: 11px;
+    color: rgba(255,70,85,0.7);
+    letter-spacing: 1px;
+    flex: 1;
+  }
+
+  /* Coin déco */
+  .corner-deco {
+    position: absolute;
+    top: 3px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    z-index: 1;
+    opacity: 0.3;
+  }
+
+  .corner-deco::before,
+  .corner-deco::after {
+    content: '';
+    position: absolute;
+    background: #ff4655;
+  }
+
+  .corner-deco::before {
+    top: 0; right: 0;
+    width: 8px; height: 1px;
+  }
+
+  .corner-deco::after {
+    top: 0; right: 0;
+    width: 1px; height: 8px;
+  }
+
+  /* Dots animés */
+  .dots {
+    display: inline-block;
+  }
+  .dots span {
+    animation: blink 1.2s infinite;
+    opacity: 0;
+  }
+  .dots span:nth-child(1) { animation-delay: 0s; }
+  .dots span:nth-child(2) { animation-delay: 0.2s; }
+  .dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="widget" id="widget">
+  <div class="corner-deco"></div>
+
+  <div class="rank-icon" id="rankIcon">
+    <img id="rankImg" src="" alt="rank" style="display:none">
+  </div>
+
+  <div class="info" id="info">
+    <div class="player-name" id="playerName">Chargement<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+    <div class="rank-name" id="rankName">—</div>
+    <div class="rr-section">
+      <div class="rr-bar-track">
+        <div class="rr-bar-fill" id="rrBarFill" style="width: 0%"></div>
+      </div>
+      <div class="rr-text" id="rrText">— RR</div>
+    </div>
+  </div>
+
+  <div class="rr-change neutral" id="rrChange">
+    <span id="rrChangeVal">—</span>
+    <span class="label">LAST</span>
+  </div>
+
+  <div class="loading-bar" id="loadingBar"></div>
+</div>
+
+<script>
+  const REFRESH_INTERVAL = 30000; // 30 secondes
+  let lastRR = null;
+  let firstLoad = true;
+
+  const widget = document.getElementById('widget');
+  const rankImg = document.getElementById('rankImg');
+  const playerName = document.getElementById('playerName');
+  const rankName = document.getElementById('rankName');
+  const rrBarFill = document.getElementById('rrBarFill');
+  const rrText = document.getElementById('rrText');
+  const rrChange = document.getElementById('rrChange');
+  const rrChangeVal = document.getElementById('rrChangeVal');
+  const loadingBar = document.getElementById('loadingBar');
+  const info = document.getElementById('info');
+
+  async function fetchRank() {
+    try {
+      const res = await fetch('/api/rank');
+      if (!res.ok) {
+        const err = await res.json();
+        showError(err.error || 'Erreur API');
+        return;
+      }
+      const data = await res.json();
+      updateWidget(data);
+    } catch (e) {
+      showError('Connexion impossible');
+    }
+  }
+
+  function updateWidget(data) {
+    loadingBar.style.display = 'none';
+
+    // Nom joueur
+    playerName.innerHTML = data.name;
+
+    // Rank name
+    rankName.textContent = data.rank;
+
+    // Icône rank
+    if (data.rank_icon && data.tier > 0) {
+      rankImg.src = data.rank_icon;
+      rankImg.style.display = 'block';
+      rankImg.onerror = () => {
+        // Fallback icône alternative
+        rankImg.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${data.tier}/largeicon.png`;
+      };
+    }
+
+    // Barre RR
+    const rrPercent = Math.min(100, Math.max(0, data.rr));
+    rrBarFill.style.width = rrPercent + '%';
+    rrText.textContent = data.rr + ' RR';
+
+    // RR Change
+    if (data.rr_change !== null && data.rr_change !== undefined) {
+      const val = data.rr_change;
+      const sign = val > 0 ? '+' : '';
+      rrChangeVal.textContent = sign + val;
+
+      rrChange.className = 'rr-change';
+      if (val > 0) rrChange.classList.add('positive');
+      else if (val < 0) rrChange.classList.add('negative');
+      else rrChange.classList.add('neutral');
+
+      // Animation si changement détecté
+      if (lastRR !== null && lastRR !== data.rr_change) {
+        rrChange.classList.add('animate');
+        rankImg.classList.add('glow');
+        setTimeout(() => {
+          rrChange.classList.remove('animate');
+          rankImg.classList.remove('glow');
+        }, 600);
+      }
+      lastRR = data.rr_change;
+    } else {
+      rrChangeVal.textContent = '—';
+      rrChange.className = 'rr-change neutral';
+    }
+
+    // Apparition initiale
+    if (firstLoad) {
+      setTimeout(() => widget.classList.add('visible'), 100);
+      firstLoad = false;
+    }
+  }
+
+  function showError(msg) {
+    loadingBar.style.display = 'none';
+    rankName.textContent = 'ERREUR';
+    playerName.innerHTML = msg;
+    if (firstLoad) {
+      setTimeout(() => widget.classList.add('visible'), 100);
+      firstLoad = false;
+    }
+  }
+
+  // Initial + polling
+  fetchRank();
+  setInterval(fetchRank, REFRESH_INTERVAL);
+</script>
+</body>
+</html>

@@ -452,7 +452,7 @@ input[type=color] {
     </div>
 
     <!-- OBS info -->
-    <div class="obs-card">
+    <div class="obs-card" id="obsDimsCard">
       <div class="obs-title">Dimensions OBS</div>
       <div class="obs-dim">Largeur : <span id="obsDimW">300</span> px</div>
       <div class="obs-dim">Hauteur : <span id="obsDimH">~180</span> px</div>
@@ -460,7 +460,7 @@ input[type=color] {
     </div>
 
     <!-- Link -->
-    <div class="obs-card">
+    <div class="obs-card" id="obsLinkCard">
       <div class="obs-title">Lien overlay</div>
       <div class="link-wrap">
         <code class="link-url" id="overlayLink"></code>
@@ -475,6 +475,12 @@ input[type=color] {
 <script>
 const base = window.location.origin;
 document.getElementById('overlayLink').textContent = base + '/index.html';
+
+// Mode client : masque les infos OBS si ?client=1
+if (new URLSearchParams(window.location.search).has('client')) {
+  document.getElementById('obsDimsCard').style.display = 'none';
+  document.getElementById('obsLinkCard').style.display = 'none';
+}
 
 // ── Copy ─────────────────────────────────────────────────────
 document.getElementById('copyBtn').addEventListener('click', () => {

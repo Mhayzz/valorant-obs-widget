@@ -24,11 +24,18 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
 }
 
 /* RANK */
-.rank-card { display:flex; align-items:center; gap:10px; padding:10px 14px 10px 10px; height:70px; }
+.rank-card { display:flex; align-items:center; gap:10px; padding:10px 14px 10px 10px; min-height:70px; }
 .rank-icon { flex-shrink:0; width:46px; height:46px; display:flex; align-items:center; justify-content:center; }
 .rank-icon img { width:46px; height:46px; object-fit:contain; filter:drop-shadow(0 2px 8px rgba(0,0,0,.6)); }
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
 .rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
+.session-rr {
+  font-size:9px; font-weight:600; letter-spacing:.7px;
+  text-transform:uppercase; color:rgba(255,255,255,.3); margin-top:1px; line-height:1;
+}
+.session-rr .val { font-family:'DM Mono',monospace; }
+.session-rr .pos { color:rgba(95,255,181,.75); }
+.session-rr .neg { color:rgba(255,80,96,.75); }
 .rr-row { display:flex; align-items:center; gap:6px; }
 .rr-label { font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,.35); min-width:34px; }
 .track { flex:1; height:2px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; }
@@ -37,6 +44,29 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
 .rr-badge .sub { display:block; font-size:8px; letter-spacing:1px; opacity:.35; margin-top:2px; text-align:right; font-family:'DM Sans',sans-serif; }
 .rr-badge.pos { color:#5fffb5; } .rr-badge.neg { color:#ff5060; } .rr-badge.neu { color:rgba(255,255,255,.2); }
 .rr-badge.pop { animation:pop .35s ease; }
+
+/* MATCH */
+.match-card {
+  display:flex; align-items:center; gap:9px;
+  padding:7px 14px 7px 10px; min-height:40px;
+}
+.match-agent-wrap {
+  flex-shrink:0; width:28px; height:28px;
+  border-radius:6px; overflow:hidden;
+  background:rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:center;
+}
+.match-agent-wrap img { width:28px; height:28px; object-fit:cover; }
+.match-info { flex:1; min-width:0; }
+.match-agent-name { font-size:11px; font-weight:600; color:rgba(255,255,255,.8); line-height:1; }
+.match-kda-map { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,.3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.match-result {
+  font-size:10px; font-weight:700; letter-spacing:.8px;
+  padding:3px 7px; border-radius:5px; flex-shrink:0;
+}
+.match-result.win  { color:#5fffb5; background:rgba(95,255,181,.1); }
+.match-result.loss { color:#ff5060; background:rgba(255,80,96,.1); }
+.match-result.draw { color:rgba(255,255,255,.3); background:rgba(255,255,255,.05); }
 
 /* STREAM */
 .stream-card { padding:10px 14px; display:flex; flex-direction:column; gap:8px; }
@@ -75,10 +105,12 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
 </head>
 <body>
 <div class="container" id="container">
+  <!-- Rank -->
   <div class="card rank-card">
     <div class="rank-icon"><img id="ico" src="" alt="" style="display:none"></div>
     <div class="rank-info">
       <div class="rank-name" id="rankName">—</div>
+      <div class="session-rr" id="sessionRR" style="display:none"></div>
       <div class="rr-row">
         <div class="rr-label" id="rrLabel">0 RR</div>
         <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
@@ -87,6 +119,19 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
     <div class="rr-badge neu" id="badge"><span id="badgeNum">—</span><span class="sub">LAST</span></div>
   </div>
 
+  <!-- Dernière partie -->
+  <div class="card match-card" id="matchCard" style="display:none">
+    <div class="match-agent-wrap">
+      <img id="matchAgentIcon" src="" alt="" style="display:none">
+    </div>
+    <div class="match-info">
+      <div class="match-agent-name" id="matchAgentName">—</div>
+      <div class="match-kda-map" id="matchKdaMap">—</div>
+    </div>
+    <div class="match-result draw" id="matchResult">?</div>
+  </div>
+
+  <!-- Stream -->
   <div class="card stream-card">
     <div class="stream-top">
       <div class="live-dot" id="liveDot"></div>
@@ -115,39 +160,73 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
 </div>
 
 <script>
+// ── URL params ──────────────────────────────────────────────
 const params = new URLSearchParams(window.location.search);
 const op = parseFloat(params.get('opacity'));
 if (!isNaN(op)) document.documentElement.style.setProperty('--card-bg', `rgba(0,0,0,${Math.min(1,Math.max(0,op))})`);
 
-const container = document.getElementById('container');
-const ico = document.getElementById('ico');
-const rankName = document.getElementById('rankName');
-const rrLabel = document.getElementById('rrLabel');
-const fill = document.getElementById('fill');
-const badge = document.getElementById('badge');
-const badgeNum = document.getElementById('badgeNum');
-const liveDot = document.getElementById('liveDot');
+// ── Elements ────────────────────────────────────────────────
+const container    = document.getElementById('container');
+const ico          = document.getElementById('ico');
+const rankName     = document.getElementById('rankName');
+const sessionRREl  = document.getElementById('sessionRR');
+const rrLabel      = document.getElementById('rrLabel');
+const fill         = document.getElementById('fill');
+const badge        = document.getElementById('badge');
+const badgeNum     = document.getElementById('badgeNum');
+const matchCard    = document.getElementById('matchCard');
+const matchIcon    = document.getElementById('matchAgentIcon');
+const matchName    = document.getElementById('matchAgentName');
+const matchKdaMap  = document.getElementById('matchKdaMap');
+const matchResult  = document.getElementById('matchResult');
+const liveDot      = document.getElementById('liveDot');
 const streamStatus = document.getElementById('streamStatus');
-const streamTimer = document.getElementById('streamTimer');
-const viewersNum = document.getElementById('viewersNum');
+const streamTimer  = document.getElementById('streamTimer');
+const viewersNum   = document.getElementById('viewersNum');
 const followersVal = document.getElementById('followersVal');
-const subsVal = document.getElementById('subsVal');
+const subsVal      = document.getElementById('subsVal');
 const lastFollowName = document.getElementById('lastFollowName');
-const authWarn = document.getElementById('authWarn');
+const authWarn     = document.getElementById('authWarn');
 
 let prevChange = undefined, firstLoad = true, streamStart = null, timerInterval = null;
 
 function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k' : String(n); }
 function animVal(el, val) { el.textContent = val; el.classList.remove('updated'); void el.offsetWidth; el.classList.add('updated'); }
 
+// ── Session RR ──────────────────────────────────────────────
+const SS_KEY = 'valo_session_start_rr';
+let sessionStartRR = null;
+
+function initSessionRR(currentRR) {
+  const stored = sessionStorage.getItem(SS_KEY);
+  if (stored === null) {
+    sessionStorage.setItem(SS_KEY, currentRR);
+    sessionStartRR = currentRR;
+  } else {
+    sessionStartRR = parseInt(stored, 10);
+  }
+  renderSessionRR(currentRR);
+}
+
+function renderSessionRR(currentRR) {
+  if (sessionStartRR === null) return;
+  const diff = currentRR - sessionStartRR;
+  if (diff === 0) { sessionRREl.style.display = 'none'; return; }
+  const cls  = diff > 0 ? 'pos' : 'neg';
+  const sign = diff > 0 ? '+' : '';
+  sessionRREl.innerHTML = `SESSION <span class="val ${cls}">${sign}${diff} RR</span>`;
+  sessionRREl.style.display = 'block';
+}
+
+// ── Rank refresh ────────────────────────────────────────────
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
     const d = await res.json();
     if (!res.ok) return;
     rankName.textContent = d.rank;
-    rrLabel.textContent = d.rr + ' RR';
-    fill.style.width = Math.min(100, Math.max(0, d.rr)) + '%';
+    rrLabel.textContent  = d.rr + ' RR';
+    fill.style.width     = Math.min(100, Math.max(0, d.rr)) + '%';
     if (d.tier > 0) {
       ico.style.display = 'block';
       ico.src = d.rank_icon;
@@ -158,10 +237,47 @@ async function refreshRank() {
     badgeNum.textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
     if (prevChange !== undefined && prevChange !== chg) { badge.classList.add('pop'); setTimeout(() => badge.classList.remove('pop'), 400); }
     prevChange = chg;
+    initSessionRR(d.rr);
     if (firstLoad) { setTimeout(() => container.classList.add('show'), 80); firstLoad = false; }
   } catch(e) {}
 }
 
+// ── Match refresh ───────────────────────────────────────────
+async function refreshMatch() {
+  try {
+    const res = await fetch('/api/lastmatch');
+    if (!res.ok) return;
+    const d = await res.json();
+    if (!d) return;
+
+    matchCard.style.display = 'flex';
+
+    if (d.agent_icon) {
+      matchIcon.src = d.agent_icon;
+      matchIcon.style.display = 'block';
+      matchIcon.onerror = () => { matchIcon.style.display = 'none'; };
+    } else {
+      matchIcon.style.display = 'none';
+    }
+    matchName.textContent   = d.agent || '—';
+    const kda = `${d.kills}/${d.deaths}/${d.assists}`;
+    const mapStr = d.map ? ` • ${d.map}` : '';
+    matchKdaMap.textContent = kda + mapStr;
+
+    if (d.won === null) {
+      matchResult.className = 'match-result draw';
+      matchResult.textContent = '?';
+    } else if (d.won) {
+      matchResult.className = 'match-result win';
+      matchResult.textContent = 'V';
+    } else {
+      matchResult.className = 'match-result loss';
+      matchResult.textContent = 'D';
+    }
+  } catch(e) {}
+}
+
+// ── Stream refresh ──────────────────────────────────────────
 async function refreshStream() {
   try {
     const res = await fetch('/api/stream');
@@ -193,13 +309,17 @@ function updateTimer() {
   if (!streamStart) return;
   const diff = Math.floor((Date.now() - streamStart) / 1000);
   const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-  streamTimer.textContent = h > 0 ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s` : `${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  streamTimer.textContent = h > 0
+    ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
+    : `${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
 }
 
 refreshRank();
 refreshStream();
-setInterval(refreshRank, 30000);
+refreshMatch();
+setInterval(refreshRank,  30000);
 setInterval(refreshStream, 20000);
+setInterval(refreshMatch, 120000);
 </script>
 </body>
 </html>

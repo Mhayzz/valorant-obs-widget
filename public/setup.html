@@ -10,34 +10,48 @@
 body {
   background:#03030a; color:#fff;
   font-family:'DM Sans',sans-serif;
-  min-height:100vh; padding:40px 20px 60px;
+  min-height:100vh;
   -webkit-font-smoothing:antialiased;
 }
 
-.page { max-width:580px; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+/* ── Layout ──────────────────────────────────────────── */
+.layout {
+  display:grid;
+  grid-template-columns:1fr 340px;
+  gap:20px;
+  max-width:1000px;
+  margin:0 auto;
+  padding:36px 24px 60px;
+}
+@media(max-width:720px) {
+  .layout { grid-template-columns:1fr; }
+  .col-right { order:-1; }
+}
 
-/* Header */
-.header { text-align:center; padding:10px 0 18px; }
+/* ── Header ──────────────────────────────────────────── */
+.header { grid-column:1/-1; padding-bottom:8px; }
 .header-badge {
-  display:inline-flex; align-items:center; gap:7px;
-  background:rgba(255,70,85,.12); border:1px solid rgba(255,70,85,.25);
-  border-radius:8px; padding:5px 12px; margin-bottom:14px;
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(255,70,85,.1); border:1px solid rgba(255,70,85,.2);
+  border-radius:7px; padding:4px 11px; margin-bottom:12px;
   font-size:10px; font-weight:600; letter-spacing:1.5px;
-  color:rgba(255,100,115,.9); text-transform:uppercase;
+  color:rgba(255,110,120,.9); text-transform:uppercase;
 }
 .header h1 {
-  font-size:26px; font-weight:600; letter-spacing:-.3px;
-  background:linear-gradient(135deg,#fff 40%,rgba(255,255,255,.5));
+  font-size:24px; font-weight:600; letter-spacing:-.3px;
+  background:linear-gradient(135deg,#fff 40%,rgba(255,255,255,.45));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent;
 }
-.header p { font-size:13px; color:rgba(255,255,255,.35); margin-top:6px; }
+.header p { font-size:13px; color:rgba(255,255,255,.3); margin-top:5px; }
 
-/* Cards */
+/* ── Cards ───────────────────────────────────────────── */
 .card {
   background:rgba(255,255,255,.04);
   border:1px solid rgba(255,255,255,.08);
   border-radius:14px; padding:20px;
+  margin-bottom:14px;
 }
+.card:last-child { margin-bottom:0; }
 
 .section-title {
   font-size:10px; font-weight:600; letter-spacing:1.8px;
@@ -45,183 +59,268 @@ body {
   margin-bottom:16px;
 }
 
-/* Inputs */
+/* ── Form elements ───────────────────────────────────── */
 .field { display:flex; flex-direction:column; gap:6px; }
+.field + .field { margin-top:12px; }
 .field label {
-  font-size:10px; font-weight:600; letter-spacing:1.2px;
+  font-size:10px; font-weight:600; letter-spacing:1.1px;
   text-transform:uppercase; color:rgba(255,255,255,.35);
 }
-.field input, .field select {
+.field-hint { font-size:11px; color:rgba(255,255,255,.2); margin-top:2px; }
+
+input[type=text], input[type=password], select {
   background:rgba(255,255,255,.06);
   border:1px solid rgba(255,255,255,.1);
   border-radius:8px; padding:10px 12px;
   font-size:14px; font-family:'DM Sans',sans-serif;
   color:#fff; outline:none;
   transition:border-color .2s, box-shadow .2s;
+  width:100%;
 }
-.field input::placeholder { color:rgba(255,255,255,.2); }
-.field input:focus, .field select:focus {
-  border-color:rgba(255,70,85,.5);
+input[type=text]::placeholder,
+input[type=password]::placeholder { color:rgba(255,255,255,.2); }
+input[type=text]:focus,
+input[type=password]:focus,
+select:focus {
+  border-color:rgba(255,70,85,.45);
   box-shadow:0 0 0 3px rgba(255,70,85,.1);
 }
-.field select { cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
-.field select option { background:#1a1a2e; }
+select {
+  cursor:pointer; appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center;
+  padding-right:34px;
+}
+select option { background:#1a1a2e; }
 
 .field-row { display:flex; align-items:flex-end; gap:8px; }
 .field-sep { font-size:20px; font-weight:300; color:rgba(255,255,255,.2); padding-bottom:10px; flex-shrink:0; }
-.fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-/* Advanced toggle */
-.advanced-toggle {
+/* ── Option row (toggle + label) ─────────────────────── */
+.opt-row {
   display:flex; align-items:center; justify-content:space-between;
-  cursor:pointer; user-select:none;
-  font-size:10px; font-weight:600; letter-spacing:1.8px;
-  text-transform:uppercase; color:rgba(255,255,255,.3);
-  padding:0; border:none; background:none; width:100%; text-align:left;
-  transition:color .2s;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
 }
-.advanced-toggle:hover { color:rgba(255,255,255,.5); }
-.advanced-toggle .chevron { transition:transform .25s; font-size:12px; }
-.advanced-toggle.open .chevron { transform:rotate(180deg); }
-.advanced-content { overflow:hidden; max-height:0; transition:max-height .3s ease, opacity .3s ease; opacity:0; }
-.advanced-content.open { max-height:200px; opacity:1; }
-.advanced-inner { padding-top:16px; display:flex; flex-direction:column; gap:12px; }
-.field-hint { font-size:11px; color:rgba(255,255,255,.22); margin-top:2px; }
+.opt-row:last-child { border-bottom:none; padding-bottom:0; }
+.opt-row:first-child { padding-top:0; }
+.opt-info {}
+.opt-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.8); }
+.opt-sub { font-size:11px; color:rgba(255,255,255,.25); margin-top:2px; }
 
-/* Save button */
-.save-section { display:flex; flex-direction:column; gap:12px; }
+/* Toggle switch */
+.toggle { position:relative; display:inline-block; width:40px; height:22px; flex-shrink:0; }
+.toggle input { opacity:0; width:0; height:0; }
+.toggle-track {
+  position:absolute; cursor:pointer; inset:0;
+  background:rgba(255,255,255,.1); border-radius:22px;
+  transition:.2s;
+}
+.toggle-track:before {
+  position:absolute; content:"";
+  width:16px; height:16px; left:3px; bottom:3px;
+  background:rgba(255,255,255,.4); border-radius:50%;
+  transition:.2s;
+}
+.toggle input:checked + .toggle-track { background:rgba(255,70,85,.5); }
+.toggle input:checked + .toggle-track:before { transform:translateX(18px); background:#fff; }
+
+/* ── Sliders ─────────────────────────────────────────── */
+.slider-row { display:flex; align-items:center; gap:10px; }
+input[type=range] {
+  flex:1; height:4px; cursor:pointer;
+  accent-color:#ff4655; background:rgba(255,255,255,.1);
+  border-radius:4px; border:none; outline:none; padding:0;
+}
+.slider-val {
+  font-family:'DM Mono',monospace; font-size:12px;
+  color:rgba(255,255,255,.5); min-width:36px; text-align:right;
+}
+
+/* ── Color picker ────────────────────────────────────── */
+.color-row { display:flex; align-items:center; gap:10px; }
+input[type=color] {
+  width:36px; height:36px; padding:2px;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px; cursor:pointer;
+  background:rgba(255,255,255,.06); outline:none;
+  flex-shrink:0;
+}
+.color-hex {
+  font-family:'DM Mono',monospace; font-size:13px;
+  color:rgba(255,255,255,.6); flex:1;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:9px 12px; outline:none;
+  transition:border-color .2s;
+}
+.color-hex:focus { border-color:rgba(255,70,85,.45); }
+
+/* ── Save ────────────────────────────────────────────── */
 .save-btn {
   width:100%; padding:13px; border-radius:10px;
   background:#ff4655; border:none; cursor:pointer;
-  font-size:13px; font-weight:600; letter-spacing:1.5px;
+  font-size:13px; font-weight:600; letter-spacing:1.2px;
   text-transform:uppercase; color:#fff;
-  transition:background .2s, transform .1s, box-shadow .2s;
   font-family:'DM Sans',sans-serif;
+  transition:background .2s, transform .1s, box-shadow .2s;
 }
 .save-btn:hover { background:#ff5a67; box-shadow:0 4px 20px rgba(255,70,85,.3); }
 .save-btn:active { transform:scale(.98); }
 .save-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
 .feedback {
-  font-size:13px; text-align:center; min-height:18px;
-  transition:opacity .3s;
+  font-size:13px; text-align:center; margin-top:10px;
+  min-height:18px; transition:opacity .3s;
 }
 .feedback.success { color:#5fffb5; }
 .feedback.error   { color:#ff5060; }
 
-/* Overlay links */
-.link-item {
-  display:flex; align-items:center; gap:10px;
-  padding:10px 12px; border-radius:8px;
-  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
-}
-.link-item + .link-item { margin-top:8px; }
-.link-label {
-  font-size:11px; font-weight:600; color:rgba(255,255,255,.4);
-  min-width:110px; flex-shrink:0;
-}
-.link-url {
-  font-family:'DM Mono',monospace; font-size:10px;
-  color:rgba(255,255,255,.35); flex:1; white-space:nowrap;
-  overflow:hidden; text-overflow:ellipsis;
-}
-.copy-btn {
-  flex-shrink:0; padding:5px 12px; border-radius:6px;
-  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
-  color:rgba(255,255,255,.6); font-size:11px; font-weight:600;
-  cursor:pointer; font-family:'DM Sans',sans-serif;
-  transition:background .15s, color .15s;
-}
-.copy-btn:hover { background:rgba(255,255,255,.14); color:#fff; }
-.copy-btn.copied { background:rgba(95,255,181,.15); border-color:rgba(95,255,181,.3); color:#5fffb5; }
-
-/* Size hints */
-.size-hint {
-  font-family:'DM Mono',monospace; font-size:9px;
-  color:rgba(255,255,255,.2); margin-left:4px;
-}
-
-/* Test alerts */
-.test-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-.test-btn {
-  padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.1);
-  background:rgba(255,255,255,.04); cursor:pointer;
-  font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif;
-  transition:background .15s, transform .1s;
-  display:flex; align-items:center; justify-content:center; gap:6px;
-}
-.test-btn:hover { background:rgba(255,255,255,.09); }
-.test-btn:active { transform:scale(.97); }
-.test-btn.follow  { color:#ff8c94; }
-.test-btn.sub     { color:#bf94ff; }
-.test-btn.subgift { color:#7ef9ff; }
-.test-btn.cheer   { color:#ffd166; }
-.test-btn .icon   { font-size:16px; }
-
-/* Status */
+/* ── Status bar ──────────────────────────────────────── */
 .status-bar {
-  display:flex; gap:8px;
-  padding:10px 14px;
+  display:flex; align-items:center; gap:10px;
+  padding:11px 14px;
   background:rgba(255,255,255,.03);
   border:1px solid rgba(255,255,255,.07);
-  border-radius:10px; align-items:center;
+  border-radius:10px; margin-bottom:14px;
 }
-.status-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.15); flex-shrink:0; }
-.status-dot.ok { background:#5fffb5; }
+.status-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.status-dot.ok   { background:#5fffb5; box-shadow:0 0 6px rgba(95,255,181,.5); }
 .status-dot.warn { background:#ffd166; }
-.status-dot.err { background:#ff5060; }
-.status-text { font-size:12px; color:rgba(255,255,255,.5); flex:1; }
+.status-dot.err  { background:#ff5060; }
+.status-text { font-size:12px; color:rgba(255,255,255,.45); flex:1; }
 .status-text strong { color:rgba(255,255,255,.8); font-weight:600; }
 
-/* Divider */
-.divider { height:1px; background:rgba(255,255,255,.06); margin:4px 0; }
-
-/* Section with gap */
-.fields-stack { display:flex; flex-direction:column; gap:12px; }
-
-/* Auth link */
-.auth-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-.auth-link {
-  font-size:12px; color:rgba(150,120,255,.8);
-  text-decoration:none; padding:6px 12px;
-  border:1px solid rgba(150,120,255,.25);
-  border-radius:7px; background:rgba(150,120,255,.08);
-  transition:background .15s;
+/* ── Advanced toggle ─────────────────────────────────── */
+.adv-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; border:none; background:none; width:100%; padding:0;
+  font-size:10px; font-weight:600; letter-spacing:1.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.25);
+  font-family:'DM Sans',sans-serif;
+  transition:color .2s;
 }
-.auth-link:hover { background:rgba(150,120,255,.15); }
+.adv-toggle:hover { color:rgba(255,255,255,.45); }
+.adv-chevron { transition:transform .25s; }
+.adv-toggle.open .adv-chevron { transform:rotate(180deg); }
+.adv-body { overflow:hidden; max-height:0; opacity:0; transition:max-height .3s ease, opacity .3s ease; }
+.adv-body.open { max-height:300px; opacity:1; }
+.adv-inner { padding-top:16px; }
+
+/* ── Right column ────────────────────────────────────── */
+.col-right { position:sticky; top:24px; align-self:start; }
+
+/* Preview */
+.preview-wrap {
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px; padding:20px;
+  margin-bottom:14px;
+}
+.preview-title {
+  font-size:10px; font-weight:600; letter-spacing:1.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.3);
+  margin-bottom:14px;
+}
+.preview-bg {
+  background:radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0a0a14 100%);
+  border-radius:10px; padding:16px;
+  display:flex; justify-content:center; align-items:center;
+  min-height:100px;
+  position:relative; overflow:hidden;
+}
+.preview-bg::before {
+  content:'';
+  position:absolute; inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='rgba(255,255,255,0.03)'/%3E%3C/svg%3E");
+}
+#previewFrame {
+  border:none; border-radius:4px;
+  display:block;
+}
+.preview-refresh {
+  margin-top:10px; width:100%; padding:8px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px; cursor:pointer;
+  font-size:11px; font-weight:600; letter-spacing:.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.4);
+  font-family:'DM Sans',sans-serif;
+  transition:background .15s, color .15s;
+}
+.preview-refresh:hover { background:rgba(255,255,255,.09); color:rgba(255,255,255,.7); }
+
+/* OBS info */
+.obs-card {
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:14px; padding:16px 20px;
+  margin-bottom:14px;
+}
+.obs-title {
+  font-size:10px; font-weight:600; letter-spacing:1.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.3);
+  margin-bottom:12px;
+}
+.obs-dim {
+  font-family:'DM Mono',monospace; font-size:13px;
+  color:rgba(255,255,255,.6); margin-bottom:6px;
+}
+.obs-dim span { color:#fff; font-weight:500; }
+.obs-note { font-size:11px; color:rgba(255,255,255,.2); margin-top:8px; }
+
+/* Link copy */
+.link-wrap { display:flex; gap:8px; align-items:center; }
+.link-url {
+  flex:1; font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(255,255,255,.35); padding:9px 10px;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.copy-btn {
+  flex-shrink:0; padding:8px 14px; border-radius:8px;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.55); font-size:11px; font-weight:600;
+  cursor:pointer; font-family:'DM Sans',sans-serif;
+  transition:background .15s, color .15s;
+  white-space:nowrap;
+}
+.copy-btn:hover { background:rgba(255,255,255,.13); color:#fff; }
+.copy-btn.copied { background:rgba(95,255,181,.12); border-color:rgba(95,255,181,.25); color:#5fffb5; }
 </style>
 </head>
 <body>
 
-<div class="page">
+<div class="layout">
 
-  <!-- Header -->
+  <!-- ── HEADER ── -->
   <div class="header">
-    <div class="header-badge">
-      <span>⚙</span> Overlay Setup
+    <div class="header-badge">⚙ Overlay Setup</div>
+    <h1>Valorant OBS Widget</h1>
+    <p>Configure et personnalise ton overlay — sans toucher au code</p>
+  </div>
+
+  <!-- ══ COL GAUCHE ══════════════════════════════════════════ -->
+  <div class="col-left">
+
+    <!-- Status -->
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text" id="statusText">Chargement...</div>
     </div>
-    <h1>Configuration OBS</h1>
-    <p>Configure ton overlay Valorant/Twitch sans toucher au code</p>
-  </div>
 
-  <!-- Status -->
-  <div class="status-bar" id="statusBar">
-    <div class="status-dot" id="statusDot"></div>
-    <div class="status-text" id="statusText">Chargement...</div>
-  </div>
-
-  <!-- VALORANT -->
-  <div class="card">
-    <div class="section-title">Valorant</div>
-    <div class="fields-stack">
+    <!-- VALORANT -->
+    <div class="card">
+      <div class="section-title">Compte Valorant</div>
       <div class="field-row">
         <div class="field" style="flex:2">
           <label>Pseudo Riot</label>
-          <input type="text" id="riotName" placeholder="TonPseudo" autocomplete="off" spellcheck="false">
+          <input type="text" id="riotName" placeholder="TonPseudo" spellcheck="false" autocomplete="off">
         </div>
         <div class="field-sep">#</div>
         <div class="field" style="flex:1">
           <label>Tag</label>
-          <input type="text" id="riotTag" placeholder="EUW" autocomplete="off" spellcheck="false">
+          <input type="text" id="riotTag" placeholder="EUW" spellcheck="false" autocomplete="off">
         </div>
       </div>
       <div class="field">
@@ -236,182 +335,282 @@ body {
         </select>
       </div>
     </div>
-  </div>
 
-  <!-- TWITCH -->
-  <div class="card">
-    <div class="section-title">Twitch</div>
-    <div class="fields-stack">
+    <!-- AFFICHAGE -->
+    <div class="card">
+      <div class="section-title">Affichage</div>
+
+      <!-- Opacité -->
       <div class="field">
-        <label>Nom de chaîne</label>
-        <input type="text" id="twitchChannel" placeholder="tonpseudotwitch" autocomplete="off" spellcheck="false">
-      </div>
-      <div class="auth-row">
-        <span style="font-size:11px; color:rgba(255,255,255,.3);">Pour les subs et alertes Twitch :</span>
-        <a href="/auth" target="_blank" class="auth-link">🔗 Autoriser Twitch</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- AVANCÉ -->
-  <div class="card">
-    <button class="advanced-toggle" id="advancedToggle" type="button">
-      Avancé
-      <span class="chevron">▾</span>
-    </button>
-    <div class="advanced-content" id="advancedContent">
-      <div class="advanced-inner">
-        <div class="field">
-          <label>Clé API Henrik (optionnel)</label>
-          <input type="password" id="henrikKey" placeholder="hdev-xxxxxxxx-xxxx-..." autocomplete="off">
-          <div class="field-hint">Augmente la limite de requêtes. Gratuit sur henrikdev.xyz</div>
-        </div>
-        <div class="field">
-          <label>Mot de passe setup (optionnel)</label>
-          <input type="text" id="setupPwdEnv" placeholder="Variable SETUP_PASSWORD sur Railway" disabled style="opacity:.4; cursor:not-allowed;">
-          <div class="field-hint">À définir dans les variables d'environnement Railway/Docker, pas ici.</div>
+        <label>Opacité du fond</label>
+        <div class="slider-row">
+          <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.75">
+          <span class="slider-val" id="bgOpacityVal">0.75</span>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- SAVE -->
-  <div class="card save-section">
-    <div class="field" id="passwordField" style="display:none">
-      <label>Mot de passe</label>
-      <input type="password" id="password" placeholder="••••••••">
-    </div>
-    <button class="save-btn" id="saveBtn" type="button">Sauvegarder</button>
-    <div class="feedback" id="feedback"></div>
-  </div>
+      <!-- Couleur accent -->
+      <div class="field" style="margin-top:14px">
+        <label>Couleur d'accent</label>
+        <div class="color-row">
+          <input type="color" id="accentPicker" value="#ff4655">
+          <input type="text" class="color-hex" id="accentHex" value="#ff4655" maxlength="7" placeholder="#ff4655">
+        </div>
+      </div>
 
-  <!-- OVERLAY LINKS -->
-  <div class="card">
-    <div class="section-title">Liens OBS <span style="font-weight:400;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.2);">(Browser Source)</span></div>
+      <!-- Largeur widget -->
+      <div class="field" style="margin-top:14px">
+        <label>Largeur widget (px)</label>
+        <select id="widgetWidth">
+          <option value="260">260 px</option>
+          <option value="280">280 px</option>
+          <option value="300" selected>300 px (défaut)</option>
+          <option value="320">320 px</option>
+          <option value="360">360 px</option>
+          <option value="400">400 px</option>
+        </select>
+      </div>
 
-    <div class="link-item">
-      <span class="link-label">Widget principal <span class="size-hint">300×200</span></span>
-      <code class="link-url" id="linkMain"></code>
-      <button class="copy-btn" data-link="linkMain">Copier</button>
-    </div>
-    <div class="link-item">
-      <span class="link-label">Alertes <span class="size-hint">420×140</span></span>
-      <code class="link-url" id="linkAlerts"></code>
-      <button class="copy-btn" data-link="linkAlerts">Copier</button>
-    </div>
-    <div class="link-item">
-      <span class="link-label">Scène complète <span class="size-hint">1920×1080</span></span>
-      <code class="link-url" id="linkScene"></code>
-      <button class="copy-btn" data-link="linkScene">Copier</button>
-    </div>
-  </div>
+      <!-- Refresh interval -->
+      <div class="field" style="margin-top:14px">
+        <label>Intervalle de refresh du rang</label>
+        <select id="refreshRank">
+          <option value="15">15 secondes</option>
+          <option value="30" selected>30 secondes (défaut)</option>
+          <option value="60">60 secondes</option>
+          <option value="120">2 minutes</option>
+        </select>
+      </div>
 
-  <!-- TEST ALERTS -->
-  <div class="card">
-    <div class="section-title" style="margin-bottom:12px">Tester les alertes</div>
-    <div class="test-btns">
-      <button class="test-btn follow" onclick="testAlert('follow')">
-        <span class="icon">❤️</span> Follow
+      <!-- Toggles -->
+      <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,.06); padding-top:16px;">
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Session RR</div>
+            <div class="opt-sub">Affiche le RR gagné/perdu depuis l'ouverture du widget</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showSessionRR" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Dernière partie</div>
+            <div class="opt-sub">Agent joué, K/D/A, map et résultat (V/D)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showLastMatch" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Streak (5 dernières parties)</div>
+            <div class="opt-sub">Barre de couleur verte/rouge par partie</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showStreak" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- AVANCÉ -->
+    <div class="card">
+      <button class="adv-toggle" id="advToggle" type="button">
+        Avancé <span class="adv-chevron">▾</span>
       </button>
-      <button class="test-btn sub" onclick="testAlert('sub')">
-        <span class="icon">⭐</span> Sub
-      </button>
-      <button class="test-btn subgift" onclick="testAlert('subgift')">
-        <span class="icon">🎁</span> Gift Sub
-      </button>
-      <button class="test-btn cheer" onclick="testAlert('cheer')">
-        <span class="icon">💎</span> Cheer
-      </button>
+      <div class="adv-body" id="advBody">
+        <div class="adv-inner">
+          <div class="field">
+            <label>Clé API Henrik (optionnel)</label>
+            <input type="password" id="henrikKey" placeholder="hdev-xxxxxxxx..." autocomplete="off">
+            <div class="field-hint">Augmente la limite de requêtes. Gratuit sur henrikdev.xyz</div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-</div>
+    <!-- SAVE -->
+    <div class="card">
+      <div class="field" id="passwordField" style="display:none; margin-bottom:12px">
+        <label>Mot de passe</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+      <button class="save-btn" id="saveBtn" type="button">Sauvegarder la configuration</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+  </div><!-- /col-left -->
+
+  <!-- ══ COL DROITE ══════════════════════════════════════════ -->
+  <div class="col-right">
+
+    <!-- Preview -->
+    <div class="preview-wrap">
+      <div class="preview-title">Aperçu</div>
+      <div class="preview-bg" id="previewBg">
+        <iframe id="previewFrame" src="/index.html" scrolling="no" height="220"></iframe>
+      </div>
+      <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser l'aperçu</button>
+    </div>
+
+    <!-- OBS info -->
+    <div class="obs-card">
+      <div class="obs-title">Dimensions OBS</div>
+      <div class="obs-dim">Largeur : <span id="obsDimW">300</span> px</div>
+      <div class="obs-dim">Hauteur : <span id="obsDimH">~180</span> px</div>
+      <div class="obs-note">Dans OBS → Source navigateur → décocher "Contrôler audio via OBS"</div>
+    </div>
+
+    <!-- Link -->
+    <div class="obs-card">
+      <div class="obs-title">Lien overlay</div>
+      <div class="link-wrap">
+        <code class="link-url" id="overlayLink"></code>
+        <button class="copy-btn" id="copyBtn">Copier</button>
+      </div>
+    </div>
+
+  </div><!-- /col-right -->
+
+</div><!-- /layout -->
 
 <script>
 const base = window.location.origin;
+document.getElementById('overlayLink').textContent = base + '/index.html';
 
-// ── Overlay links ───────────────────────────────────────────
-document.getElementById('linkMain').textContent   = base + '/index.html';
-document.getElementById('linkAlerts').textContent  = base + '/alerts.html';
-document.getElementById('linkScene').textContent   = base + '/scene-cam.html';
-
-// ── Copy buttons ────────────────────────────────────────────
-document.querySelectorAll('.copy-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const text = document.getElementById(btn.dataset.link).textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      btn.textContent = '✓';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1800);
-    }).catch(() => {
-      // Fallback for non-https
-      const ta = document.createElement('textarea');
-      ta.value = text; document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      btn.textContent = '✓'; btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1800);
-    });
+// ── Copy ─────────────────────────────────────────────────────
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const text = document.getElementById('overlayLink').textContent;
+  const btn = document.getElementById('copyBtn');
+  const copy = txt => {
+    btn.textContent = '✓ Copié'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  };
+  navigator.clipboard?.writeText(text).then(copy).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta); copy();
   });
 });
 
-// ── Advanced toggle ─────────────────────────────────────────
-const advToggle  = document.getElementById('advancedToggle');
-const advContent = document.getElementById('advancedContent');
-advToggle.addEventListener('click', () => {
-  const open = advContent.classList.toggle('open');
-  advToggle.classList.toggle('open', open);
+// ── Preview ───────────────────────────────────────────────────
+function refreshPreview() {
+  const frame = document.getElementById('previewFrame');
+  const w = parseInt(document.getElementById('widgetWidth').value) || 300;
+  frame.width  = w;
+  frame.height = calcHeight();
+  document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
+  frame.src = '/index.html?' + Date.now();
+}
+
+function calcHeight() {
+  let h = 74; // rank card base
+  if (document.getElementById('showSessionRR').checked)  h += 14;
+  if (document.getElementById('showLastMatch').checked)  h += 49;
+  if (document.getElementById('showStreak').checked)     h += 37;
+  return h;
+}
+
+function updateObsDims() {
+  const w = parseInt(document.getElementById('widgetWidth').value) || 300;
+  document.getElementById('obsDimW').textContent = w;
+  document.getElementById('obsDimH').textContent = '~' + calcHeight();
+  document.getElementById('previewFrame').width  = w;
+  document.getElementById('previewFrame').height = calcHeight() + 20;
+}
+
+// ── Advanced toggle ───────────────────────────────────────────
+document.getElementById('advToggle').addEventListener('click', function() {
+  const body = document.getElementById('advBody');
+  const open = body.classList.toggle('open');
+  this.classList.toggle('open', open);
 });
 
-// ── Load config ─────────────────────────────────────────────
+// ── Opacity slider ────────────────────────────────────────────
+document.getElementById('bgOpacity').addEventListener('input', function() {
+  document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
+});
+
+// ── Color picker sync ─────────────────────────────────────────
+document.getElementById('accentPicker').addEventListener('input', function() {
+  document.getElementById('accentHex').value = this.value;
+});
+document.getElementById('accentHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('accentPicker').value = v;
+});
+
+// ── Toggle dims update ────────────────────────────────────────
+['showSessionRR','showLastMatch','showStreak'].forEach(id => {
+  document.getElementById(id).addEventListener('change', updateObsDims);
+});
+document.getElementById('widgetWidth').addEventListener('change', updateObsDims);
+
+// ── Load config ───────────────────────────────────────────────
 async function loadConfig() {
   const dot  = document.getElementById('statusDot');
   const text = document.getElementById('statusText');
   try {
-    const r = await fetch('/api/config');
+    const r   = await fetch('/api/config');
     const cfg = await r.json();
 
-    document.getElementById('riotName').value      = cfg.riot_name     || '';
-    document.getElementById('riotTag').value       = cfg.riot_tag      || '';
-    document.getElementById('riotRegion').value    = cfg.riot_region   || 'eu';
-    document.getElementById('twitchChannel').value = cfg.twitch_channel || '';
-
+    document.getElementById('riotName').value   = cfg.riot_name   || '';
+    document.getElementById('riotTag').value    = cfg.riot_tag    || '';
+    document.getElementById('riotRegion').value = cfg.riot_region || 'eu';
     if (cfg.has_henrik_key) {
-      document.getElementById('henrikKey').placeholder = '(clé déjà définie — laisser vide pour garder)';
+      document.getElementById('henrikKey').placeholder = '(clé définie — vider pour supprimer)';
     }
     if (cfg.password_required) {
       document.getElementById('passwordField').style.display = 'block';
     }
 
-    // Status bar
-    const hasRiot   = !!(cfg.riot_name && cfg.riot_tag);
-    const hasTwitch = !!cfg.twitch_channel;
-    if (hasRiot && hasTwitch) {
+    // Display
+    const d = cfg.display || {};
+    if (d.bg_opacity !== undefined) {
+      document.getElementById('bgOpacity').value = d.bg_opacity;
+      document.getElementById('bgOpacityVal').textContent = parseFloat(d.bg_opacity).toFixed(2);
+    }
+    if (d.accent_color) {
+      document.getElementById('accentPicker').value = d.accent_color;
+      document.getElementById('accentHex').value    = d.accent_color;
+    }
+    if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
+    if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
+    if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
+    if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
+    if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
+
+    // Status
+    const hasAccount = !!(cfg.riot_name && cfg.riot_tag);
+    if (hasAccount) {
       dot.className  = 'status-dot ok';
-      text.innerHTML = `Configuré : <strong>${cfg.riot_name}#${cfg.riot_tag}</strong> · Twitch : <strong>${cfg.twitch_channel}</strong>`;
-    } else if (hasRiot) {
-      dot.className  = 'status-dot warn';
-      text.innerHTML = `<strong>${cfg.riot_name}#${cfg.riot_tag}</strong> — Twitch non configuré`;
+      text.innerHTML = `Compte actif : <strong>${cfg.riot_name}#${cfg.riot_tag}</strong> — région <strong>${cfg.riot_region?.toUpperCase()}</strong>`;
     } else {
       dot.className  = 'status-dot err';
-      text.innerHTML = 'Aucun compte configuré — remplis le formulaire ci-dessous';
+      text.innerHTML = 'Aucun compte configuré — remplis le formulaire';
     }
+
+    updateObsDims();
+    refreshPreview();
   } catch(e) {
     dot.className  = 'status-dot err';
     text.textContent = 'Impossible de contacter le serveur';
   }
 }
 
-// ── Save config ─────────────────────────────────────────────
+// ── Save ──────────────────────────────────────────────────────
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const btn      = document.getElementById('saveBtn');
   const feedback = document.getElementById('feedback');
 
   const riotName = document.getElementById('riotName').value.trim();
   const riotTag  = document.getElementById('riotTag').value.trim();
-
   if (!riotName || !riotTag) {
-    feedback.textContent = '⚠️ Pseudo et tag Riot requis';
+    feedback.textContent = '⚠️ Pseudo et tag requis';
     feedback.className = 'feedback error';
     return;
   }
@@ -421,29 +620,38 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   feedback.textContent = '';
 
   const body = {
-    riot_name:      riotName,
-    riot_tag:       riotTag,
-    riot_region:    document.getElementById('riotRegion').value,
-    twitch_channel: document.getElementById('twitchChannel').value.trim().toLowerCase(),
+    riot_name:   riotName,
+    riot_tag:    riotTag,
+    riot_region: document.getElementById('riotRegion').value,
+    display: {
+      bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
+      accent_color:    document.getElementById('accentHex').value || '#ff4655',
+      widget_width:    parseInt(document.getElementById('widgetWidth').value),
+      refresh_rank:    parseInt(document.getElementById('refreshRank').value),
+      show_session_rr: document.getElementById('showSessionRR').checked,
+      show_last_match: document.getElementById('showLastMatch').checked,
+      show_streak:     document.getElementById('showStreak').checked,
+    },
   };
 
-  const henrikKey = document.getElementById('henrikKey').value.trim();
-  if (henrikKey) body.henrik_api_key = henrikKey;
+  const key = document.getElementById('henrikKey').value.trim();
+  if (key) body.henrik_api_key = key;
 
   const pwd = document.getElementById('password').value;
   if (pwd) body.password = pwd;
 
   try {
     const r = await fetch('/api/config', {
-      method: 'POST',
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body:    JSON.stringify(body),
     });
     const j = await r.json();
     if (r.ok) {
-      feedback.textContent = '✅ Configuration sauvegardée !';
+      feedback.textContent = '✅ Sauvegardé !';
       feedback.className   = 'feedback success';
       await loadConfig();
+      setTimeout(refreshPreview, 600);
     } else {
       feedback.textContent = '❌ ' + (j.error || 'Erreur');
       feedback.className   = 'feedback error';
@@ -454,17 +662,12 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   }
 
   btn.disabled    = false;
-  btn.textContent = 'Sauvegarder';
+  btn.textContent = 'Sauvegarder la configuration';
   setTimeout(() => { feedback.textContent = ''; feedback.className = 'feedback'; }, 5000);
 });
 
-// ── Test alerts ─────────────────────────────────────────────
-async function testAlert(type) {
-  try { await fetch('/test/' + type); } catch(e) {}
-}
-
-// ── Submit on Enter ─────────────────────────────────────────
-document.querySelectorAll('input[type=text], input[type=password], select').forEach(el => {
+// ── Enter key ─────────────────────────────────────────────────
+document.querySelectorAll('input[type=text], input[type=password]').forEach(el => {
   el.addEventListener('keydown', e => {
     if (e.key === 'Enter') document.getElementById('saveBtn').click();
   });

@@ -386,6 +386,16 @@ input[type=color] {
       <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,.06); padding-top:16px;">
         <div class="opt-row">
           <div class="opt-info">
+            <div class="opt-label">Peak Rank</div>
+            <div class="opt-sub">Affiche le meilleur rang atteint (si différent du rang actuel)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showPeakRank" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
             <div class="opt-label">Session RR</div>
             <div class="opt-sub">Affiche le RR gagné/perdu depuis l'ouverture du widget</div>
           </div>
@@ -522,7 +532,7 @@ document.getElementById('accentHex').addEventListener('input', function() {
 });
 
 // ── Toggle dims update ────────────────────────────────────────
-['showSessionRR','showLastMatch','showStreak'].forEach(id => {
+['showPeakRank','showSessionRR','showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', updateObsDims);
 });
 document.getElementById('widgetWidth').addEventListener('change', updateObsDims);
@@ -554,6 +564,7 @@ async function loadConfig() {
     }
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
     if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
+    if (d.show_peak_rank  !== undefined) document.getElementById('showPeakRank').checked  = d.show_peak_rank;
     if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
@@ -602,6 +613,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       accent_color:    document.getElementById('accentHex').value || '#ff4655',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
+      show_peak_rank:  document.getElementById('showPeakRank').checked,
       show_session_rr: document.getElementById('showSessionRR').checked,
       show_last_match: document.getElementById('showLastMatch').checked,
       show_streak:     document.getElementById('showStreak').checked,

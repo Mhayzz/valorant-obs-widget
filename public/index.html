@@ -52,6 +52,13 @@ body {
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
 .rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
 
+.peak-rank {
+  font-size:9px; font-weight:600; letter-spacing:.7px;
+  text-transform:uppercase; color:rgba(255,255,255,.2);
+  line-height:1; margin-top:1px;
+}
+.peak-rank span { color:rgba(255,255,255,.45); font-family:'DM Mono',monospace; }
+
 .session-rr {
   font-size:9px; font-weight:600; letter-spacing:.7px;
   text-transform:uppercase; color:rgba(255,255,255,.3);
@@ -152,6 +159,7 @@ body {
     </div>
     <div class="rank-info">
       <div class="rank-name" id="rankName">—</div>
+      <div class="peak-rank" id="peakRank" style="display:none"></div>
       <div class="session-rr" id="sessionRR" style="display:none"></div>
       <div class="rr-row">
         <div class="rr-label" id="rrLabel">0 RR</div>
@@ -238,6 +246,16 @@ async function refreshRank() {
       ico.onerror = () => {
         ico.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${d.tier}/largeicon.png`;
       };
+    }
+
+    // Peak rank
+    const peakEl = document.getElementById('peakRank');
+    if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
+      const season = d.peak_season ? ` · ${d.peak_season}` : '';
+      peakEl.innerHTML = `PEAK <span>${d.peak_rank}${season}</span>`;
+      peakEl.style.display = 'block';
+    } else {
+      peakEl.style.display = 'none';
     }
 
     const chg = d.rr_change;

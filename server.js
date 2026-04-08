@@ -16,6 +16,7 @@ const DEFAULT_DISPLAY = {
   bg_opacity:      0.75,
   accent_color:    "#ff4655",
   show_session_rr: true,
+  show_peak_rank:  true,
   show_last_match: true,
   show_streak:     true,
   widget_width:    300,
@@ -112,14 +113,18 @@ app.get("/api/rank", async (req, res) => {
     if (!r.ok) return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
 
     const current = json.data?.current;
+    const peak    = json.data?.peak;
     const tier    = current?.tier?.id ?? 0;
     const result  = {
-      rank:      current?.tier?.name || "Unranked",
-      rr:        current?.rr         ?? 0,
-      rr_change: current?.last_change ?? null,
+      rank:         current?.tier?.name || "Unranked",
+      rr:           current?.rr         ?? 0,
+      rr_change:    current?.last_change ?? null,
       tier,
-      rank_icon: current?.images?.large || current?.images?.small ||
+      rank_icon:    current?.images?.large || current?.images?.small ||
         `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png`,
+      peak_rank:    peak?.tier?.name   || null,
+      peak_tier:    peak?.tier?.id     ?? 0,
+      peak_season:  peak?.season?.short || null,
       player: `${name}#${tag}`,
     };
     rankCache = { data: result, ts: now };

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valorant OBS Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--accent:#ff4655;--green:#5fffb5;--purple:#9b6dff;}
+html{scroll-behavior:smooth;}
+body{background:#03030a;color:#fff;font-family:'DM Sans',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── BG ─────────────────────────────────────────── */
+.bg-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.blob{position:absolute;border-radius:50%;filter:blur(100px);opacity:.12;}
+.b1{width:700px;height:500px;background:radial-gradient(ellipse,#3a0f6e,transparent);top:-150px;left:-200px;animation:drift 28s ease-in-out infinite alternate;}
+.b2{width:500px;height:380px;background:radial-gradient(ellipse,#0f1f6e,transparent);bottom:-100px;right:-100px;animation:drift 22s ease-in-out infinite alternate-reverse;}
+.b3{width:350px;height:280px;background:radial-gradient(ellipse,#6e0f2a,transparent);top:40%;left:55%;animation:drift 35s ease-in-out infinite alternate;}
+@keyframes drift{0%{transform:translate(0,0) scale(1);}100%{transform:translate(30px,20px) scale(1.08);}}
+.grid-overlay{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0;}
+
+/* ── NAV ─────────────────────────────────────────── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;background:rgba(3,3,10,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.06);}
+.nav-logo{display:flex;align-items:center;gap:10px;}
+.nav-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse-dot 2s ease infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.85);}}
+.nav-logo-text{font-size:15px;font-weight:600;letter-spacing:-.2px;}
+.nav-cta{padding:8px 18px;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;font-weight:600;letter-spacing:.5px;text-decoration:none;transition:background .2s,box-shadow .2s;}
+.nav-cta:hover{background:#ff5a67;box-shadow:0 4px 20px rgba(255,70,85,.35);}
+
+/* ── SECTIONS ────────────────────────────────────── */
+section{position:relative;z-index:1;}
+
+/* ── HERO ────────────────────────────────────────── */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 24px 80px;text-align:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,70,85,.1);border:1px solid rgba(255,70,85,.2);border-radius:100px;padding:6px 14px;font-size:11px;font-weight:600;letter-spacing:1.5px;color:rgba(255,110,120,.9);text-transform:uppercase;margin-bottom:28px;}
+.hero h1{font-size:clamp(40px,7vw,76px);font-weight:700;letter-spacing:-2px;line-height:1.08;margin-bottom:22px;background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.5) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--accent),#ff8c94);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{font-size:clamp(15px,2vw,19px);color:rgba(255,255,255,.4);max-width:520px;line-height:1.65;margin-bottom:40px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:72px;}
+.btn-primary{padding:14px 28px;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;font-weight:600;letter-spacing:.5px;text-decoration:none;transition:background .2s,transform .15s,box-shadow .2s;display:inline-flex;align-items:center;gap:8px;}
+.btn-primary:hover{background:#ff5a67;transform:translateY(-1px);box-shadow:0 8px 30px rgba(255,70,85,.3);}
+.btn-secondary{padding:14px 28px;border-radius:10px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);font-size:14px;font-weight:600;text-decoration:none;transition:background .2s;}
+.btn-secondary:hover{background:rgba(255,255,255,.12);}
+
+/* ── WIDGET MOCK ─────────────────────────────────── */
+.widget-showcase{position:relative;display:inline-block;}
+.showcase-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse at center,rgba(255,70,85,.12),transparent 70%);pointer-events:none;z-index:0;}
+.widget-wrap{position:relative;z-index:1;display:flex;flex-direction:column;gap:5px;padding:2px;width:300px;}
+.w-card{border-radius:10px;background:rgba(0,0,0,.78);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.08);overflow:hidden;}
+
+/* rank */
+.w-rank{display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;}
+.w-rank-icon{flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center;}
+.w-rank-icon img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));}
+.w-rank-info{flex:1;display:flex;flex-direction:column;gap:4px;}
+.w-rank-name{font-weight:600;font-size:16px;color:#fff;line-height:1;}
+.w-peak{font-size:9px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:rgba(255,255,255,.2);line-height:1;}
+.w-peak span{color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;}
+.w-session{font-size:9px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:rgba(255,255,255,.3);line-height:1;}
+.w-session .pos{color:rgba(95,255,181,.8);font-family:'DM Mono',monospace;}
+.w-rr-row{display:flex;align-items:center;gap:6px;}
+.w-rr-label{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.35);min-width:34px;}
+.w-track{flex:1;height:2px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;}
+.w-fill{height:100%;border-radius:2px;background:var(--accent);opacity:.6;}
+.w-badge{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;min-width:36px;text-align:right;line-height:1;flex-shrink:0;color:var(--green);}
+.w-badge .sub{display:block;font-size:8px;letter-spacing:1px;opacity:.35;margin-top:2px;text-align:right;font-family:'DM Sans',sans-serif;}
+
+/* match */
+.w-match{display:flex;align-items:center;gap:9px;padding:7px 14px 7px 10px;}
+.w-agent-wrap{flex-shrink:0;width:30px;height:30px;border-radius:7px;overflow:hidden;background:rgba(255,255,255,.06);}
+.w-agent-wrap img{width:30px;height:30px;object-fit:cover;}
+.w-match-info{flex:1;}
+.w-match-agent{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);line-height:1;}
+.w-match-kda{font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;}
+.w-result-win{font-size:10px;font-weight:700;letter-spacing:.8px;padding:3px 8px;border-radius:5px;color:var(--green);background:rgba(95,255,181,.1);}
+
+/* streak */
+.w-streak{display:flex;align-items:center;padding:8px 14px;gap:5px;}
+.w-streak-lbl{font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.2);margin-right:4px;flex-shrink:0;}
+.s-dot{width:22px;height:5px;border-radius:3px;}
+.s-w{background:var(--green);opacity:.75;}
+.s-l{background:#ff5060;opacity:.75;}
+
+/* ── STATS BAR ───────────────────────────────────── */
+.stats-bar{display:flex;justify-content:center;gap:0;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06);}
+.stat-item{flex:1;max-width:200px;padding:28px 24px;text-align:center;position:relative;}
+.stat-item+.stat-item::before{content:'';position:absolute;left:0;top:25%;bottom:25%;width:1px;background:rgba(255,255,255,.06);}
+.stat-num{font-family:'DM Mono',monospace;font-size:32px;font-weight:500;color:#fff;line-height:1;margin-bottom:6px;}
+.stat-num em{font-style:normal;color:var(--accent);}
+.stat-desc{font-size:12px;color:rgba(255,255,255,.3);letter-spacing:.3px;}
+
+/* ── FEATURES ────────────────────────────────────── */
+.features{padding:100px 24px;}
+.section-label{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--accent);text-align:center;margin-bottom:14px;}
+.section-title{font-size:clamp(26px,4vw,40px);font-weight:700;letter-spacing:-1px;text-align:center;margin-bottom:56px;}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;max-width:900px;margin:0 auto;}
+.feat-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px;transition:border-color .2s,transform .2s,background .2s;}
+.feat-card:hover{border-color:rgba(255,255,255,.14);transform:translateY(-2px);background:rgba(255,255,255,.06);}
+.feat-icon{font-size:28px;margin-bottom:14px;display:block;}
+.feat-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:8px;}
+.feat-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;}
+
+/* ── HOW IT WORKS ────────────────────────────────── */
+.how{padding:100px 24px;background:rgba(255,255,255,.015);border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05);}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:40px;max-width:780px;margin:0 auto;position:relative;}
+.steps::before{content:'';position:absolute;top:28px;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);pointer-events:none;}
+.step{text-align:center;}
+.step-num{width:56px;height:56px;border-radius:50%;background:rgba(255,70,85,.1);border:1px solid rgba(255,70,85,.2);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:var(--accent);margin:0 auto 18px;}
+.step-title{font-size:15px;font-weight:600;margin-bottom:8px;}
+.step-desc{font-size:13px;color:rgba(255,255,255,.35);line-height:1.6;}
+
+/* ── CUSTOMIZATION ───────────────────────────────── */
+.custom{padding:100px 24px;text-align:center;}
+.custom-inner{max-width:720px;margin:0 auto;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:40px;text-align:left;}
+.opt-item{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;}
+.opt-check{width:18px;height:18px;border-radius:50%;background:rgba(95,255,181,.15);border:1px solid rgba(95,255,181,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.opt-check::after{content:'✓';font-size:10px;color:var(--green);}
+.opt-text{font-size:13px;color:rgba(255,255,255,.6);}
+
+/* ── CTA ─────────────────────────────────────────── */
+.cta{padding:120px 24px;text-align:center;}
+.cta h2{font-size:clamp(28px,5vw,52px);font-weight:700;letter-spacing:-1.5px;margin-bottom:16px;background:linear-gradient(135deg,#fff,rgba(255,255,255,.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.cta p{font-size:16px;color:rgba(255,255,255,.35);margin-bottom:36px;}
+
+/* ── FOOTER ──────────────────────────────────────── */
+footer{padding:24px 32px;border-top:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;}
+.footer-logo{font-size:13px;font-weight:600;color:rgba(255,255,255,.3);}
+.footer-link{font-size:12px;color:rgba(255,255,255,.2);text-decoration:none;transition:color .2s;}
+.footer-link:hover{color:rgba(255,255,255,.5);}
+
+/* ── REVEAL ──────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+
+@media(max-width:600px){
+  nav{padding:14px 18px;}
+  .stats-bar{flex-direction:column;border:none;}
+  .stat-item+.stat-item::before{display:none;}
+  .options-grid{grid-template-columns:1fr;}
+  .steps::before{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-wrap">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">Valo Widget</span>
+  </div>
+  <a href="/setup.html" class="nav-cta">Configurer →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">✦ Overlay OBS · Valorant</div>
+  <h1>Ton rang en direct<br>sur ton <em>stream</em></h1>
+  <p class="hero-sub">Un overlay élégant qui affiche ton rang Valorant, ta session, ta dernière partie et ton streak — en temps réel.</p>
+  <div class="hero-btns">
+    <a href="/setup.html" class="btn-primary">⚙ Configurer mon widget</a>
+    <a href="/index.html" class="btn-secondary">Voir l'overlay</a>
+  </div>
+
+  <!-- Widget mock -->
+  <div class="widget-showcase">
+    <div class="showcase-glow"></div>
+    <div class="widget-wrap">
+      <!-- Rank card -->
+      <div class="w-card w-rank">
+        <div class="w-rank-icon">
+          <img src="https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/27/largeicon.png" alt="Radiant">
+        </div>
+        <div class="w-rank-info">
+          <div class="w-rank-name">Radiant</div>
+          <div class="w-peak">PEAK <span>Radiant · e8a2</span></div>
+          <div class="w-session">SESSION <span class="pos">+658 RR</span></div>
+          <div class="w-rr-row">
+            <div class="w-rr-label">694 RR</div>
+            <div class="w-track"><div class="w-fill" style="width:94%"></div></div>
+          </div>
+        </div>
+        <div class="w-badge">+16<span class="sub">LAST</span></div>
+      </div>
+      <!-- Last match -->
+      <div class="w-card w-match">
+        <div class="w-agent-wrap">
+          <img src="https://media.valorant-api.com/agents/1dbf2edd-4729-0984-3115-daa5eed44993/displayicon.png" alt="Clove">
+        </div>
+        <div class="w-match-info">
+          <div class="w-match-agent">Clove</div>
+          <div class="w-match-kda">21/9/7 · Lotus</div>
+        </div>
+        <div class="w-result-win">V</div>
+      </div>
+      <!-- Streak -->
+      <div class="w-card w-streak">
+        <span class="w-streak-lbl">STREAK</span>
+        <div class="s-dot s-l"></div>
+        <div class="s-dot s-w"></div>
+        <div class="s-dot s-w"></div>
+        <div class="s-dot s-w"></div>
+        <div class="s-dot s-w"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<section class="stats-bar reveal">
+  <div class="stat-item">
+    <div class="stat-num"><em>2</em> min</div>
+    <div class="stat-desc">Pour tout configurer</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">100<em>%</em></div>
+    <div class="stat-desc">Personnalisable</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num"><em>0</em> code</div>
+    <div class="stat-desc">À modifier</div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="section-label">Fonctionnalités</div>
+  <h2 class="section-title reveal">Tout ce qu'il faut,<br>rien de plus</h2>
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <span class="feat-icon">🎯</span>
+      <div class="feat-title">Rang en temps réel</div>
+      <div class="feat-desc">Rang, RR et dernière variation affichés et mis à jour automatiquement via l'API Henrik.</div>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">⚡</span>
+      <div class="feat-title">Session RR</div>
+      <div class="feat-desc">Combien de RR tu as gagné ou perdu depuis que tu as ouvert l'overlay. Se remet à zéro à chaque session.</div>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🏆</span>
+      <div class="feat-title">Peak Rank</div>
+      <div class="feat-desc">Ton meilleur rang historique affiché sous le rang actuel, avec la saison où tu l'as atteint.</div>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🎮</span>
+      <div class="feat-title">Dernière partie</div>
+      <div class="feat-desc">Agent, K/D/A, map et résultat victoire/défaite de ta partie la plus récente.</div>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">📊</span>
+      <div class="feat-title">Streak des 5 parties</div>
+      <div class="feat-desc">5 barres colorées montrant tes victoires et défaites récentes d'un coup d'œil.</div>
+    </div>
+    <div class="feat-card reveal">
+      <span class="feat-icon">🎨</span>
+      <div class="feat-title">100% personnalisable</div>
+      <div class="feat-desc">Couleur d'accent, opacité, largeur, sections actives — tout se configure sans toucher au code.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how">
+  <div class="section-label">Setup</div>
+  <h2 class="section-title reveal">Prêt en 3 étapes</h2>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <div class="step-title">Déploie</div>
+      <div class="step-desc">Fork le repo et déploie sur Railway en 1 clic. Gratuit, aucune carte requise.</div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <div class="step-title">Configure</div>
+      <div class="step-desc">Ouvre <code style="font-family:'DM Mono',monospace;color:var(--accent)">/setup.html</code>, entre ton pseudo Riot et personnalise le rendu.</div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <div class="step-title">Ajoute dans OBS</div>
+      <div class="step-desc">Copie l'URL depuis la page setup et colle-la dans une source navigateur OBS.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CUSTOMIZATION -->
+<section class="custom">
+  <div class="custom-inner">
+    <div class="section-label">Options</div>
+    <h2 class="section-title reveal">Configure chaque détail</h2>
+    <p class="reveal" style="color:rgba(255,255,255,.35);font-size:15px;margin-bottom:0;">Tout est accessible depuis la page setup — aucune modification de code requise.</p>
+    <div class="options-grid reveal">
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Couleur d'accent personnalisée</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Opacité du fond réglable</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Largeur du widget flexible</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Intervalle de refresh configurable</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Section Peak Rank activable</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Session RR activable</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Carte dernière partie activable</span></div>
+      <div class="opt-item"><div class="opt-check"></div><span class="opt-text">Streak 5 parties activable</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2 class="reveal">Prêt à stream ?</h2>
+  <p class="reveal">Configure ton overlay en 2 minutes.</p>
+  <a href="/setup.html" class="btn-primary reveal">⚙ Configurer maintenant</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">Valorant OBS Widget</span>
+  <a href="/setup.html" class="footer-link">Setup →</a>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

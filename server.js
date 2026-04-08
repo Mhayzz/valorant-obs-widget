@@ -159,7 +159,7 @@ app.get("/api/matches", async (req, res) => {
         const agentId   = stats.character?.id;
         const agentName = stats.character?.name || "Unknown";
         const agentIcon = agentId
-          ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
+          ? `https://media.valorant-api.com/agents/${agentId}/displayicon.png`
           : null;
 
         const playerTeam = (stats.team || "").toLowerCase(); // "red" ou "blue"
@@ -214,7 +214,7 @@ app.get("/api/matches", async (req, res) => {
 
       const agentId   = player.agent?.id;
       const agentIcon = agentId
-        ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
+        ? `https://media.valorant-api.com/agents/${agentId}/displayicon.png`
         : null;
 
       const teamId = player.team_id ?? player.team;

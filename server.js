@@ -138,15 +138,72 @@ app.get("/api/matches", async (req, res) => {
     return res.json(matchCache.data.slice(0, size));
   }
 
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["Authorization"] = apiKey;
+
+  // Essaye v1/lifetime (le plus fiable pour l'historique par joueur)
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers["Authorization"] = apiKey;
     const r = await fetch(
-      `https://api.henrikdev.xyz/valorant/v3/matches/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
+      `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
       { headers }
     );
     const json = await r.json();
-    if (!r.ok) return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
+
+    if (r.ok && Array.isArray(json.data) && json.data.length > 0) {
+      const matches = json.data.map(m => {
+        const stats = m.stats;
+        const meta  = m.meta;
+        const teams = m.teams;
+        if (!stats) return null;
+
+        const agentId   = stats.character?.id;
+        const agentName = stats.character?.name || "Unknown";
+        const agentIcon = agentId
+          ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
+          : null;
+
+        const playerTeam = (stats.team || "").toLowerCase(); // "red" ou "blue"
+        const redRounds  = teams?.red   ?? 0;
+        const blueRounds = teams?.blue  ?? 0;
+        const won = playerTeam === "red"  ? redRounds  > blueRounds
+                  : playerTeam === "blue" ? blueRounds > redRounds
+                  : null;
+
+        const mapRaw  = meta?.map;
+        const mapName = typeof mapRaw === "string" ? mapRaw : (mapRaw?.name || "Unknown");
+
+        return {
+          agent:      agentName,
+          agent_icon: agentIcon,
+          kills:      stats.kills   ?? 0,
+          deaths:     stats.deaths  ?? 0,
+          assists:    stats.assists ?? 0,
+          won,
+          map:  mapName,
+          mode: meta?.mode || "",
+        };
+      }).filter(Boolean);
+
+      matchCache = { data: matches, size, ts: now };
+      return res.json(matches);
+    }
+    // Si v1/lifetime échoue ou retourne rien, fallback v3
+    console.log("v1/lifetime:", r.status, json.errors?.[0]?.message || json.message || "no data");
+  } catch(e) {
+    console.error("v1/lifetime error:", e.message);
+  }
+
+  // Fallback : v3 sans /pc/
+  try {
+    const r = await fetch(
+      `https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
+      { headers }
+    );
+    const json = await r.json();
+    if (!r.ok) {
+      console.log("v3/matches:", r.status, json.errors?.[0]?.message || json.message);
+      return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
+    }
 
     const matches = (json.data || []).map(match => {
       const player = match.players?.find(p =>
@@ -155,22 +212,16 @@ app.get("/api/matches", async (req, res) => {
       );
       if (!player) return null;
 
-      // team_id peut être sur player.team_id ou player.team selon la version API
+      const agentId   = player.agent?.id;
+      const agentIcon = agentId
+        ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
+        : null;
+
       const teamId = player.team_id ?? player.team;
       const team   = match.teams?.find(t => (t.team_id ?? t.team) === teamId);
 
-      // bust_portrait peut être une string ou un objet {url:"..."} selon la version API
-      const bustRaw  = player.agent?.assets?.bust_portrait;
-      const agentId  = player.agent?.id;
-      const agentIcon = agentId
-        ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
-        : (typeof bustRaw === "string" ? bustRaw : bustRaw?.url || null);
-
-      // map peut être un objet ou une string
-      const mapRaw  = match.metadata?.map;
-      const mapName = typeof mapRaw === "string" ? mapRaw : (mapRaw?.name || "Unknown");
-
-      // queue idem
+      const mapRaw   = match.metadata?.map;
+      const mapName  = typeof mapRaw === "string" ? mapRaw : (mapRaw?.name || "Unknown");
       const queueRaw = match.metadata?.queue;
       const mode     = typeof queueRaw === "string" ? queueRaw : (queueRaw?.name || queueRaw?.id || "");
 
@@ -188,7 +239,32 @@ app.get("/api/matches", async (req, res) => {
 
     matchCache = { data: matches, size, ts: now };
     res.json(matches);
-  } catch(e) { res.status(500).json({ error: "Erreur serveur" }); }
+  } catch(e) {
+    console.error("v3/matches error:", e.message);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// ── Debug (logs bruts pour diagnostic) ──────────────────────
+app.get("/api/debug/matches", async (req, res) => {
+  const { riot_name: name, riot_tag: tag, riot_region: region, henrik_api_key: apiKey } = getCfg();
+  if (!name || !tag) return res.json({ error: "Pas de compte configuré" });
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["Authorization"] = apiKey;
+  const results = {};
+  const urls = {
+    "v1/lifetime": `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=1`,
+    "v3/nopc":     `https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=1`,
+    "v3/pc":       `https://api.henrikdev.xyz/valorant/v3/matches/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=1`,
+  };
+  for (const [key, url] of Object.entries(urls)) {
+    try {
+      const r = await fetch(url, { headers });
+      const j = await r.json();
+      results[key] = { status: r.status, keys: Object.keys(j), data_length: j.data?.length ?? j.results?.total ?? "?" };
+    } catch(e) { results[key] = { error: e.message }; }
+  }
+  res.json({ player: `${name}#${tag}`, region, results });
 });
 
 app.get("/health", (_, res) => res.send("ok"));

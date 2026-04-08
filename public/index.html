@@ -2,100 +2,139 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Overlay</title>
+<title>Valo Overlay</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:transparent; width:300px; overflow:hidden; font-family:'DM Sans',sans-serif; }
+
+:root {
+  --accent: #ff4655;
+  --card-bg: rgba(0,0,0,0.75);
+  --w: 300px;
+}
+
+body {
+  background:transparent;
+  width:var(--w);
+  overflow:hidden;
+  font-family:'DM Sans',sans-serif;
+}
 
 .container {
   display:flex; flex-direction:column; gap:5px; padding:2px;
   opacity:0; transform:translateY(6px);
-  transition:opacity .5s ease,transform .5s ease;
+  transition:opacity .5s ease, transform .5s ease;
 }
 .container.show { opacity:1; transform:translateY(0); }
 
 .card {
   border-radius:10px;
-  background:var(--card-bg,rgba(0,0,0,0.75));
-  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  background:var(--card-bg);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
   border:1px solid rgba(255,255,255,0.07);
   overflow:hidden;
 }
 
-/* RANK */
-.rank-card { display:flex; align-items:center; gap:10px; padding:10px 14px 10px 10px; min-height:70px; }
-.rank-icon { flex-shrink:0; width:46px; height:46px; display:flex; align-items:center; justify-content:center; }
-.rank-icon img { width:46px; height:46px; object-fit:contain; filter:drop-shadow(0 2px 8px rgba(0,0,0,.6)); }
-.rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
-.rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
-.session-rr {
-  font-size:9px; font-weight:600; letter-spacing:.7px;
-  text-transform:uppercase; color:rgba(255,255,255,.3); margin-top:1px; line-height:1;
+/* ── Rank card ───────────────────────────────────────── */
+.rank-card {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px 10px 10px;
 }
-.session-rr .val { font-family:'DM Mono',monospace; }
-.session-rr .pos { color:rgba(95,255,181,.75); }
-.session-rr .neg { color:rgba(255,80,96,.75); }
-.rr-row { display:flex; align-items:center; gap:6px; }
-.rr-label { font-family:'DM Mono',monospace; font-size:11px; color:rgba(255,255,255,.35); min-width:34px; }
-.track { flex:1; height:2px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; }
-.fill { height:100%; border-radius:2px; background:rgba(255,255,255,.4); transition:width 1.2s cubic-bezier(.4,0,.2,1); }
-.rr-badge { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; min-width:36px; text-align:right; line-height:1; flex-shrink:0; }
-.rr-badge .sub { display:block; font-size:8px; letter-spacing:1px; opacity:.35; margin-top:2px; text-align:right; font-family:'DM Sans',sans-serif; }
-.rr-badge.pos { color:#5fffb5; } .rr-badge.neg { color:#ff5060; } .rr-badge.neu { color:rgba(255,255,255,.2); }
-.rr-badge.pop { animation:pop .35s ease; }
-
-/* MATCH */
-.match-card {
-  display:flex; align-items:center; gap:9px;
-  padding:7px 14px 7px 10px; min-height:40px;
-}
-.match-agent-wrap {
-  flex-shrink:0; width:28px; height:28px;
-  border-radius:6px; overflow:hidden;
-  background:rgba(255,255,255,.06);
+.rank-icon {
+  flex-shrink:0; width:46px; height:46px;
   display:flex; align-items:center; justify-content:center;
 }
-.match-agent-wrap img { width:28px; height:28px; object-fit:cover; }
+.rank-icon img {
+  width:46px; height:46px; object-fit:contain;
+  filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));
+}
+.rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
+.rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
+
+.session-rr {
+  font-size:9px; font-weight:600; letter-spacing:.7px;
+  text-transform:uppercase; color:rgba(255,255,255,.3);
+  line-height:1; margin-top:1px;
+}
+.session-rr .val { font-family:'DM Mono',monospace; }
+.session-rr .pos { color:rgba(95,255,181,.8); }
+.session-rr .neg { color:rgba(255,80,96,.8); }
+
+.rr-row { display:flex; align-items:center; gap:6px; }
+.rr-label {
+  font-family:'DM Mono',monospace; font-size:11px;
+  color:rgba(255,255,255,.35); min-width:34px;
+}
+.track { flex:1; height:2px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; }
+.fill {
+  height:100%; border-radius:2px;
+  background:var(--accent);
+  opacity:.6;
+  transition:width 1.2s cubic-bezier(.4,0,.2,1);
+}
+
+.rr-badge {
+  font-family:'DM Mono',monospace; font-size:13px; font-weight:500;
+  min-width:36px; text-align:right; line-height:1; flex-shrink:0;
+}
+.rr-badge .sub {
+  display:block; font-size:8px; letter-spacing:1px;
+  opacity:.35; margin-top:2px; text-align:right;
+  font-family:'DM Sans',sans-serif;
+}
+.rr-badge.pos { color:#5fffb5; }
+.rr-badge.neg { color:#ff5060; }
+.rr-badge.neu { color:rgba(255,255,255,.2); }
+.rr-badge.pop { animation:pop .35s ease; }
+
+/* ── Match card ──────────────────────────────────────── */
+.match-card {
+  display:flex; align-items:center; gap:9px;
+  padding:7px 14px 7px 10px;
+}
+.match-agent-wrap {
+  flex-shrink:0; width:30px; height:30px; border-radius:7px;
+  overflow:hidden; background:rgba(255,255,255,.06);
+  display:flex; align-items:center; justify-content:center;
+}
+.match-agent-wrap img { width:30px; height:30px; object-fit:cover; }
 .match-info { flex:1; min-width:0; }
-.match-agent-name { font-size:11px; font-weight:600; color:rgba(255,255,255,.8); line-height:1; }
-.match-kda-map { font-family:'DM Mono',monospace; font-size:9px; color:rgba(255,255,255,.3); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.match-agent-name { font-size:12px; font-weight:600; color:rgba(255,255,255,.85); line-height:1; }
+.match-kda-map {
+  font-family:'DM Mono',monospace; font-size:9px;
+  color:rgba(255,255,255,.3); margin-top:2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 .match-result {
   font-size:10px; font-weight:700; letter-spacing:.8px;
-  padding:3px 7px; border-radius:5px; flex-shrink:0;
+  padding:3px 8px; border-radius:5px; flex-shrink:0;
 }
 .match-result.win  { color:#5fffb5; background:rgba(95,255,181,.1); }
 .match-result.loss { color:#ff5060; background:rgba(255,80,96,.1); }
 .match-result.draw { color:rgba(255,255,255,.3); background:rgba(255,255,255,.05); }
 
-/* STREAM */
-.stream-card { padding:10px 14px; display:flex; flex-direction:column; gap:8px; }
-.stream-top { display:flex; align-items:center; gap:8px; }
-.live-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; background:rgba(255,255,255,.2); }
-.live-dot.live { background:#ff4040; animation:pulse-dot 1.8s ease infinite; }
-@keyframes pulse-dot {
-  0%   { box-shadow:0 0 0 0 rgba(255,64,64,.4); }
-  70%  { box-shadow:0 0 0 5px rgba(255,64,64,0); }
-  100% { box-shadow:0 0 0 0 rgba(255,64,64,0); }
+/* ── Streak card ─────────────────────────────────────── */
+.streak-card {
+  display:flex; align-items:center;
+  padding:8px 14px; gap:5px;
 }
-.stream-left { flex:1; }
-.stream-status { font-size:11px; font-weight:600; color:rgba(255,255,255,.9); line-height:1; letter-spacing:.3px; }
-.stream-timer { font-family:'DM Mono',monospace; font-size:10px; color:rgba(255,255,255,.32); margin-top:2px; }
-.viewers-wrap { display:flex; align-items:center; gap:4px; flex-shrink:0; }
-.viewers-num { font-family:'DM Mono',monospace; font-size:13px; font-weight:500; color:rgba(255,255,255,.8); }
-.icon-small { font-size:11px; opacity:.4; }
-.stats-row { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
-.stat-box { background:rgba(255,255,255,.04); border-radius:6px; padding:6px 8px; display:flex; flex-direction:column; gap:2px; }
-.stat-val { font-family:'DM Mono',monospace; font-size:14px; font-weight:500; color:#fff; line-height:1; }
-.stat-lbl { font-size:9px; font-weight:500; letter-spacing:.8px; color:rgba(255,255,255,.3); text-transform:uppercase; }
-.last-follow { display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,.03); border-radius:6px; }
-.last-follow-icon { font-size:11px; opacity:.35; }
-.last-follow-text { font-size:11px; color:rgba(255,255,255,.4); flex-shrink:0; }
-.last-follow-name { font-size:11px; font-weight:600; color:rgba(255,255,255,.75); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.auth-warn { font-size:10px; color:rgba(255,160,0,.6); text-align:center; padding:2px 0; }
+.streak-label {
+  font-size:9px; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; color:rgba(255,255,255,.2);
+  margin-right:4px; flex-shrink:0;
+}
+.streak-dots { display:flex; gap:4px; align-items:center; }
+.s-dot {
+  width:22px; height:5px; border-radius:3px;
+  transition: background .3s;
+}
+.s-dot.win  { background:#5fffb5; opacity:.75; }
+.s-dot.loss { background:#ff5060; opacity:.75; }
+.s-dot.draw { background:rgba(255,255,255,.2); }
+.s-dot.empty { background:rgba(255,255,255,.07); }
 
-.stat-val.updated { animation:flash-val .4s ease; }
-@keyframes flash-val { 0% { opacity:.3; } 100% { opacity:1; } }
+/* ── Animations ──────────────────────────────────────── */
 @keyframes pop {
   0%   { transform:scale(.8); opacity:0; }
   60%  { transform:scale(1.1); }
@@ -104,10 +143,13 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
 </style>
 </head>
 <body>
+
 <div class="container" id="container">
   <!-- Rank -->
   <div class="card rank-card">
-    <div class="rank-icon"><img id="ico" src="" alt="" style="display:none"></div>
+    <div class="rank-icon">
+      <img id="ico" src="" alt="" style="display:none">
+    </div>
     <div class="rank-info">
       <div class="rank-name" id="rankName">—</div>
       <div class="session-rr" id="sessionRR" style="display:none"></div>
@@ -116,210 +158,181 @@ body { background:transparent; width:300px; overflow:hidden; font-family:'DM San
         <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
       </div>
     </div>
-    <div class="rr-badge neu" id="badge"><span id="badgeNum">—</span><span class="sub">LAST</span></div>
+    <div class="rr-badge neu" id="badge">
+      <span id="badgeNum">—</span>
+      <span class="sub">LAST</span>
+    </div>
   </div>
 
-  <!-- Dernière partie -->
+  <!-- Last match -->
   <div class="card match-card" id="matchCard" style="display:none">
     <div class="match-agent-wrap">
-      <img id="matchAgentIcon" src="" alt="" style="display:none">
+      <img id="matchIcon" src="" alt="" style="display:none">
     </div>
     <div class="match-info">
-      <div class="match-agent-name" id="matchAgentName">—</div>
-      <div class="match-kda-map" id="matchKdaMap">—</div>
+      <div class="match-agent-name" id="matchAgent">—</div>
+      <div class="match-kda-map" id="matchKda">—</div>
     </div>
     <div class="match-result draw" id="matchResult">?</div>
   </div>
 
-  <!-- Stream -->
-  <div class="card stream-card">
-    <div class="stream-top">
-      <div class="live-dot" id="liveDot"></div>
-      <div class="stream-left">
-        <div class="stream-status" id="streamStatus">Offline</div>
-        <div class="stream-timer" id="streamTimer">—</div>
-      </div>
-      <div class="viewers-wrap">
-        <span class="icon-small">👁</span>
-        <span class="viewers-num" id="viewersNum">0</span>
-      </div>
-    </div>
-    <div class="stats-row">
-      <div class="stat-box"><div class="stat-val" id="followersVal">—</div><div class="stat-lbl">Followers</div></div>
-      <div class="stat-box"><div class="stat-val" id="subsVal">—</div><div class="stat-lbl">Subs</div></div>
-    </div>
-    <div class="last-follow">
-      <span class="last-follow-icon">❤️</span>
-      <span class="last-follow-text">Dernier follow :</span>
-      <span class="last-follow-name" id="lastFollowName">—</span>
-    </div>
-    <div class="auth-warn" id="authWarn" style="display:none">
-      ⚠️ Subs: <a href="/auth" style="color:rgba(255,160,0,.8)" target="_blank">Autoriser ici</a>
-    </div>
+  <!-- Streak -->
+  <div class="card streak-card" id="streakCard" style="display:none">
+    <span class="streak-label">STREAK</span>
+    <div class="streak-dots" id="streakDots"></div>
   </div>
 </div>
 
 <script>
-// ── URL params ──────────────────────────────────────────────
-const params = new URLSearchParams(window.location.search);
-const op = parseFloat(params.get('opacity'));
-if (!isNaN(op)) document.documentElement.style.setProperty('--card-bg', `rgba(0,0,0,${Math.min(1,Math.max(0,op))})`);
-
-// ── Elements ────────────────────────────────────────────────
-const container    = document.getElementById('container');
-const ico          = document.getElementById('ico');
-const rankName     = document.getElementById('rankName');
-const sessionRREl  = document.getElementById('sessionRR');
-const rrLabel      = document.getElementById('rrLabel');
-const fill         = document.getElementById('fill');
-const badge        = document.getElementById('badge');
-const badgeNum     = document.getElementById('badgeNum');
-const matchCard    = document.getElementById('matchCard');
-const matchIcon    = document.getElementById('matchAgentIcon');
-const matchName    = document.getElementById('matchAgentName');
-const matchKdaMap  = document.getElementById('matchKdaMap');
-const matchResult  = document.getElementById('matchResult');
-const liveDot      = document.getElementById('liveDot');
-const streamStatus = document.getElementById('streamStatus');
-const streamTimer  = document.getElementById('streamTimer');
-const viewersNum   = document.getElementById('viewersNum');
-const followersVal = document.getElementById('followersVal');
-const subsVal      = document.getElementById('subsVal');
-const lastFollowName = document.getElementById('lastFollowName');
-const authWarn     = document.getElementById('authWarn');
-
-let prevChange = undefined, firstLoad = true, streamStart = null, timerInterval = null;
-
-function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','')+'k' : String(n); }
-function animVal(el, val) { el.textContent = val; el.classList.remove('updated'); void el.offsetWidth; el.classList.add('updated'); }
-
-// ── Session RR ──────────────────────────────────────────────
+let cfg = null;
+let prevChange = undefined;
+let firstLoad = true;
 const SS_KEY = 'valo_session_start_rr';
+
+// ── Applique les options d'affichage ────────────────────────
+function applyDisplay(d) {
+  const r = document.documentElement;
+  const bg = `rgba(0,0,0,${d.bg_opacity ?? 0.75})`;
+  r.style.setProperty('--card-bg', bg);
+  r.style.setProperty('--accent', d.accent_color || '#ff4655');
+  r.style.setProperty('--w', (d.widget_width || 300) + 'px');
+  document.body.style.width = (d.widget_width || 300) + 'px';
+}
+
+// ── Session RR ───────────────────────────────────────────────
 let sessionStartRR = null;
 
-function initSessionRR(currentRR) {
+function initSessionRR(rr) {
   const stored = sessionStorage.getItem(SS_KEY);
-  if (stored === null) {
-    sessionStorage.setItem(SS_KEY, currentRR);
-    sessionStartRR = currentRR;
-  } else {
-    sessionStartRR = parseInt(stored, 10);
-  }
-  renderSessionRR(currentRR);
+  sessionStartRR = stored !== null ? parseInt(stored, 10) : rr;
+  if (stored === null) sessionStorage.setItem(SS_KEY, rr);
+  renderSessionRR(rr);
 }
 
-function renderSessionRR(currentRR) {
+function renderSessionRR(rr) {
+  if (!(cfg?.display?.show_session_rr ?? true)) return;
   if (sessionStartRR === null) return;
-  const diff = currentRR - sessionStartRR;
-  if (diff === 0) { sessionRREl.style.display = 'none'; return; }
-  const cls  = diff > 0 ? 'pos' : 'neg';
-  const sign = diff > 0 ? '+' : '';
-  sessionRREl.innerHTML = `SESSION <span class="val ${cls}">${sign}${diff} RR</span>`;
-  sessionRREl.style.display = 'block';
+  const diff = rr - sessionStartRR;
+  const el = document.getElementById('sessionRR');
+  if (diff === 0) { el.style.display = 'none'; return; }
+  const cls = diff > 0 ? 'pos' : 'neg';
+  el.innerHTML = `SESSION <span class="val ${cls}">${diff > 0 ? '+' : ''}${diff} RR</span>`;
+  el.style.display = 'block';
 }
 
-// ── Rank refresh ────────────────────────────────────────────
+// ── Rank ─────────────────────────────────────────────────────
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
     const d = await res.json();
     if (!res.ok) return;
-    rankName.textContent = d.rank;
-    rrLabel.textContent  = d.rr + ' RR';
-    fill.style.width     = Math.min(100, Math.max(0, d.rr)) + '%';
+
+    document.getElementById('rankName').textContent = d.rank;
+    document.getElementById('rrLabel').textContent  = d.rr + ' RR';
+    document.getElementById('fill').style.width     = Math.min(100, Math.max(0, d.rr)) + '%';
+
     if (d.tier > 0) {
+      const ico = document.getElementById('ico');
       ico.style.display = 'block';
       ico.src = d.rank_icon;
-      ico.onerror = () => { ico.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${d.tier}/largeicon.png`; };
+      ico.onerror = () => {
+        ico.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${d.tier}/largeicon.png`;
+      };
     }
+
     const chg = d.rr_change;
+    const badge = document.getElementById('badge');
     badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
-    badgeNum.textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-    if (prevChange !== undefined && prevChange !== chg) { badge.classList.add('pop'); setTimeout(() => badge.classList.remove('pop'), 400); }
+    document.getElementById('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
+    if (prevChange !== undefined && prevChange !== chg) {
+      badge.classList.add('pop');
+      setTimeout(() => badge.classList.remove('pop'), 400);
+    }
     prevChange = chg;
+
     initSessionRR(d.rr);
-    if (firstLoad) { setTimeout(() => container.classList.add('show'), 80); firstLoad = false; }
+
+    if (firstLoad) {
+      setTimeout(() => document.getElementById('container').classList.add('show'), 80);
+      firstLoad = false;
+    }
   } catch(e) {}
 }
 
-// ── Match refresh ───────────────────────────────────────────
-async function refreshMatch() {
+// ── Matches ───────────────────────────────────────────────────
+async function refreshMatches() {
+  const showMatch  = cfg?.display?.show_last_match ?? true;
+  const showStreak = cfg?.display?.show_streak     ?? true;
+  if (!showMatch && !showStreak) return;
+
   try {
-    const res = await fetch('/api/lastmatch');
+    const size = showStreak ? 5 : 1;
+    const res  = await fetch(`/api/matches?size=${size}`);
     if (!res.ok) return;
-    const d = await res.json();
-    if (!d) return;
+    const matches = await res.json();
+    if (!matches?.length) return;
 
-    matchCard.style.display = 'flex';
+    // Last match
+    if (showMatch) {
+      const m = matches[0];
+      const card = document.getElementById('matchCard');
+      card.style.display = 'flex';
 
-    if (d.agent_icon) {
-      matchIcon.src = d.agent_icon;
-      matchIcon.style.display = 'block';
-      matchIcon.onerror = () => { matchIcon.style.display = 'none'; };
-    } else {
-      matchIcon.style.display = 'none';
+      const icon = document.getElementById('matchIcon');
+      if (m.agent_icon) {
+        icon.src = m.agent_icon;
+        icon.style.display = 'block';
+        icon.onerror = () => { icon.style.display = 'none'; };
+      }
+      document.getElementById('matchAgent').textContent = m.agent;
+      document.getElementById('matchKda').textContent =
+        `${m.kills}/${m.deaths}/${m.assists}${m.map ? ' • ' + m.map : ''}`;
+
+      const res2 = document.getElementById('matchResult');
+      if (m.won === null)       { res2.className = 'match-result draw'; res2.textContent = '?'; }
+      else if (m.won)           { res2.className = 'match-result win';  res2.textContent = 'V'; }
+      else                      { res2.className = 'match-result loss'; res2.textContent = 'D'; }
     }
-    matchName.textContent   = d.agent || '—';
-    const kda = `${d.kills}/${d.deaths}/${d.assists}`;
-    const mapStr = d.map ? ` • ${d.map}` : '';
-    matchKdaMap.textContent = kda + mapStr;
 
-    if (d.won === null) {
-      matchResult.className = 'match-result draw';
-      matchResult.textContent = '?';
-    } else if (d.won) {
-      matchResult.className = 'match-result win';
-      matchResult.textContent = 'V';
-    } else {
-      matchResult.className = 'match-result loss';
-      matchResult.textContent = 'D';
+    // Streak
+    if (showStreak) {
+      const streakCard = document.getElementById('streakCard');
+      const dots = document.getElementById('streakDots');
+      streakCard.style.display = 'flex';
+      dots.innerHTML = '';
+      // Affiche 5 dots (les plus anciens à gauche, le plus récent à droite)
+      const filled = matches.slice(0, 5).reverse();
+      for (let i = 0; i < 5; i++) {
+        const dot = document.createElement('div');
+        const m = filled[i];
+        if (!m) {
+          dot.className = 's-dot empty';
+        } else if (m.won === true)  { dot.className = 's-dot win'; }
+        else if (m.won === false)   { dot.className = 's-dot loss'; }
+        else                        { dot.className = 's-dot draw'; }
+        dots.appendChild(dot);
+      }
     }
   } catch(e) {}
 }
 
-// ── Stream refresh ──────────────────────────────────────────
-async function refreshStream() {
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
   try {
-    const res = await fetch('/api/stream');
-    const d = await res.json();
-    if (!res.ok) return;
-    if (d.live) {
-      liveDot.className = 'live-dot live';
-      streamStatus.textContent = 'EN DIRECT';
-      viewersNum.textContent = fmt(d.viewers);
-      streamStart = new Date(d.started_at);
-      if (!timerInterval) timerInterval = setInterval(updateTimer, 1000);
-      updateTimer();
-    } else {
-      liveDot.className = 'live-dot';
-      streamStatus.textContent = 'Offline';
-      streamTimer.textContent = '—';
-      viewersNum.textContent = '0';
-      streamStart = null;
-      if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    }
-    animVal(followersVal, d.followers >= 0 ? fmt(d.followers) : '—');
-    if (d.subs !== null && d.subs !== undefined) { animVal(subsVal, fmt(d.subs)); authWarn.style.display = 'none'; }
-    else { subsVal.textContent = '—'; authWarn.style.display = d.auth_needed ? 'block' : 'none'; }
-    lastFollowName.textContent = d.last_follower || '—';
+    const res = await fetch('/api/config');
+    cfg = await res.json();
+    applyDisplay(cfg.display || {});
   } catch(e) {}
+
+  const interval = (cfg?.display?.refresh_rank || 30) * 1000;
+
+  refreshRank();
+  refreshMatches();
+  setInterval(refreshRank,   interval);
+  setInterval(refreshMatches, 120000);
 }
 
-function updateTimer() {
-  if (!streamStart) return;
-  const diff = Math.floor((Date.now() - streamStart) / 1000);
-  const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-  streamTimer.textContent = h > 0
-    ? `${h}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`
-    : `${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
-}
-
-refreshRank();
-refreshStream();
-refreshMatch();
-setInterval(refreshRank,  30000);
-setInterval(refreshStream, 20000);
-setInterval(refreshMatch, 120000);
+init();
 </script>
 </body>
 </html>

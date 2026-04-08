@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overlay Setup</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#03030a; color:#fff;
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh; padding:40px 20px 60px;
+  -webkit-font-smoothing:antialiased;
+}
+
+.page { max-width:580px; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+
+/* Header */
+.header { text-align:center; padding:10px 0 18px; }
+.header-badge {
+  display:inline-flex; align-items:center; gap:7px;
+  background:rgba(255,70,85,.12); border:1px solid rgba(255,70,85,.25);
+  border-radius:8px; padding:5px 12px; margin-bottom:14px;
+  font-size:10px; font-weight:600; letter-spacing:1.5px;
+  color:rgba(255,100,115,.9); text-transform:uppercase;
+}
+.header h1 {
+  font-size:26px; font-weight:600; letter-spacing:-.3px;
+  background:linear-gradient(135deg,#fff 40%,rgba(255,255,255,.5));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+}
+.header p { font-size:13px; color:rgba(255,255,255,.35); margin-top:6px; }
+
+/* Cards */
+.card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:14px; padding:20px;
+}
+
+.section-title {
+  font-size:10px; font-weight:600; letter-spacing:1.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.3);
+  margin-bottom:16px;
+}
+
+/* Inputs */
+.field { display:flex; flex-direction:column; gap:6px; }
+.field label {
+  font-size:10px; font-weight:600; letter-spacing:1.2px;
+  text-transform:uppercase; color:rgba(255,255,255,.35);
+}
+.field input, .field select {
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; padding:10px 12px;
+  font-size:14px; font-family:'DM Sans',sans-serif;
+  color:#fff; outline:none;
+  transition:border-color .2s, box-shadow .2s;
+}
+.field input::placeholder { color:rgba(255,255,255,.2); }
+.field input:focus, .field select:focus {
+  border-color:rgba(255,70,85,.5);
+  box-shadow:0 0 0 3px rgba(255,70,85,.1);
+}
+.field select { cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='rgba(255,255,255,0.25)'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; }
+.field select option { background:#1a1a2e; }
+
+.field-row { display:flex; align-items:flex-end; gap:8px; }
+.field-sep { font-size:20px; font-weight:300; color:rgba(255,255,255,.2); padding-bottom:10px; flex-shrink:0; }
+.fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* Advanced toggle */
+.advanced-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; user-select:none;
+  font-size:10px; font-weight:600; letter-spacing:1.8px;
+  text-transform:uppercase; color:rgba(255,255,255,.3);
+  padding:0; border:none; background:none; width:100%; text-align:left;
+  transition:color .2s;
+}
+.advanced-toggle:hover { color:rgba(255,255,255,.5); }
+.advanced-toggle .chevron { transition:transform .25s; font-size:12px; }
+.advanced-toggle.open .chevron { transform:rotate(180deg); }
+.advanced-content { overflow:hidden; max-height:0; transition:max-height .3s ease, opacity .3s ease; opacity:0; }
+.advanced-content.open { max-height:200px; opacity:1; }
+.advanced-inner { padding-top:16px; display:flex; flex-direction:column; gap:12px; }
+.field-hint { font-size:11px; color:rgba(255,255,255,.22); margin-top:2px; }
+
+/* Save button */
+.save-section { display:flex; flex-direction:column; gap:12px; }
+.save-btn {
+  width:100%; padding:13px; border-radius:10px;
+  background:#ff4655; border:none; cursor:pointer;
+  font-size:13px; font-weight:600; letter-spacing:1.5px;
+  text-transform:uppercase; color:#fff;
+  transition:background .2s, transform .1s, box-shadow .2s;
+  font-family:'DM Sans',sans-serif;
+}
+.save-btn:hover { background:#ff5a67; box-shadow:0 4px 20px rgba(255,70,85,.3); }
+.save-btn:active { transform:scale(.98); }
+.save-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.feedback {
+  font-size:13px; text-align:center; min-height:18px;
+  transition:opacity .3s;
+}
+.feedback.success { color:#5fffb5; }
+.feedback.error   { color:#ff5060; }
+
+/* Overlay links */
+.link-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px; border-radius:8px;
+  background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06);
+}
+.link-item + .link-item { margin-top:8px; }
+.link-label {
+  font-size:11px; font-weight:600; color:rgba(255,255,255,.4);
+  min-width:110px; flex-shrink:0;
+}
+.link-url {
+  font-family:'DM Mono',monospace; font-size:10px;
+  color:rgba(255,255,255,.35); flex:1; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis;
+}
+.copy-btn {
+  flex-shrink:0; padding:5px 12px; border-radius:6px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+  color:rgba(255,255,255,.6); font-size:11px; font-weight:600;
+  cursor:pointer; font-family:'DM Sans',sans-serif;
+  transition:background .15s, color .15s;
+}
+.copy-btn:hover { background:rgba(255,255,255,.14); color:#fff; }
+.copy-btn.copied { background:rgba(95,255,181,.15); border-color:rgba(95,255,181,.3); color:#5fffb5; }
+
+/* Size hints */
+.size-hint {
+  font-family:'DM Mono',monospace; font-size:9px;
+  color:rgba(255,255,255,.2); margin-left:4px;
+}
+
+/* Test alerts */
+.test-btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.test-btn {
+  padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04); cursor:pointer;
+  font-size:12px; font-weight:600; font-family:'DM Sans',sans-serif;
+  transition:background .15s, transform .1s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.test-btn:hover { background:rgba(255,255,255,.09); }
+.test-btn:active { transform:scale(.97); }
+.test-btn.follow  { color:#ff8c94; }
+.test-btn.sub     { color:#bf94ff; }
+.test-btn.subgift { color:#7ef9ff; }
+.test-btn.cheer   { color:#ffd166; }
+.test-btn .icon   { font-size:16px; }
+
+/* Status */
+.status-bar {
+  display:flex; gap:8px;
+  padding:10px 14px;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:10px; align-items:center;
+}
+.status-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.15); flex-shrink:0; }
+.status-dot.ok { background:#5fffb5; }
+.status-dot.warn { background:#ffd166; }
+.status-dot.err { background:#ff5060; }
+.status-text { font-size:12px; color:rgba(255,255,255,.5); flex:1; }
+.status-text strong { color:rgba(255,255,255,.8); font-weight:600; }
+
+/* Divider */
+.divider { height:1px; background:rgba(255,255,255,.06); margin:4px 0; }
+
+/* Section with gap */
+.fields-stack { display:flex; flex-direction:column; gap:12px; }
+
+/* Auth link */
+.auth-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.auth-link {
+  font-size:12px; color:rgba(150,120,255,.8);
+  text-decoration:none; padding:6px 12px;
+  border:1px solid rgba(150,120,255,.25);
+  border-radius:7px; background:rgba(150,120,255,.08);
+  transition:background .15s;
+}
+.auth-link:hover { background:rgba(150,120,255,.15); }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">
+      <span>⚙</span> Overlay Setup
+    </div>
+    <h1>Configuration OBS</h1>
+    <p>Configure ton overlay Valorant/Twitch sans toucher au code</p>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">Chargement...</div>
+  </div>
+
+  <!-- VALORANT -->
+  <div class="card">
+    <div class="section-title">Valorant</div>
+    <div class="fields-stack">
+      <div class="field-row">
+        <div class="field" style="flex:2">
+          <label>Pseudo Riot</label>
+          <input type="text" id="riotName" placeholder="TonPseudo" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="field-sep">#</div>
+        <div class="field" style="flex:1">
+          <label>Tag</label>
+          <input type="text" id="riotTag" placeholder="EUW" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+      <div class="field">
+        <label>Région</label>
+        <select id="riotRegion">
+          <option value="eu">EU — Europe</option>
+          <option value="na">NA — Amérique du Nord</option>
+          <option value="ap">AP — Asie Pacifique</option>
+          <option value="kr">KR — Corée</option>
+          <option value="br">BR — Brésil</option>
+          <option value="latam">LATAM — Amérique Latine</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TWITCH -->
+  <div class="card">
+    <div class="section-title">Twitch</div>
+    <div class="fields-stack">
+      <div class="field">
+        <label>Nom de chaîne</label>
+        <input type="text" id="twitchChannel" placeholder="tonpseudotwitch" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="auth-row">
+        <span style="font-size:11px; color:rgba(255,255,255,.3);">Pour les subs et alertes Twitch :</span>
+        <a href="/auth" target="_blank" class="auth-link">🔗 Autoriser Twitch</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- AVANCÉ -->
+  <div class="card">
+    <button class="advanced-toggle" id="advancedToggle" type="button">
+      Avancé
+      <span class="chevron">▾</span>
+    </button>
+    <div class="advanced-content" id="advancedContent">
+      <div class="advanced-inner">
+        <div class="field">
+          <label>Clé API Henrik (optionnel)</label>
+          <input type="password" id="henrikKey" placeholder="hdev-xxxxxxxx-xxxx-..." autocomplete="off">
+          <div class="field-hint">Augmente la limite de requêtes. Gratuit sur henrikdev.xyz</div>
+        </div>
+        <div class="field">
+          <label>Mot de passe setup (optionnel)</label>
+          <input type="text" id="setupPwdEnv" placeholder="Variable SETUP_PASSWORD sur Railway" disabled style="opacity:.4; cursor:not-allowed;">
+          <div class="field-hint">À définir dans les variables d'environnement Railway/Docker, pas ici.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SAVE -->
+  <div class="card save-section">
+    <div class="field" id="passwordField" style="display:none">
+      <label>Mot de passe</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+    <button class="save-btn" id="saveBtn" type="button">Sauvegarder</button>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <!-- OVERLAY LINKS -->
+  <div class="card">
+    <div class="section-title">Liens OBS <span style="font-weight:400;letter-spacing:0;text-transform:none;color:rgba(255,255,255,.2);">(Browser Source)</span></div>
+
+    <div class="link-item">
+      <span class="link-label">Widget principal <span class="size-hint">300×200</span></span>
+      <code class="link-url" id="linkMain"></code>
+      <button class="copy-btn" data-link="linkMain">Copier</button>
+    </div>
+    <div class="link-item">
+      <span class="link-label">Alertes <span class="size-hint">420×140</span></span>
+      <code class="link-url" id="linkAlerts"></code>
+      <button class="copy-btn" data-link="linkAlerts">Copier</button>
+    </div>
+    <div class="link-item">
+      <span class="link-label">Scène complète <span class="size-hint">1920×1080</span></span>
+      <code class="link-url" id="linkScene"></code>
+      <button class="copy-btn" data-link="linkScene">Copier</button>
+    </div>
+  </div>
+
+  <!-- TEST ALERTS -->
+  <div class="card">
+    <div class="section-title" style="margin-bottom:12px">Tester les alertes</div>
+    <div class="test-btns">
+      <button class="test-btn follow" onclick="testAlert('follow')">
+        <span class="icon">❤️</span> Follow
+      </button>
+      <button class="test-btn sub" onclick="testAlert('sub')">
+        <span class="icon">⭐</span> Sub
+      </button>
+      <button class="test-btn subgift" onclick="testAlert('subgift')">
+        <span class="icon">🎁</span> Gift Sub
+      </button>
+      <button class="test-btn cheer" onclick="testAlert('cheer')">
+        <span class="icon">💎</span> Cheer
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const base = window.location.origin;
+
+// ── Overlay links ───────────────────────────────────────────
+document.getElementById('linkMain').textContent   = base + '/index.html';
+document.getElementById('linkAlerts').textContent  = base + '/alerts.html';
+document.getElementById('linkScene').textContent   = base + '/scene-cam.html';
+
+// ── Copy buttons ────────────────────────────────────────────
+document.querySelectorAll('.copy-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = document.getElementById(btn.dataset.link).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1800);
+    }).catch(() => {
+      // Fallback for non-https
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = '✓'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 1800);
+    });
+  });
+});
+
+// ── Advanced toggle ─────────────────────────────────────────
+const advToggle  = document.getElementById('advancedToggle');
+const advContent = document.getElementById('advancedContent');
+advToggle.addEventListener('click', () => {
+  const open = advContent.classList.toggle('open');
+  advToggle.classList.toggle('open', open);
+});
+
+// ── Load config ─────────────────────────────────────────────
+async function loadConfig() {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  try {
+    const r = await fetch('/api/config');
+    const cfg = await r.json();
+
+    document.getElementById('riotName').value      = cfg.riot_name     || '';
+    document.getElementById('riotTag').value       = cfg.riot_tag      || '';
+    document.getElementById('riotRegion').value    = cfg.riot_region   || 'eu';
+    document.getElementById('twitchChannel').value = cfg.twitch_channel || '';
+
+    if (cfg.has_henrik_key) {
+      document.getElementById('henrikKey').placeholder = '(clé déjà définie — laisser vide pour garder)';
+    }
+    if (cfg.password_required) {
+      document.getElementById('passwordField').style.display = 'block';
+    }
+
+    // Status bar
+    const hasRiot   = !!(cfg.riot_name && cfg.riot_tag);
+    const hasTwitch = !!cfg.twitch_channel;
+    if (hasRiot && hasTwitch) {
+      dot.className  = 'status-dot ok';
+      text.innerHTML = `Configuré : <strong>${cfg.riot_name}#${cfg.riot_tag}</strong> · Twitch : <strong>${cfg.twitch_channel}</strong>`;
+    } else if (hasRiot) {
+      dot.className  = 'status-dot warn';
+      text.innerHTML = `<strong>${cfg.riot_name}#${cfg.riot_tag}</strong> — Twitch non configuré`;
+    } else {
+      dot.className  = 'status-dot err';
+      text.innerHTML = 'Aucun compte configuré — remplis le formulaire ci-dessous';
+    }
+  } catch(e) {
+    dot.className  = 'status-dot err';
+    text.textContent = 'Impossible de contacter le serveur';
+  }
+}
+
+// ── Save config ─────────────────────────────────────────────
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const btn      = document.getElementById('saveBtn');
+  const feedback = document.getElementById('feedback');
+
+  const riotName = document.getElementById('riotName').value.trim();
+  const riotTag  = document.getElementById('riotTag').value.trim();
+
+  if (!riotName || !riotTag) {
+    feedback.textContent = '⚠️ Pseudo et tag Riot requis';
+    feedback.className = 'feedback error';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sauvegarde...';
+  feedback.textContent = '';
+
+  const body = {
+    riot_name:      riotName,
+    riot_tag:       riotTag,
+    riot_region:    document.getElementById('riotRegion').value,
+    twitch_channel: document.getElementById('twitchChannel').value.trim().toLowerCase(),
+  };
+
+  const henrikKey = document.getElementById('henrikKey').value.trim();
+  if (henrikKey) body.henrik_api_key = henrikKey;
+
+  const pwd = document.getElementById('password').value;
+  if (pwd) body.password = pwd;
+
+  try {
+    const r = await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const j = await r.json();
+    if (r.ok) {
+      feedback.textContent = '✅ Configuration sauvegardée !';
+      feedback.className   = 'feedback success';
+      await loadConfig();
+    } else {
+      feedback.textContent = '❌ ' + (j.error || 'Erreur');
+      feedback.className   = 'feedback error';
+    }
+  } catch(e) {
+    feedback.textContent = '❌ Erreur réseau';
+    feedback.className   = 'feedback error';
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Sauvegarder';
+  setTimeout(() => { feedback.textContent = ''; feedback.className = 'feedback'; }, 5000);
+});
+
+// ── Test alerts ─────────────────────────────────────────────
+async function testAlert(type) {
+  try { await fetch('/test/' + type); } catch(e) {}
+}
+
+// ── Submit on Enter ─────────────────────────────────────────
+document.querySelectorAll('input[type=text], input[type=password], select').forEach(el => {
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('saveBtn').click();
+  });
+});
+
+loadConfig();
+</script>
+</body>
+</html>

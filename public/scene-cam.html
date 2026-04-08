@@ -82,7 +82,7 @@ html, body { width:1920px; height:1080px; overflow:hidden; background:#03030a; f
 
     <div class="section-label">Chat Twitch</div>
     <div class="chat-box">
-      <iframe src="https://www.twitch.tv/embed/gregd95/chat?parent=valorantbot-production.up.railway.app&darkpopout" allowfullscreen></iframe>
+      <iframe id="chatFrame" src="" allowfullscreen></iframe>
     </div>
 
     <div class="stats-row">
@@ -202,6 +202,19 @@ async function poll() {
   } catch(e){}
 }
 poll(); setInterval(poll,20000);
+
+// ── Chat iframe dynamique ──────────────────────────────────
+(async () => {
+  try {
+    const r = await fetch('/api/config');
+    const cfg = await r.json();
+    const channel = cfg.twitch_channel;
+    if (!channel) return;
+    const parent = new URL(cfg.base_url || window.location.href).hostname;
+    document.getElementById('chatFrame').src =
+      `https://www.twitch.tv/embed/${encodeURIComponent(channel)}/chat?parent=${parent}&darkpopout`;
+  } catch(e) {}
+})();
 </script>
 </body>
 </html>

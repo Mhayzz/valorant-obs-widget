@@ -417,22 +417,6 @@ input[type=color] {
       </div>
     </div>
 
-    <!-- AVANCÉ -->
-    <div class="card">
-      <button class="adv-toggle" id="advToggle" type="button">
-        Avancé <span class="adv-chevron">▾</span>
-      </button>
-      <div class="adv-body" id="advBody">
-        <div class="adv-inner">
-          <div class="field">
-            <label>Clé API Henrik (optionnel)</label>
-            <input type="password" id="henrikKey" placeholder="hdev-xxxxxxxx..." autocomplete="off">
-            <div class="field-hint">Augmente la limite de requêtes. Gratuit sur henrikdev.xyz</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- SAVE -->
     <div class="card">
       <div class="field" id="passwordField" style="display:none; margin-bottom:12px">
@@ -523,13 +507,6 @@ function updateObsDims() {
   document.getElementById('previewFrame').height = calcHeight() + 20;
 }
 
-// ── Advanced toggle ───────────────────────────────────────────
-document.getElementById('advToggle').addEventListener('click', function() {
-  const body = document.getElementById('advBody');
-  const open = body.classList.toggle('open');
-  this.classList.toggle('open', open);
-});
-
 // ── Opacity slider ────────────────────────────────────────────
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
@@ -561,9 +538,6 @@ async function loadConfig() {
     document.getElementById('riotName').value   = cfg.riot_name   || '';
     document.getElementById('riotTag').value    = cfg.riot_tag    || '';
     document.getElementById('riotRegion').value = cfg.riot_region || 'eu';
-    if (cfg.has_henrik_key) {
-      document.getElementById('henrikKey').placeholder = '(clé définie — vider pour supprimer)';
-    }
     if (cfg.password_required) {
       document.getElementById('passwordField').style.display = 'block';
     }
@@ -633,9 +607,6 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       show_streak:     document.getElementById('showStreak').checked,
     },
   };
-
-  const key = document.getElementById('henrikKey').value.trim();
-  if (key) body.henrik_api_key = key;
 
   const pwd = document.getElementById('password').value;
   if (pwd) body.password = pwd;

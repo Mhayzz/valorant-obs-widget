@@ -119,7 +119,7 @@ app.get("/api/rank", async (req, res) => {
       rr_change: current?.last_change ?? null,
       tier,
       rank_icon: current?.images?.large || current?.images?.small ||
-        `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/0/${tier}/largeicon.png`,
+        `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png`,
       player: `${name}#${tag}`,
     };
     rankCache = { data: result, ts: now };
@@ -154,16 +154,35 @@ app.get("/api/matches", async (req, res) => {
         p.tag?.toLowerCase()  === tag.toLowerCase()
       );
       if (!player) return null;
-      const team = match.teams?.find(t => t.team_id === player.team_id);
+
+      // team_id peut être sur player.team_id ou player.team selon la version API
+      const teamId = player.team_id ?? player.team;
+      const team   = match.teams?.find(t => (t.team_id ?? t.team) === teamId);
+
+      // bust_portrait peut être une string ou un objet {url:"..."} selon la version API
+      const bustRaw  = player.agent?.assets?.bust_portrait;
+      const agentId  = player.agent?.id;
+      const agentIcon = agentId
+        ? `https://media.valorant-api.com/agents/${agentId}/bustportrait.png`
+        : (typeof bustRaw === "string" ? bustRaw : bustRaw?.url || null);
+
+      // map peut être un objet ou une string
+      const mapRaw  = match.metadata?.map;
+      const mapName = typeof mapRaw === "string" ? mapRaw : (mapRaw?.name || "Unknown");
+
+      // queue idem
+      const queueRaw = match.metadata?.queue;
+      const mode     = typeof queueRaw === "string" ? queueRaw : (queueRaw?.name || queueRaw?.id || "");
+
       return {
         agent:      player.agent?.name || "Unknown",
-        agent_icon: player.agent?.assets?.bust_portrait || null,
+        agent_icon: agentIcon,
         kills:      player.stats?.kills   ?? 0,
         deaths:     player.stats?.deaths  ?? 0,
         assists:    player.stats?.assists ?? 0,
-        won:        team?.won ?? null,
-        map:        match.metadata?.map?.name || match.metadata?.map || "Unknown",
-        mode:       match.metadata?.queue?.name || match.metadata?.queue?.id || "",
+        won:        team?.won ?? team?.has_won ?? null,
+        map:        mapName,
+        mode,
       };
     }).filter(Boolean);
 

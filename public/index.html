@@ -219,7 +219,9 @@ function applyDisplay(d) {
   const r = document.documentElement;
   let opacity = d.bg_opacity ?? 0.75;
   if (opacity > 1) opacity = opacity / 100;
-  r.style.setProperty('--card-bg', `rgba(0,0,0,${opacity})`);
+  // In OBS, backdrop-filter:blur doesn't render, so boost opacity to compensate
+  const finalOpacity = IS_PREVIEW ? opacity : Math.min(1, opacity + 0.15);
+  r.style.setProperty('--card-bg', `rgba(0,0,0,${finalOpacity})`);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');

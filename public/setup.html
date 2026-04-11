@@ -1160,6 +1160,10 @@ async function loadConfig() {
     if (hasAccount) {
       dot.className  = 'status-dot ok';
       text.innerHTML = `Compte actif : <strong>${cfg.riot_name}#${cfg.riot_tag}</strong> — région <strong>${cfg.riot_region?.toUpperCase()}</strong>`;
+      // Pre-fetch rank and matches to warm up server cache
+      // When the preview iframe loads, data will be cached and instant
+      fetch('/api/rank').catch(() => {});
+      fetch('/api/matches?size=5').catch(() => {});
     } else {
       dot.className  = 'status-dot err';
       text.innerHTML = 'Aucun compte configuré — remplis le formulaire';
@@ -1226,6 +1230,9 @@ async function autoSave() {
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body),
     });
+    // Pre-fetch to warm up server cache after config change
+    fetch('/api/rank').catch(() => {});
+    fetch('/api/matches?size=5').catch(() => {});
   } catch(e) {}
 }
 

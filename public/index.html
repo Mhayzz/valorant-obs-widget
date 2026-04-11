@@ -10,6 +10,8 @@
 :root {
   --accent: #ff4655;
   --card-bg: rgba(0,0,0,0.75);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255,255,255,0.6);
   --text-tertiary: rgba(255,255,255,0.3);
   --w: 300px;
 }
@@ -51,7 +53,7 @@ body {
   filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));
 }
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
-.rank-name { font-weight:600; font-size:16px; color:var(--text-primary); line-height:1; }
+.rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
 
 .peak-rank {
   font-size:9px; font-weight:600; letter-spacing:.7px;
@@ -59,6 +61,7 @@ body {
   line-height:1; margin-top:1px;
 }
 .peak-rank span { color:rgba(255,255,255,.45); font-family:'DM Mono',monospace; }
+.peak-icon { width:16px; height:16px; vertical-align:middle; margin-left:4px; }
 
 .session-rr {
   font-size:9px; font-weight:600; letter-spacing:.7px;
@@ -207,7 +210,9 @@ function applyDisplay(d) {
   const bg = `rgba(0,0,0,${opacity})`;
   r.style.setProperty('--card-bg', bg);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
-  r.style.setProperty('--text-tertiary', d.text_tertiary || '#666666');
+  r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
+  r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
+  r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
 }
@@ -244,6 +249,7 @@ async function refreshRank() {
     const isPreview = new URLSearchParams(window.location.search).has('opacity');
     if (isPreview && (cfg?.display?.show_peak_rank ?? true) && (!d.peak_rank || d.peak_rank === d.rank)) {
       d.peak_rank = 'Radiant';
+      d.peak_tier = 27; // Radiant tier ID
     }
     if (isPreview && (cfg?.display?.show_session_rr ?? true)) {
       sessionStartRR = 80;
@@ -267,8 +273,11 @@ async function refreshRank() {
     // Peak rank
     const peakEl = document.getElementById('peakRank');
     if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
-      const season = d.peak_season ? ` · ${d.peak_season}` : '';
-      peakEl.innerHTML = `PEAK <span>${d.peak_rank}${season}</span>`;
+      let peakIcon = '';
+      if (d.peak_tier) {
+        peakIcon = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${d.peak_tier}/smallicon.png" alt="peak" class="peak-icon">`;
+      }
+      peakEl.innerHTML = `PEAK ${peakIcon}`;
       peakEl.style.display = 'block';
     } else {
       peakEl.style.display = 'none';
@@ -364,7 +373,6 @@ async function init() {
 
       if (params.has('opacity')) display.bg_opacity = parseFloat(params.get('opacity'));
       if (params.has('accentColor')) display.accent_color = params.get('accentColor');
-      if (params.has('textTertiary')) display.text_tertiary = params.get('textTertiary');
       if (params.has('widgetWidth')) display.widget_width = parseInt(params.get('widgetWidth'));
       if (params.has('refreshRank')) display.refresh_rank = parseInt(params.get('refreshRank'));
       if (params.has('showPeakRank')) display.show_peak_rank = params.get('showPeakRank') === 'true';

@@ -14,10 +14,7 @@ const CONFIG_PATH = path.join(__dirname, "data", "config.json");
 
 const DEFAULT_DISPLAY = {
   bg_opacity:      0.75,
-  bg_color:        "#000000",
   accent_color:    "#ff4655",
-  text_primary:    "#ffffff",
-  text_secondary:  "#999999",
   text_tertiary:   "#666666",
   show_session_rr: true,
   show_peak_rank:  true,

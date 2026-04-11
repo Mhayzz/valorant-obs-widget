@@ -1161,6 +1161,7 @@ document.getElementById('peakAlignLeft').addEventListener('click', () => {
   document.getElementById('peakAlignLeft').classList.add('active');
   document.getElementById('peakAlignRight').classList.remove('active');
   saveToLocalStorage();
+  scheduleAutoSave();
 });
 
 document.getElementById('peakAlignRight').addEventListener('click', () => {
@@ -1168,6 +1169,7 @@ document.getElementById('peakAlignRight').addEventListener('click', () => {
   document.getElementById('peakAlignRight').classList.add('active');
   document.getElementById('peakAlignLeft').classList.remove('active');
   saveToLocalStorage();
+  scheduleAutoSave();
 });
 
 // ── Preview background cycle ──────────────────────────────────

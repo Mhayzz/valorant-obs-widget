@@ -294,7 +294,7 @@ async function refreshRank() {
 
     const peakEl = document.getElementById('peakRank');
     const peakInline = document.getElementById('peakInline');
-    if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
+    if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank) {
       const tier = d.peak_tier;
       const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.innerHTML = `PEAK ${peakImg}`;

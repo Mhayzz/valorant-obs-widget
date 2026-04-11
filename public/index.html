@@ -202,6 +202,7 @@ let cfg = null;
 let prevChange = undefined;
 let firstLoad = true;
 const SS_KEY = 'valo_session_start_rr';
+let lastLocalStorageCheck = null;
 
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
@@ -362,6 +363,20 @@ async function refreshMatches() {
   } catch(e) {}
 }
 
+// ── Load from localStorage ────────────────────────────────────
+function loadFromLocalStorage() {
+  try {
+    const stored = localStorage.getItem('valo_display');
+    if (stored) {
+      const display = JSON.parse(stored);
+      if (cfg) cfg.display = { ...cfg.display, ...display };
+      else cfg = { display };
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
   try {
@@ -386,9 +401,12 @@ async function init() {
 
       cfg.display = display;
     }
-
-    applyDisplay(cfg.display || {});
   } catch(e) {}
+
+  // Try to load from localStorage (for real-time sync with setup.html)
+  loadFromLocalStorage();
+
+  applyDisplay(cfg?.display || {});
 
   const interval = (cfg?.display?.refresh_rank || 120) * 1000;
 
@@ -397,7 +415,31 @@ async function init() {
   setInterval(refreshRank,   interval);
   setInterval(refreshMatches, 120000);
 
-  // Reload config every 5 seconds to pick up changes from setup.html
+  // Fast polling on localStorage for real-time sync (iframe case)
+  setInterval(() => {
+    try {
+      const stored = localStorage.getItem('valo_display');
+      if (stored && stored !== lastLocalStorageCheck) {
+        lastLocalStorageCheck = stored;
+        const display = JSON.parse(stored);
+        if (cfg) cfg.display = { ...cfg.display, ...display };
+        applyDisplay(cfg?.display || {});
+      }
+    } catch(e) {}
+  }, 200);
+
+  // Listen for storage changes from other tabs (storage event)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'valo_display') {
+      try {
+        const display = JSON.parse(e.newValue);
+        if (cfg) cfg.display = { ...cfg.display, ...display };
+        applyDisplay(cfg?.display || {});
+      } catch(e) {}
+    }
+  });
+
+  // Reload config from API every 60 seconds as fallback
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
@@ -406,7 +448,7 @@ async function init() {
         applyDisplay(cfg.display || {});
       }
     } catch(e) {}
-  }, 5000);
+  }, 60000);
 }
 
 init();

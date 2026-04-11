@@ -218,8 +218,8 @@ function applyDisplay(d) {
   r.style.setProperty('--bg-color', bgColor);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
-  r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
-  r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');
+  r.style.setProperty('--text-secondary', d.text_secondary || '#999999');
+  r.style.setProperty('--text-tertiary', d.text_tertiary || '#666666');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
 }

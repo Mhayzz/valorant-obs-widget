@@ -56,7 +56,7 @@ body {
 }
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
 .rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; display:flex; align-items:center; gap:6px; }
-.rank-name .peak-inline { display:none; }
+.rank-name .peak-inline { display:none; margin-left:auto; font-size:9px; font-weight:600; letter-spacing:.7px; text-transform:uppercase; color:var(--text-tertiary); align-items:center; gap:3px; }
 .rank-name .peak-inline img { width:14px; height:14px; vertical-align:middle; }
 
 .peak-rank {
@@ -298,11 +298,11 @@ async function refreshRank() {
       const tier = d.peak_tier;
       const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.innerHTML = `PEAK ${peakImg}`;
-      peakInline.innerHTML = peakImg;
+      peakInline.innerHTML = 'PEAK ' + peakImg;
       // Set display based on inline setting
       if (cfg?.display?.peak_inline) {
         peakEl.style.display = 'none';
-        peakInline.style.display = 'inline';
+        peakInline.style.display = 'flex';
       } else {
         peakEl.style.display = 'block';
         peakInline.style.display = 'none';

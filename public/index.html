@@ -26,9 +26,11 @@ body {
 .container {
   display:flex; flex-direction:column; gap:5px; padding:2px;
   opacity:0; transform:translateY(6px);
+}
+.container.show {
+  opacity:1; transform:translateY(0);
   transition:opacity .5s ease, transform .5s ease;
 }
-.container.show { opacity:1; transform:translateY(0); }
 
 .card {
   border-radius:10px;
@@ -275,7 +277,8 @@ async function refreshRank() {
     if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
       let peakIcon = '';
       if (d.peak_tier) {
-        peakIcon = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${d.peak_tier}/smallicon.png" alt="peak" class="peak-icon">`;
+        const tier = d.peak_tier;
+        peakIcon = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="peak" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       }
       peakEl.innerHTML = `PEAK ${peakIcon}`;
       peakEl.style.display = 'block';

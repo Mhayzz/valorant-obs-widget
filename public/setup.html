@@ -1104,8 +1104,8 @@ function refreshPreview() {
 
   // Get ALL current display settings to pass to preview
   const opacity = document.getElementById('bgOpacity').value;
-  const accentColor = document.getElementById('accentHex').value;
-  const textTertiary = document.getElementById('textTertiaryHex').value;
+  const accentColor = document.getElementById('accentPicker').value;
+  const textTertiary = document.getElementById('textTertiaryPicker').value;
   const widgetWidth = document.getElementById('widgetWidth').value;
   const refreshRank = document.getElementById('refreshRank').value;
   const showPeakRank = document.getElementById('showPeakRank').checked;
@@ -1245,7 +1245,7 @@ async function autoSave() {
       accent_color:    document.getElementById('accentPicker').value || '#ff4655',
       text_primary:    '#ffffff',
       text_secondary:  'rgba(255,255,255,0.6)',
-      text_tertiary:   'rgba(255,255,255,0.3)',
+      text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
       show_peak_rank:  document.getElementById('showPeakRank').checked,

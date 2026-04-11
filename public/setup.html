@@ -38,12 +38,6 @@ body {
   position: relative;
 }
 
-/* Remove .layout::before to clean it up */
-.layout::before {
-  display: none;
-}
-
-main { position: relative; z-index: 1; }
 
 /* ── Layout ──────────────────────────────────────────── */
 .layout {
@@ -556,53 +550,6 @@ input[type=color]::-moz-color-swatch {
 }
 
 /* ── Save ────────────────────────────────────────────── */
-.save-btn {
-  width: 100%;
-  padding: 14px 24px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
-  transition: all 0.2s ease;
-}
-
-.save-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.save-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.save-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.feedback {
-  font-size: 13px;
-  text-align: center;
-  margin-top: 12px;
-  min-height: 20px;
-  transition: all 0.3s ease;
-  font-weight: 500;
-}
-
-.feedback.success {
-  color: var(--success);
-}
-
-.feedback.error {
-  color: var(--error);
-}
-
 /* ── Status bar ──────────────────────────────────────── */
 .status-bar {
   display: flex;
@@ -626,10 +573,6 @@ input[type=color]::-moz-color-swatch {
   background: var(--success);
 }
 
-.status-dot.warn {
-  background: #fbbf24;
-}
-
 .status-dot.err {
   background: var(--error);
 }
@@ -644,54 +587,6 @@ input[type=color]::-moz-color-swatch {
 .status-text strong {
   color: var(--text-primary);
   font-weight: 700;
-}
-
-/* ── Advanced toggle ─────────────────────────────────── */
-.adv-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  border: none;
-  background: none;
-  width: 100%;
-  padding: 0;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.8px;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  font-family: 'Inter', sans-serif;
-  transition: all 0.3s ease;
-}
-
-.adv-toggle:hover {
-  color: var(--text-secondary);
-}
-
-.adv-chevron {
-  transition: transform 0.2s ease;
-  display: inline-block;
-}
-
-.adv-toggle.open .adv-chevron {
-  transform: rotate(180deg);
-}
-
-.adv-body {
-  overflow: hidden;
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.4s ease, opacity 0.4s ease;
-}
-
-.adv-body.open {
-  max-height: 300px;
-  opacity: 1;
-}
-
-.adv-inner {
-  padding-top: 20px;
 }
 
 /* ── Right column ────────────────────────────────────── */
@@ -877,7 +772,7 @@ input[type=color]::-moz-color-swatch {
 
 .link-url:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 70, 85, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .copy-btn {
@@ -898,7 +793,7 @@ input[type=color]::-moz-color-swatch {
 .copy-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   color: var(--text-primary);
-  border-color: rgba(255, 70, 85, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
 
@@ -1001,9 +896,6 @@ input[type=color]::-moz-color-swatch {
           <option value="400">400 px</option>
         </select>
       </div>
-
-      <!-- hidden fixed value -->
-      <input type="hidden" id="refreshRank" value="120">
 
       <!-- Toggles -->
       <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,.06); padding-top:16px;">
@@ -1131,15 +1023,15 @@ function showSaveNotification() {
   }, 2000);
 }
 
-function saveToLocalStorage() {
-  const display = {
+function getDisplayFromForm() {
+  return {
     bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
     accent_color:    document.getElementById('accentPicker').value || '#ff4655',
     text_primary:    '#ffffff',
     text_secondary:  'rgba(255,255,255,0.6)',
     text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
     widget_width:    parseInt(document.getElementById('widgetWidth').value),
-    refresh_rank:    parseInt(document.getElementById('refreshRank').value),
+    refresh_rank:    120,
     show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
     peak_inline:     document.getElementById('peakRankMode').value === 'inline',
     peak_align:      currentPeakAlign,
@@ -1147,7 +1039,10 @@ function saveToLocalStorage() {
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
   };
-  localStorage.setItem('valo_display', JSON.stringify(display));
+}
+
+function saveToLocalStorage() {
+  localStorage.setItem('valo_display', JSON.stringify(getDisplayFromForm()));
   showSaveNotification();
   scheduleRefreshPreview();
 }
@@ -1245,9 +1140,6 @@ document.getElementById('widgetWidth').addEventListener('change', () => {
   saveToLocalStorage();
   updateObsDims();
 });
-document.getElementById('refreshRank').addEventListener('change', () => {
-  saveToLocalStorage();
-});
 
 // ── Account fields ────────────────────────────────────────────
 ['riotName', 'riotTag'].forEach(id => {
@@ -1286,7 +1178,6 @@ async function loadConfig() {
       document.getElementById('textTertiaryPicker').value = d.text_tertiary;
     }
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
-    if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
     if (d.show_peak_rank !== undefined || d.peak_inline !== undefined) {
       const mode = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
       document.getElementById('peakRankMode').value = mode;
@@ -1357,21 +1248,7 @@ async function autoSave() {
     riot_name:   riotName,
     riot_tag:    riotTag,
     riot_region: document.getElementById('riotRegion').value,
-    display: {
-      bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
-      accent_color:    document.getElementById('accentPicker').value || '#ff4655',
-      text_primary:    '#ffffff',
-      text_secondary:  'rgba(255,255,255,0.6)',
-      text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
-      widget_width:    parseInt(document.getElementById('widgetWidth').value),
-      refresh_rank:    parseInt(document.getElementById('refreshRank').value),
-      show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
-      peak_inline:     document.getElementById('peakRankMode').value === 'inline',
-      peak_align:      currentPeakAlign,
-      show_session_rr: document.getElementById('showSessionRR').checked,
-      show_last_match: document.getElementById('showLastMatch').checked,
-      show_streak:     document.getElementById('showStreak').checked,
-    },
+    display:     getDisplayFromForm(),
   };
 
   saveToLocalStorage();

@@ -198,7 +198,6 @@ app.get("/api/matches", async (req, res) => {
       return res.json(matches);
     }
     // Si v1/lifetime échoue ou retourne rien, fallback v3
-    console.log("v1/lifetime:", r.status, json.errors?.[0]?.message || json.message || "no data");
   } catch(e) {
     console.error("v1/lifetime error:", e.message);
   }
@@ -211,7 +210,6 @@ app.get("/api/matches", async (req, res) => {
     );
     const json = await r.json();
     if (!r.ok) {
-      console.log("v3/matches:", r.status, json.errors?.[0]?.message || json.message);
       return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
     }
 

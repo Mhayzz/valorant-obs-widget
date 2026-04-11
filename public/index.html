@@ -219,8 +219,7 @@ function applyDisplay(d) {
   const r = document.documentElement;
   let opacity = d.bg_opacity ?? 0.75;
   if (opacity > 1) opacity = opacity / 100;
-  // Use darker base (12,14,18) so cards are visible even without backdrop-filter (OBS)
-  r.style.setProperty('--card-bg', `rgba(12,14,18,${Math.max(opacity, 0.65)})`);
+  r.style.setProperty('--card-bg', `rgba(0,0,0,${opacity})`);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');

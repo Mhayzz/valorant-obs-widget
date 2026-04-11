@@ -832,6 +832,11 @@ input[type=color]:hover {
   display: block;
   position: relative;
   z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+#previewFrame.fading {
+  opacity: 0;
 }
 
 .preview-refresh {
@@ -1218,7 +1223,29 @@ function refreshPreview() {
   frame.width  = w;
   frame.height = calcHeight();
   document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
-  frame.src = '/index.html?' + Date.now();
+
+  // Get current display settings to pass to preview
+  const opacity = document.getElementById('bgOpacity').value;
+  const accentColor = document.getElementById('accentHex').value;
+
+  // Fade out
+  frame.classList.add('fading');
+
+  // Update src with display parameters and timestamp
+  const params = new URLSearchParams({
+    opacity: opacity,
+    accentColor: accentColor,
+    ts: Date.now()
+  });
+
+  const newSrc = '/index.html?' + params.toString();
+
+  // Fade back in when iframe loads
+  frame.onload = () => {
+    frame.classList.remove('fading');
+  };
+
+  frame.src = newSrc;
 }
 
 function calcHeight() {

@@ -974,7 +974,7 @@ input[type=color]::-moz-color-swatch {
       <div class="preview-bg" id="previewBg">
         <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
-      <button class="preview-refresh" onclick="forceRefreshPreview()">↻ Actualiser l'aperçu</button>
+      <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser l'aperçu</button>
     </div>
 
     <!-- OBS info -->
@@ -1061,11 +1061,6 @@ function refreshPreview() {
   frame.width = w;
   frame.height = h;
   document.getElementById('previewBg').style.minHeight = (h + 32) + 'px';
-  // Don't reload iframe - localStorage polling in index.html syncs instantly
-}
-
-function forceRefreshPreview() {
-  const frame = document.getElementById('previewFrame');
   frame.src = '/index.html?preview=1&t=' + Date.now();
 }
 

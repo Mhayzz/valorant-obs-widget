@@ -200,11 +200,14 @@ const SS_KEY = 'valo_session_start_rr';
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
   const r = document.documentElement;
-  const bg = `rgba(0,0,0,${d.bg_opacity ?? 0.75})`;
+  let opacity = d.bg_opacity ?? 0.75;
+  // Normalize opacity: if > 1, assume it's a percentage (0-100)
+  if (opacity > 1) opacity = opacity / 100;
+  const bg = `rgba(0,0,0,${opacity})`;
   r.style.setProperty('--card-bg', bg);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
-  document.body.style.width = (d.widget_width || 300) + 'px';
+  document.body.style.width = (d.widget_width || 300) + 'px');
 }
 
 // ── Session RR ───────────────────────────────────────────────

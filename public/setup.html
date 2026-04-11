@@ -1224,17 +1224,29 @@ function refreshPreview() {
   frame.height = calcHeight();
   document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
 
-  // Get current display settings to pass to preview
+  // Get ALL current display settings to pass to preview
   const opacity = document.getElementById('bgOpacity').value;
   const accentColor = document.getElementById('accentHex').value;
+  const widgetWidth = document.getElementById('widgetWidth').value;
+  const refreshRank = document.getElementById('refreshRank').value;
+  const showPeakRank = document.getElementById('showPeakRank').checked;
+  const showSessionRR = document.getElementById('showSessionRR').checked;
+  const showLastMatch = document.getElementById('showLastMatch').checked;
+  const showStreak = document.getElementById('showStreak').checked;
 
   // Fade out
   frame.classList.add('fading');
 
-  // Update src with display parameters and timestamp
+  // Update src with ALL display parameters and timestamp
   const params = new URLSearchParams({
     opacity: opacity,
     accentColor: accentColor,
+    widgetWidth: widgetWidth,
+    refreshRank: refreshRank,
+    showPeakRank: showPeakRank,
+    showSessionRR: showSessionRR,
+    showLastMatch: showLastMatch,
+    showStreak: showStreak,
     ts: Date.now()
   });
 

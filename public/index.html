@@ -342,11 +342,19 @@ async function init() {
 
     // Check for preview query parameters (from setup.html)
     const params = new URLSearchParams(window.location.search);
-    if (params.has('opacity') || params.has('accentColor')) {
+    if (params.size > 1 || (params.size === 1 && !params.has('ts'))) {
       // Override display settings with preview parameters
       const display = cfg.display || {};
+
       if (params.has('opacity')) display.bg_opacity = parseFloat(params.get('opacity'));
       if (params.has('accentColor')) display.accent_color = params.get('accentColor');
+      if (params.has('widgetWidth')) display.widget_width = parseInt(params.get('widgetWidth'));
+      if (params.has('refreshRank')) display.refresh_rank = parseInt(params.get('refreshRank'));
+      if (params.has('showPeakRank')) display.show_peak_rank = params.get('showPeakRank') === 'true';
+      if (params.has('showSessionRR')) display.show_session_rr = params.get('showSessionRR') === 'true';
+      if (params.has('showLastMatch')) display.show_last_match = params.get('showLastMatch') === 'true';
+      if (params.has('showStreak')) display.show_streak = params.get('showStreak') === 'true';
+
       cfg.display = display;
     }
 

@@ -193,24 +193,94 @@ body {
 <script>
 let cfg = null;
 let prevChange = undefined;
-let firstLoad = true;
 const SS_KEY = 'valo_session_start_rr';
-let lastLocalStorageCheck = null;
+const IS_PREVIEW = new URLSearchParams(window.location.search).has('preview')
+                || window.self !== window.top; // detect iframe
 
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
   const r = document.documentElement;
   let opacity = d.bg_opacity ?? 0.75;
-  // Normalize opacity: if > 1, assume it's a percentage (0-100)
   if (opacity > 1) opacity = opacity / 100;
-  const bg = `rgba(0,0,0,${opacity})`;
-  r.style.setProperty('--card-bg', bg);
+  r.style.setProperty('--card-bg', `rgba(0,0,0,${opacity})`);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
   r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
+
+  // Toggle visibility of sections
+  document.getElementById('peakRank').style.display =
+    (d.show_peak_rank ?? true) ? 'block' : 'none';
+  document.getElementById('sessionRR').style.display =
+    (d.show_session_rr ?? true) ? 'block' : 'none';
+  document.getElementById('matchCard').style.display =
+    (d.show_last_match ?? true) ? 'flex' : 'none';
+  document.getElementById('streakCard').style.display =
+    (d.show_streak ?? true) ? 'flex' : 'none';
+}
+
+// ── Demo data for preview mode (NO external API calls) ──────
+function loadDemoData() {
+  const d = cfg?.display || {};
+
+  // Rank
+  document.getElementById('rankName').textContent = 'Diamond 2';
+  document.getElementById('rrLabel').textContent = '67 RR';
+  document.getElementById('fill').style.width = '67%';
+
+  const ico = document.getElementById('ico');
+  ico.style.display = 'block';
+  ico.src = 'https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/19/largeicon.png';
+  ico.onerror = () => { ico.style.display = 'none'; };
+
+  // Peak rank
+  if (d.show_peak_rank ?? true) {
+    const peakEl = document.getElementById('peakRank');
+    peakEl.innerHTML = 'PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="peak" class="peak-icon">';
+    peakEl.style.display = 'block';
+  }
+
+  // Session RR
+  if (d.show_session_rr ?? true) {
+    const el = document.getElementById('sessionRR');
+    el.innerHTML = 'SESSION <span class="val pos">+22 RR</span>';
+    el.style.display = 'block';
+  }
+
+  // RR badge
+  const badge = document.getElementById('badge');
+  badge.className = 'rr-badge pos';
+  document.getElementById('badgeNum').textContent = '+19';
+
+  // Last match
+  if (d.show_last_match ?? true) {
+    const card = document.getElementById('matchCard');
+    card.style.display = 'flex';
+    const icon = document.getElementById('matchIcon');
+    icon.src = 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png';
+    icon.style.display = 'block';
+    icon.onerror = () => { icon.style.display = 'none'; };
+    document.getElementById('matchAgent').textContent = 'Jett';
+    document.getElementById('matchKda').textContent = '21/12/5 • Haven';
+    const res = document.getElementById('matchResult');
+    res.className = 'match-result win';
+    res.textContent = 'V';
+  }
+
+  // Streak
+  if (d.show_streak ?? true) {
+    const streakCard = document.getElementById('streakCard');
+    const dots = document.getElementById('streakDots');
+    streakCard.style.display = 'flex';
+    dots.innerHTML = '';
+    ['win','loss','win','win','win'].forEach(r => {
+      const dot = document.createElement('div');
+      dot.className = 's-dot ' + r;
+      dots.appendChild(dot);
+    });
+  }
 }
 
 // ── Session RR ───────────────────────────────────────────────
@@ -234,24 +304,12 @@ function renderSessionRR(rr) {
   el.style.display = 'block';
 }
 
-// ── Rank ─────────────────────────────────────────────────────
+// ── Rank (real API - only used in OBS mode) ──────────────────
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
     let d = await res.json();
     if (!res.ok) return;
-
-    // Add test data if showing peak rank in preview mode
-    const isPreview = new URLSearchParams(window.location.search).has('opacity');
-    if (isPreview && (cfg?.display?.show_peak_rank ?? true) && (!d.peak_rank || d.peak_rank === d.rank)) {
-      d.peak_rank = 'Radiant';
-      d.peak_tier = 27; // Radiant tier ID
-    }
-    if (isPreview && (cfg?.display?.show_session_rr ?? true)) {
-      sessionStartRR = 80;
-      d.rr = d.rr || 0;
-      d.rr = Math.max(90, d.rr); // Ensure we have RR change for display
-    }
 
     document.getElementById('rankName').textContent = d.rank;
     document.getElementById('rrLabel').textContent  = d.rr + ' RR';
@@ -266,15 +324,10 @@ async function refreshRank() {
       };
     }
 
-    // Peak rank
     const peakEl = document.getElementById('peakRank');
     if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
-      let peakIcon = '';
-      if (d.peak_tier) {
-        const tier = d.peak_tier;
-        peakIcon = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="peak" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
-      }
-      peakEl.innerHTML = `PEAK ${peakIcon}`;
+      const tier = d.peak_tier;
+      peakEl.innerHTML = `PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="peak" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.style.display = 'block';
     } else {
       peakEl.style.display = 'none';
@@ -284,17 +337,13 @@ async function refreshRank() {
     const badge = document.getElementById('badge');
     badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
     document.getElementById('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-    if (prevChange !== undefined && prevChange !== chg) {
-      badge.classList.add('pop');
-      setTimeout(() => badge.classList.remove('pop'), 400);
-    }
     prevChange = chg;
 
     initSessionRR(d.rr);
   } catch(e) {}
 }
 
-// ── Matches ───────────────────────────────────────────────────
+// ── Matches (real API - only used in OBS mode) ───────────────
 async function refreshMatches() {
   const showMatch  = cfg?.display?.show_last_match ?? true;
   const showStreak = cfg?.display?.show_streak     ?? true;
@@ -307,12 +356,9 @@ async function refreshMatches() {
     const matches = await res.json();
     if (!matches?.length) return;
 
-    // Last match
     if (showMatch) {
       const m = matches[0];
-      const card = document.getElementById('matchCard');
-      card.style.display = 'flex';
-
+      document.getElementById('matchCard').style.display = 'flex';
       const icon = document.getElementById('matchIcon');
       if (m.agent_icon) {
         icon.src = m.agent_icon;
@@ -322,133 +368,101 @@ async function refreshMatches() {
       document.getElementById('matchAgent').textContent = m.agent;
       document.getElementById('matchKda').textContent =
         `${m.kills}/${m.deaths}/${m.assists}${m.map ? ' • ' + m.map : ''}`;
-
       const res2 = document.getElementById('matchResult');
-      if (m.won === null)       { res2.className = 'match-result draw'; res2.textContent = '?'; }
-      else if (m.won)           { res2.className = 'match-result win';  res2.textContent = 'V'; }
-      else                      { res2.className = 'match-result loss'; res2.textContent = 'D'; }
+      if (m.won === null)  { res2.className = 'match-result draw'; res2.textContent = '?'; }
+      else if (m.won)      { res2.className = 'match-result win';  res2.textContent = 'V'; }
+      else                 { res2.className = 'match-result loss'; res2.textContent = 'D'; }
     }
 
-    // Streak
     if (showStreak) {
-      const streakCard = document.getElementById('streakCard');
+      document.getElementById('streakCard').style.display = 'flex';
       const dots = document.getElementById('streakDots');
-      streakCard.style.display = 'flex';
       dots.innerHTML = '';
-      // Affiche 5 dots (les plus anciens à gauche, le plus récent à droite)
       const filled = matches.slice(0, 5).reverse();
       for (let i = 0; i < 5; i++) {
         const dot = document.createElement('div');
         const m = filled[i];
-        if (!m) {
-          dot.className = 's-dot empty';
-        } else if (m.won === true)  { dot.className = 's-dot win'; }
-        else if (m.won === false)   { dot.className = 's-dot loss'; }
-        else                        { dot.className = 's-dot draw'; }
+        if (!m)                     dot.className = 's-dot empty';
+        else if (m.won === true)    dot.className = 's-dot win';
+        else if (m.won === false)   dot.className = 's-dot loss';
+        else                        dot.className = 's-dot draw';
         dots.appendChild(dot);
       }
     }
   } catch(e) {}
 }
 
-// ── Load from localStorage ────────────────────────────────────
-function loadFromLocalStorage() {
+// ── Init ──────────────────────────────────────────────────────
+async function init() {
+  // 1. Load display settings from localStorage (instant, synchronous)
   try {
     const stored = localStorage.getItem('valo_display');
     if (stored) {
-      const display = JSON.parse(stored);
-      if (cfg) cfg.display = { ...cfg.display, ...display };
-      else cfg = { display };
-      return true;
+      cfg = { display: JSON.parse(stored) };
     }
   } catch(e) {}
-  return false;
-}
 
-// ── Init ──────────────────────────────────────────────────────
-async function init() {
-  // PRIORITY 1: Load from localStorage IMMEDIATELY (instant preview sync)
-  const hasLocalStorage = loadFromLocalStorage();
-
-  if (hasLocalStorage) {
-    // Display immediately from localStorage (instant)
-    applyDisplay(cfg?.display || {});
-  }
-
-  // PRIORITY 2: Fetch from API in background (don't wait for this)
-  try {
-    const res = await fetch('/api/config');
-    cfg = await res.json();
-
-    // Check for preview query parameters (from setup.html)
-    const params = new URLSearchParams(window.location.search);
-    if (params.size > 1 || (params.size === 1 && !params.has('ts'))) {
-      // Override display settings with preview parameters
-      const display = cfg.display || {};
-
-      if (params.has('opacity')) display.bg_opacity = parseFloat(params.get('opacity'));
-      if (params.has('accentColor')) display.accent_color = params.get('accentColor');
-      if (params.has('textTertiary')) display.text_tertiary = params.get('textTertiary');
-      if (params.has('widgetWidth')) display.widget_width = parseInt(params.get('widgetWidth'));
-      if (params.has('refreshRank')) display.refresh_rank = parseInt(params.get('refreshRank'));
-      if (params.has('showPeakRank')) display.show_peak_rank = params.get('showPeakRank') === 'true';
-      if (params.has('showSessionRR')) display.show_session_rr = params.get('showSessionRR') === 'true';
-      if (params.has('showLastMatch')) display.show_last_match = params.get('showLastMatch') === 'true';
-      if (params.has('showStreak')) display.show_streak = params.get('showStreak') === 'true';
-
-      cfg.display = display;
-    }
-
-    // Update display with API data
-    applyDisplay(cfg?.display || {});
-  } catch(e) {
-    // If API fails and no localStorage, just apply defaults
-    if (!hasLocalStorage) {
+  // 2. Fallback: load from local API (fast, same server)
+  if (!cfg) {
+    try {
+      const res = await fetch('/api/config');
+      cfg = await res.json();
+    } catch(e) {
       cfg = { display: {} };
-      applyDisplay(cfg?.display || {});
     }
   }
 
-  // Show container IMMEDIATELY - don't wait for external API calls
+  // 3. Apply display and show container immediately
+  applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
-  const interval = (cfg?.display?.refresh_rank || 120) * 1000;
+  // 4. PREVIEW MODE: use demo data, poll localStorage, done.
+  if (IS_PREVIEW) {
+    loadDemoData();
 
+    // Poll localStorage every 150ms for instant preview sync
+    let lastCheck = localStorage.getItem('valo_display');
+    setInterval(() => {
+      try {
+        const stored = localStorage.getItem('valo_display');
+        if (stored !== lastCheck) {
+          lastCheck = stored;
+          cfg.display = JSON.parse(stored);
+          applyDisplay(cfg.display);
+          loadDemoData();
+        }
+      } catch(e) {}
+    }, 150);
+    return; // Exit here - no external API calls in preview mode
+  }
+
+  // 5. OBS MODE: fetch real data from external APIs
+  const interval = (cfg?.display?.refresh_rank || 120) * 1000;
   refreshRank();
   refreshMatches();
-  setInterval(refreshRank,   interval);
+  setInterval(refreshRank, interval);
   setInterval(refreshMatches, 120000);
 
-  // Fast polling on localStorage for real-time sync (iframe case)
+  // Poll localStorage for live config updates from setup page
+  let lastCheck = localStorage.getItem('valo_display');
   setInterval(() => {
     try {
       const stored = localStorage.getItem('valo_display');
-      if (stored && stored !== lastLocalStorageCheck) {
-        lastLocalStorageCheck = stored;
-        const display = JSON.parse(stored);
-        if (cfg) cfg.display = { ...cfg.display, ...display };
-        applyDisplay(cfg?.display || {});
+      if (stored !== lastCheck) {
+        lastCheck = stored;
+        cfg.display = JSON.parse(stored);
+        applyDisplay(cfg.display);
       }
     } catch(e) {}
-  }, 200);
+  }, 1000);
 
-  // Listen for storage changes from other tabs (storage event)
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'valo_display') {
-      try {
-        const display = JSON.parse(e.newValue);
-        if (cfg) cfg.display = { ...cfg.display, ...display };
-        applyDisplay(cfg?.display || {});
-      } catch(e) {}
-    }
-  });
-
-  // Reload config from API every 60 seconds as fallback
+  // Reload config from API every 60 seconds
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
       if (res.ok) {
-        cfg = await res.json();
+        const newCfg = await res.json();
+        cfg = newCfg;
         applyDisplay(cfg.display || {});
       }
     } catch(e) {}

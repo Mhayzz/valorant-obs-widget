@@ -972,7 +972,7 @@ input[type=color]::-moz-color-swatch {
     <div class="preview-wrap">
       <div class="preview-title">Aperçu</div>
       <div class="preview-bg" id="previewBg">
-        <iframe id="previewFrame" src="/index.html" scrolling="no" height="220"></iframe>
+        <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
       <button class="preview-refresh" onclick="forceRefreshPreview()">↻ Actualiser l'aperçu</button>
     </div>
@@ -1023,19 +1023,6 @@ document.getElementById('copyBtn').addEventListener('click', () => {
   });
 });
 
-// ── Debounce helper ──────────────────────────────────────────
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
 // ── Save to localStorage ──────────────────────────────────────
 // ── Show save notification ────────────────────────────
 let saveNotifTimeout;
@@ -1079,7 +1066,7 @@ function refreshPreview() {
 
 function forceRefreshPreview() {
   const frame = document.getElementById('previewFrame');
-  frame.src = '/index.html?t=' + Date.now();
+  frame.src = '/index.html?preview=1&t=' + Date.now();
 }
 
 function calcHeight() {

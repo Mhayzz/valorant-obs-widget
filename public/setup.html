@@ -929,6 +929,16 @@ input[type=color]::-moz-color-swatch {
             <span class="toggle-track"></span>
           </label>
         </div>
+        <div class="opt-row" id="peakInlineRow">
+          <div class="opt-info">
+            <div class="opt-label">Peak inline</div>
+            <div class="opt-sub">Icône à côté du rang au lieu d'en dessous (réduit la hauteur)</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="peakInline">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
         <div class="opt-row">
           <div class="opt-info">
             <div class="opt-label">Session RR</div>
@@ -1045,6 +1055,7 @@ function saveToLocalStorage() {
     widget_width:    parseInt(document.getElementById('widgetWidth').value),
     refresh_rank:    parseInt(document.getElementById('refreshRank').value),
     show_peak_rank:  document.getElementById('showPeakRank').checked,
+    peak_inline:     document.getElementById('peakInline').checked,
     show_session_rr: document.getElementById('showSessionRR').checked,
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
@@ -1072,7 +1083,8 @@ function scheduleAccountRefresh() {
 }
 
 function calcHeight() {
-  let h = 88; // rank card base (with padding and spacing)
+  let h = 88;
+  if (document.getElementById('showPeakRank').checked && !document.getElementById('peakInline').checked) h += 16;
   if (document.getElementById('showSessionRR').checked)  h += 18;
   if (document.getElementById('showLastMatch').checked)  h += 52;
   if (document.getElementById('showStreak').checked)     h += 40;
@@ -1103,7 +1115,7 @@ document.getElementById('textTertiaryPicker').addEventListener('input', function
 });
 
 // ── Toggle dims update ────────────────────────────────────────
-['showPeakRank','showSessionRR','showLastMatch','showStreak'].forEach(id => {
+['showPeakRank','peakInline','showSessionRR','showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     saveToLocalStorage();
     updateObsDims();
@@ -1156,6 +1168,7 @@ async function loadConfig() {
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
     if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
     if (d.show_peak_rank  !== undefined) document.getElementById('showPeakRank').checked  = d.show_peak_rank;
+    if (d.peak_inline     !== undefined) document.getElementById('peakInline').checked    = d.peak_inline;
     if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
@@ -1222,6 +1235,7 @@ async function autoSave() {
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
       show_peak_rank:  document.getElementById('showPeakRank').checked,
+      peak_inline:     document.getElementById('peakInline').checked,
       show_session_rr: document.getElementById('showSessionRR').checked,
       show_last_match: document.getElementById('showLastMatch').checked,
       show_streak:     document.getElementById('showStreak').checked,

@@ -55,7 +55,9 @@ body {
   filter:drop-shadow(0 2px 8px rgba(0,0,0,.6));
 }
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
-.rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; }
+.rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; display:flex; align-items:center; gap:6px; }
+.rank-name .peak-inline { display:none; }
+.rank-name .peak-inline img { width:14px; height:14px; vertical-align:middle; }
 
 .peak-rank {
   font-size:9px; font-weight:600; letter-spacing:.7px;
@@ -157,7 +159,7 @@ body {
       <img id="ico" src="" alt="" style="display:none">
     </div>
     <div class="rank-info">
-      <div class="rank-name" id="rankName">—</div>
+      <div class="rank-name" id="rankName">—<span class="peak-inline" id="peakInline"></span></div>
       <div class="peak-rank" id="peakRank" style="display:none"></div>
       <div class="session-rr" id="sessionRR" style="display:none"></div>
       <div class="rr-row">
@@ -210,9 +212,18 @@ function applyDisplay(d) {
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
 
-  // Toggle visibility of sections
-  document.getElementById('peakRank').style.display =
-    (d.show_peak_rank ?? true) ? 'block' : 'none';
+  // Peak rank: inline (next to rank name) or below
+  const peakInline = d.peak_inline ?? false;
+  if (!(d.show_peak_rank ?? true)) {
+    document.getElementById('peakRank').style.display = 'none';
+    document.getElementById('peakInline').style.display = 'none';
+  } else if (peakInline) {
+    document.getElementById('peakRank').style.display = 'none';
+    document.getElementById('peakInline').style.display = 'inline';
+  } else {
+    document.getElementById('peakRank').style.display = 'block';
+    document.getElementById('peakInline').style.display = 'none';
+  }
   document.getElementById('sessionRR').style.display =
     (d.show_session_rr ?? true) ? 'block' : 'none';
   document.getElementById('matchCard').style.display =
@@ -237,9 +248,9 @@ function loadDemoData() {
 
   // Peak rank
   if (d.show_peak_rank ?? true) {
-    const peakEl = document.getElementById('peakRank');
-    peakEl.innerHTML = 'PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="" class="peak-icon" onerror="this.style.display=\'none\'">';
-    peakEl.style.display = 'block';
+    const peakImg = '<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="" class="peak-icon" onerror="this.style.display=\'none\'">';
+    document.getElementById('peakRank').innerHTML = 'PEAK ' + peakImg;
+    document.getElementById('peakInline').innerHTML = peakImg;
   }
 
   // Session RR
@@ -325,12 +336,15 @@ async function refreshRank() {
     }
 
     const peakEl = document.getElementById('peakRank');
+    const peakInline = document.getElementById('peakInline');
     if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank && d.peak_rank !== d.rank) {
       const tier = d.peak_tier;
-      peakEl.innerHTML = `PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="peak" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
-      peakEl.style.display = 'block';
+      const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
+      peakEl.innerHTML = `PEAK ${peakImg}`;
+      peakInline.innerHTML = peakImg;
     } else {
       peakEl.style.display = 'none';
+      peakInline.style.display = 'none';
     }
 
     const chg = d.rr_change;

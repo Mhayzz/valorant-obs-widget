@@ -20,6 +20,7 @@ const DEFAULT_DISPLAY = {
   text_tertiary:   "rgba(255,255,255,0.3)",
   show_session_rr: true,
   show_peak_rank:  true,
+  peak_inline:     false,
   show_last_match: true,
   show_streak:     true,
   widget_width:    300,

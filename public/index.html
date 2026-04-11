@@ -249,8 +249,19 @@ function renderSessionRR(rr) {
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
-    const d = await res.json();
+    let d = await res.json();
     if (!res.ok) return;
+
+    // Add test data if showing peak rank in preview mode
+    const isPreview = new URLSearchParams(window.location.search).has('opacity');
+    if (isPreview && (cfg?.display?.show_peak_rank ?? true) && (!d.peak_rank || d.peak_rank === d.rank)) {
+      d.peak_rank = 'Radiant';
+    }
+    if (isPreview && (cfg?.display?.show_session_rr ?? true)) {
+      sessionStartRR = 80;
+      d.rr = d.rr || 0;
+      d.rr = Math.max(90, d.rr); // Ensure we have RR change for display
+    }
 
     document.getElementById('rankName').textContent = d.rank;
     document.getElementById('rrLabel').textContent  = d.rr + ' RR';
@@ -388,6 +399,17 @@ async function init() {
   refreshMatches();
   setInterval(refreshRank,   interval);
   setInterval(refreshMatches, 120000);
+
+  // Reload config every 30 seconds to pick up changes from setup.html
+  setInterval(async () => {
+    try {
+      const res = await fetch('/api/config');
+      if (res.ok) {
+        cfg = await res.json();
+        applyDisplay(cfg.display || {});
+      }
+    } catch(e) {}
+  }, 30000);
 }
 
 init();

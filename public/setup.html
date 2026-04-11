@@ -1122,14 +1122,9 @@ input[type=color]:hover {
       </div>
     </div>
 
-    <!-- SAVE -->
+    <!-- AUTO-SAVE STATUS -->
     <div class="card">
-      <div class="field" id="passwordField" style="display:none; margin-bottom:12px">
-        <label>Mot de passe</label>
-        <input type="password" id="password" placeholder="••••••••">
-      </div>
-      <button class="save-btn" id="saveBtn" type="button">Sauvegarder la configuration</button>
-      <div class="feedback" id="feedback"></div>
+      <div class="feedback" id="feedback" style="margin-top:0; font-size:12px; color:var(--text-tertiary);">Modifications sauvegardées automatiquement</div>
     </div>
 
   </div><!-- /col-left -->
@@ -1371,9 +1366,6 @@ async function loadConfig() {
     document.getElementById('riotName').value   = cfg.riot_name   || '';
     document.getElementById('riotTag').value    = cfg.riot_tag    || '';
     document.getElementById('riotRegion').value = cfg.riot_region || 'eu';
-    if (cfg.password_required) {
-      document.getElementById('passwordField').style.display = 'block';
-    }
 
     // Display
     const d = cfg.display || {};
@@ -1426,22 +1418,13 @@ async function loadConfig() {
   }
 }
 
-// ── Save ──────────────────────────────────────────────────────
-document.getElementById('saveBtn').addEventListener('click', async () => {
-  const btn      = document.getElementById('saveBtn');
-  const feedback = document.getElementById('feedback');
-
+// ── Auto-save ─────────────────────────────────────────────
+let autoSaveTimeout;
+async function autoSave() {
   const riotName = document.getElementById('riotName').value.trim();
   const riotTag  = document.getElementById('riotTag').value.trim();
-  if (!riotName || !riotTag) {
-    feedback.textContent = '⚠️ Pseudo et tag requis';
-    feedback.className = 'feedback error';
-    return;
-  }
 
-  btn.disabled = true;
-  btn.textContent = 'Sauvegarde...';
-  feedback.textContent = '';
+  if (!riotName || !riotTag) return; // Don't save incomplete config
 
   const body = {
     riot_name:   riotName,
@@ -1463,40 +1446,24 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     },
   };
 
-  const pwd = document.getElementById('password').value;
-  if (pwd) body.password = pwd;
-
   try {
-    const r = await fetch('/api/config', {
+    await fetch('/api/config', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body),
     });
-    const j = await r.json();
-    if (r.ok) {
-      feedback.textContent = '✅ Sauvegardé !';
-      feedback.className   = 'feedback success';
-      await loadConfig();
-      setTimeout(refreshPreview, 600);
-    } else {
-      feedback.textContent = '❌ ' + (j.error || 'Erreur');
-      feedback.className   = 'feedback error';
-    }
-  } catch(e) {
-    feedback.textContent = '❌ Erreur réseau';
-    feedback.className   = 'feedback error';
-  }
+  } catch(e) {}
+}
 
-  btn.disabled    = false;
-  btn.textContent = 'Sauvegarder la configuration';
-  setTimeout(() => { feedback.textContent = ''; feedback.className = 'feedback'; }, 5000);
-});
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimeout);
+  autoSaveTimeout = setTimeout(autoSave, 1000); // Save 1s after last change
+}
 
-// ── Enter key ─────────────────────────────────────────────────
-document.querySelectorAll('input[type=text], input[type=password]').forEach(el => {
-  el.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('saveBtn').click();
-  });
+// Add auto-save to all inputs
+document.querySelectorAll('input[type=text], input[type=password], input[type=color], input[type=range], select, input[type=checkbox]').forEach(el => {
+  el.addEventListener('change', scheduleAutoSave);
+  el.addEventListener('input', scheduleAutoSave);
 });
 
 loadConfig();

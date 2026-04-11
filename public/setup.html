@@ -96,23 +96,22 @@ main { position: relative; z-index: 1; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, rgba(255, 70, 85, 0.1), rgba(255, 70, 85, 0.05));
-  border: 1px solid rgba(255, 70, 85, 0.3);
+  background: #f0f0f0;
+  border: 1px solid #cccccc;
   border-radius: 8px;
   padding: 8px 16px;
   margin-bottom: 16px;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
-  color: var(--accent);
+  color: #000000;
   text-transform: uppercase;
-  backdrop-filter: blur(10px);
   transition: all 0.3s ease;
 }
 
 .header-badge:hover {
-  background: linear-gradient(135deg, rgba(255, 70, 85, 0.15), rgba(255, 70, 85, 0.1));
-  border-color: rgba(255, 70, 85, 0.5);
+  background: #e8e8e8;
+  border-color: #999999;
   transform: translateX(4px);
 }
 
@@ -122,25 +121,19 @@ main { position: relative; z-index: 1; }
   letter-spacing: -1px;
   line-height: 1.1;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, #fff 0%, #e0e0e0 50%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #000000;
 }
 
 .header h1 .by-greg {
   font-size: 0.5em;
-  background: linear-gradient(135deg, var(--accent) 0%, #ff5a67 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #ff4655;
   margin-left: 8px;
   font-weight: 700;
 }
 
 .header p {
   font-size: 16px;
-  color: var(--text-secondary);
+  color: #666666;
   margin-top: 8px;
   line-height: 1.6;
   max-width: 500px;
@@ -212,34 +205,34 @@ main { position: relative; z-index: 1; }
 }
 
 input[type=text], input[type=password], select {
-  background: rgba(255, 255, 255, 0.04);
+  background: #ffffff;
   border: 1.5px solid var(--border);
   border-radius: 12px;
   padding: 12px 14px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
-  color: var(--text-primary);
+  color: #000000;
   outline: none;
   transition: all 0.3s ease;
   width: 100%;
 }
 
 input[type=text]:hover, input[type=password]:hover, select:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 70, 85, 0.3);
+  background: #ffffff;
+  border-color: #999999;
 }
 
 input[type=text]::placeholder,
 input[type=password]::placeholder {
-  color: var(--text-tertiary);
+  color: #999999;
 }
 
 input[type=text]:focus,
 input[type=password]:focus,
 select:focus {
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.1), inset 0 0 20px rgba(255, 70, 85, 0.05);
+  border-color: #000000;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
 }
 
 select {
@@ -363,8 +356,8 @@ input[type=range] {
   flex: 1;
   height: 6px;
   cursor: pointer;
-  accent-color: var(--accent);
-  background: rgba(255, 255, 255, 0.08);
+  accent-color: #000000;
+  background: #e0e0e0;
   border-radius: 6px;
   border: none;
   outline: none;
@@ -380,40 +373,40 @@ input[type=range]::-webkit-slider-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #ff5a67);
+  background: #000000;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 12px rgba(255, 70, 85, 0.3);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 input[type=range]::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 20px rgba(255, 70, 85, 0.5);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
 }
 
 input[type=range]::-moz-range-thumb {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent), #ff5a67);
+  background: #000000;
   cursor: pointer;
   border: none;
   transition: all 0.3s ease;
-  box-shadow: 0 0 12px rgba(255, 70, 85, 0.3);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
 }
 
 input[type=range]:hover {
-  background: rgba(255, 70, 85, 0.12);
+  background: #d0d0d0;
 }
 
 .slider-val {
   font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
   font-weight: 600;
-  color: var(--accent);
+  color: #000000;
   min-width: 45px;
   text-align: right;
-  background: rgba(255, 70, 85, 0.1);
+  background: #f0f0f0;
   padding: 4px 8px;
   border-radius: 6px;
 }

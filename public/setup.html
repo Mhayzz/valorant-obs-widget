@@ -431,31 +431,38 @@ input[type=range]:hover {
 input[type=color] {
   width: 50px;
   height: 50px;
-  padding: 0;
-  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
   border-radius: 8px;
   cursor: pointer;
-  outline: none;
+  outline: none !important;
   transition: all 0.2s ease;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  box-shadow: none;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  box-shadow: none !important;
+  background: none !important;
 }
 
 input[type=color]::-webkit-color-swatch-wrapper {
-  padding: 0;
-  border: none;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
 }
 
 input[type=color]::-webkit-color-swatch {
-  border: none;
+  border: 0 !important;
   border-radius: 8px;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 input[type=color]::-moz-color-swatch {
-  border: none;
+  border: 0 !important;
   border-radius: 8px;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* ── Save ────────────────────────────────────────────── */
@@ -1062,18 +1069,22 @@ function saveToLocalStorage() {
 
 // ── Preview ───────────────────────────────────────────────────
 function refreshPreview() {
-  const frame = document.getElementById('previewFrame');
+  const bg = document.getElementById('previewBg');
   const w = parseInt(document.getElementById('widgetWidth').value) || 300;
-  frame.width  = w;
-  frame.height = calcHeight();
-  document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
+  const h = calcHeight();
+  bg.style.minHeight = (h + 32) + 'px';
 
-  // Force reload: remove src, wait, then reload with cache-buster
-  const newSrc = '/index.html?ts=' + Date.now() + '&_=' + Math.random();
-  frame.src = '';
-  setTimeout(() => {
-    frame.src = newSrc;
-  }, 0);
+  // Recreate iframe completely to force hard refresh
+  const oldFrame = document.getElementById('previewFrame');
+  const newFrame = document.createElement('iframe');
+  newFrame.id = 'previewFrame';
+  newFrame.width = w;
+  newFrame.height = h;
+  newFrame.scrolling = 'no';
+  newFrame.src = '/index.html?t=' + Date.now();
+
+  bg.innerHTML = '';
+  bg.appendChild(newFrame);
 }
 
 function calcHeight() {

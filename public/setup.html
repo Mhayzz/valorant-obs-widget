@@ -117,6 +117,165 @@ body::after {
 
 main { position: relative; z-index: 1; }
 
+/* ── Theme Selector ──────────────────────────────────────── */
+.theme-selector-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 100;
+}
+
+.theme-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 70, 85, 0.1);
+  border: 2px solid rgba(255, 70, 85, 0.3);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.theme-btn:hover {
+  background: rgba(255, 70, 85, 0.2);
+  border-color: rgba(255, 70, 85, 0.5);
+  transform: rotate(90deg) scale(1.1);
+}
+
+.theme-menu {
+  position: absolute;
+  top: 60px;
+  right: 0;
+  background: rgba(22, 32, 43, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  display: none;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  backdrop-filter: blur(20px);
+  min-width: 200px;
+  max-width: 300px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideInDown 0.3s ease;
+}
+
+.theme-menu.active {
+  display: grid;
+}
+
+.theme-option {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.theme-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.theme-option.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.theme-option::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* ── Theme Definitions ──────────────────────────────────────── */
+:root.theme-dark-red {
+  --accent: #ff4655;
+  --accent-hover: #ff5a67;
+  --accent-dark: #cc3a44;
+  --accent-glow: rgba(255, 70, 85, 0.3);
+}
+
+:root.theme-dark-blue {
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-dark: #1e40af;
+  --accent-glow: rgba(59, 130, 246, 0.3);
+}
+
+:root.theme-dark-purple {
+  --accent: #a855f7;
+  --accent-hover: #c084fc;
+  --accent-dark: #7c3aed;
+  --accent-glow: rgba(168, 85, 247, 0.3);
+}
+
+:root.theme-dark-green {
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --accent-dark: #059669;
+  --accent-glow: rgba(16, 185, 129, 0.3);
+}
+
+:root.theme-dark-cyan {
+  --accent: #06b6d4;
+  --accent-hover: #22d3ee;
+  --accent-dark: #0891b2;
+  --accent-glow: rgba(6, 182, 212, 0.3);
+}
+
+:root.theme-dark-orange {
+  --accent: #f97316;
+  --accent-hover: #fb923c;
+  --accent-dark: #c2410c;
+  --accent-glow: rgba(249, 115, 22, 0.3);
+}
+
+:root.theme-dark-pink {
+  --accent: #ec4899;
+  --accent-hover: #f472b6;
+  --accent-dark: #be185d;
+  --accent-glow: rgba(236, 72, 153, 0.3);
+}
+
+:root.theme-dark-yellow {
+  --accent: #eab308;
+  --accent-hover: #facc15;
+  --accent-dark: #ca8a04;
+  --accent-glow: rgba(234, 179, 8, 0.3);
+}
+
+:root.theme-dark-indigo {
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-dark: #4f46e5;
+  --accent-glow: rgba(99, 102, 241, 0.3);
+}
+
+:root.theme-dark-rose {
+  --accent: #f43f5e;
+  --accent-hover: #fb7185;
+  --accent-dark: #be185d;
+  --accent-glow: rgba(244, 63, 94, 0.3);
+}
+
 /* ── Layout ──────────────────────────────────────────── */
 .layout {
   display: grid;
@@ -997,6 +1156,23 @@ input[type=color]:hover {
 </head>
 <body>
 
+<!-- Theme Selector -->
+<div class="theme-selector-wrapper">
+  <button class="theme-btn" id="themeBtn" title="Changer le thème">⚙️</button>
+  <div class="theme-menu" id="themeMenu">
+    <div class="theme-option" data-theme="theme-dark-red">Red</div>
+    <div class="theme-option" data-theme="theme-dark-blue">Blue</div>
+    <div class="theme-option" data-theme="theme-dark-purple">Purple</div>
+    <div class="theme-option" data-theme="theme-dark-green">Green</div>
+    <div class="theme-option" data-theme="theme-dark-cyan">Cyan</div>
+    <div class="theme-option" data-theme="theme-dark-orange">Orange</div>
+    <div class="theme-option" data-theme="theme-dark-pink">Pink</div>
+    <div class="theme-option" data-theme="theme-dark-yellow">Yellow</div>
+    <div class="theme-option" data-theme="theme-dark-indigo">Indigo</div>
+    <div class="theme-option" data-theme="theme-dark-rose">Rose</div>
+  </div>
+</div>
+
 <div class="layout">
 
   <!-- ── HEADER ── -->
@@ -1179,6 +1355,56 @@ input[type=color]:hover {
 </div><!-- /layout -->
 
 <script>
+// ── Theme System ──────────────────────────────────────────────
+const THEME_STORAGE_KEY = 'valo-widget-theme';
+const DEFAULT_THEME = 'theme-dark-red';
+
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY) || DEFAULT_THEME;
+  document.documentElement.className = saved;
+  updateThemeUI(saved);
+}
+
+function setTheme(theme) {
+  document.documentElement.className = theme;
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+  updateThemeUI(theme);
+}
+
+function updateThemeUI(activeTheme) {
+  document.querySelectorAll('.theme-option').forEach(el => {
+    if (el.dataset.theme === activeTheme) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  });
+}
+
+// Theme selector button and menu
+document.getElementById('themeBtn').addEventListener('click', () => {
+  document.getElementById('themeMenu').classList.toggle('active');
+});
+
+document.querySelectorAll('.theme-option').forEach(option => {
+  option.addEventListener('click', () => {
+    const theme = option.dataset.theme;
+    setTheme(theme);
+    document.getElementById('themeMenu').classList.remove('active');
+  });
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  const wrapper = document.querySelector('.theme-selector-wrapper');
+  if (!wrapper.contains(e.target)) {
+    document.getElementById('themeMenu').classList.remove('active');
+  }
+});
+
+// Load saved theme on page load
+loadTheme();
+
 const base = window.location.origin;
 document.getElementById('overlayLink').textContent = base + '/index.html';
 

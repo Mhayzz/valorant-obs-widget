@@ -299,6 +299,14 @@ async function refreshRank() {
       const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.innerHTML = `PEAK ${peakImg}`;
       peakInline.innerHTML = peakImg;
+      // Set display based on inline setting
+      if (cfg?.display?.peak_inline) {
+        peakEl.style.display = 'none';
+        peakInline.style.display = 'inline';
+      } else {
+        peakEl.style.display = 'block';
+        peakInline.style.display = 'none';
+      }
     } else {
       peakEl.style.display = 'none';
       peakInline.style.display = 'none';

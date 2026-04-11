@@ -21,6 +21,7 @@ const DEFAULT_DISPLAY = {
   show_session_rr: true,
   show_peak_rank:  true,
   peak_inline:     false,
+  peak_align:      "left",
   show_last_match: true,
   show_streak:     true,
   widget_width:    300,

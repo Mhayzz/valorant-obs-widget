@@ -483,6 +483,34 @@ input[type=range]:hover {
   pointer-events: auto;
 }
 
+/* ── Arrow buttons ──────────────────────────────────── */
+.arrow-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.arrow-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.arrow-btn.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--text-primary);
+}
+
 /* ── Color picker ────────────────────────────────────── */
 .color-row {
   display: flex;
@@ -992,11 +1020,15 @@ input[type=color]::-moz-color-swatch {
             <div class="opt-label">Peak Rank</div>
             <div class="opt-sub">Affiche le meilleur rang atteint</div>
           </div>
-          <select id="peakRankMode" style="width:auto; min-width:130px; padding:8px 12px; font-size:12px;">
-            <option value="off">Désactivé</option>
-            <option value="below" selected>Sous le rang</option>
-            <option value="inline">À côté du rang</option>
-          </select>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button class="arrow-btn" id="peakAlignLeft" title="Décaler à gauche">←</button>
+            <button class="arrow-btn" id="peakAlignRight" title="Décaler à droite">→</button>
+            <select id="peakRankMode" style="width:auto; min-width:130px; padding:8px 12px; font-size:12px;">
+              <option value="off">Désactivé</option>
+              <option value="below" selected>Sous le rang</option>
+              <option value="inline">À côté du rang</option>
+            </select>
+          </div>
         </div>
         <div class="opt-row">
           <div class="opt-info">
@@ -1118,6 +1150,7 @@ function saveToLocalStorage() {
     refresh_rank:    parseInt(document.getElementById('refreshRank').value),
     show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
     peak_inline:     document.getElementById('peakRankMode').value === 'inline',
+    peak_align:      currentPeakAlign,
     show_session_rr: document.getElementById('showSessionRR').checked,
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
@@ -1128,6 +1161,23 @@ function saveToLocalStorage() {
 }
 
 // ── Preview ───────────────────────────────────────────────────
+// ── Peak align ────────────────────────────────────────────────
+let currentPeakAlign = 'left';
+
+document.getElementById('peakAlignLeft').addEventListener('click', () => {
+  currentPeakAlign = 'left';
+  document.getElementById('peakAlignLeft').classList.add('active');
+  document.getElementById('peakAlignRight').classList.remove('active');
+  saveToLocalStorage();
+});
+
+document.getElementById('peakAlignRight').addEventListener('click', () => {
+  currentPeakAlign = 'right';
+  document.getElementById('peakAlignRight').classList.add('active');
+  document.getElementById('peakAlignLeft').classList.remove('active');
+  saveToLocalStorage();
+});
+
 // ── Preview background cycle ──────────────────────────────────
 const previewBgs = ['map4', 'dark', 'map1', 'map2', 'map3'];
 let currentBgIndex = 0;
@@ -1246,6 +1296,13 @@ async function loadConfig() {
     if (d.show_peak_rank !== undefined || d.peak_inline !== undefined) {
       const mode = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
       document.getElementById('peakRankMode').value = mode;
+    }
+    if (d.peak_align) {
+      currentPeakAlign = d.peak_align;
+      document.getElementById('peakAlignLeft').classList.toggle('active', d.peak_align === 'left');
+      document.getElementById('peakAlignRight').classList.toggle('active', d.peak_align === 'right');
+    } else {
+      document.getElementById('peakAlignLeft').classList.add('active');
     }
     if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;

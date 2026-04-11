@@ -56,7 +56,9 @@ body {
 }
 .rank-info { flex:1; display:flex; flex-direction:column; gap:4px; }
 .rank-name { font-weight:600; font-size:16px; color:#fff; line-height:1; display:flex; align-items:center; gap:6px; }
-.rank-name .peak-inline { display:none; margin-left:8px; font-size:9px; font-weight:600; letter-spacing:.7px; text-transform:uppercase; color:var(--text-tertiary); align-items:center; gap:3px; }
+.rank-name .peak-inline { display:none; font-size:9px; font-weight:600; letter-spacing:.7px; text-transform:uppercase; color:var(--text-tertiary); align-items:center; gap:3px; }
+.rank-name .peak-inline.align-left { margin-left:8px; }
+.rank-name .peak-inline.align-right { margin-left:auto; }
 .rank-name .peak-inline img { width:14px; height:14px; vertical-align:middle; }
 
 .peak-rank {
@@ -226,15 +228,17 @@ function applyDisplay(d) {
 
   // Peak rank: inline (next to rank name) or below
   const peakInline = d.peak_inline ?? false;
+  const peakAlignEl = document.getElementById('peakInline');
+  peakAlignEl.className = 'peak-inline align-' + (d.peak_align || 'left');
   if (!(d.show_peak_rank ?? true)) {
     document.getElementById('peakRank').style.display = 'none';
-    document.getElementById('peakInline').style.display = 'none';
+    peakAlignEl.style.display = 'none';
   } else if (peakInline) {
     document.getElementById('peakRank').style.display = 'none';
-    document.getElementById('peakInline').style.display = 'inline';
+    peakAlignEl.style.display = 'flex';
   } else {
     document.getElementById('peakRank').style.display = 'block';
-    document.getElementById('peakInline').style.display = 'none';
+    peakAlignEl.style.display = 'none';
   }
   document.getElementById('sessionRR').style.display =
     (d.show_session_rr ?? true) ? 'block' : 'none';
@@ -299,7 +303,8 @@ async function refreshRank() {
       const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.innerHTML = `PEAK ${peakImg}`;
       peakInline.innerHTML = 'PEAK ' + peakImg;
-      // Set display based on inline setting
+      // Set display and alignment based on settings
+      peakInline.className = 'peak-inline align-' + (cfg?.display?.peak_align || 'left');
       if (cfg?.display?.peak_inline) {
         peakEl.style.display = 'none';
         peakInline.style.display = 'flex';

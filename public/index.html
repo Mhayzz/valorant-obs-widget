@@ -41,6 +41,14 @@ body {
   overflow:hidden;
 }
 
+/* OBS mode: simulate frosted glass without backdrop-filter */
+body.obs-mode .card {
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  background:var(--card-bg-obs);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 20px rgba(0,0,0,0.5);
+}
+
 
 /* ── Rank card ───────────────────────────────────────── */
 .rank-card {
@@ -219,9 +227,9 @@ function applyDisplay(d) {
   const r = document.documentElement;
   let opacity = d.bg_opacity ?? 0.75;
   if (opacity > 1) opacity = opacity / 100;
-  // In OBS, backdrop-filter:blur doesn't render, so boost opacity to compensate
-  const finalOpacity = IS_PREVIEW ? opacity : Math.min(1, opacity + 0.15);
-  r.style.setProperty('--card-bg', `rgba(0,0,0,${finalOpacity})`);
+  r.style.setProperty('--card-bg', `rgba(0,0,0,${opacity})`);
+  // OBS: simulate frosted glass with solid dark background
+  r.style.setProperty('--card-bg-obs', `rgba(22,24,30,${Math.min(1, opacity + 0.12)})`);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
@@ -423,7 +431,8 @@ async function init() {
     return;
   }
 
-  // 5. OBS MODE: fetch real data from external APIs
+  // 5. OBS MODE: apply obs-mode class for frosted glass simulation
+  document.body.classList.add('obs-mode');
   const interval = (cfg?.display?.refresh_rank || 120) * 1000;
   refreshRank();
   refreshMatches();

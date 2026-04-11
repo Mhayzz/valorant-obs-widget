@@ -84,7 +84,7 @@ body {
   height:100%; border-radius:2px;
   background:var(--accent);
   opacity:.6;
-  transition:width 1.2s cubic-bezier(.4,0,.2,1);
+  transition:width 0.6s ease;
 }
 
 .rr-badge {
@@ -99,8 +99,6 @@ body {
 .rr-badge.pos { color:#5fffb5; }
 .rr-badge.neg { color:#ff5060; }
 .rr-badge.neu { color:rgba(255,255,255,.2); }
-.rr-badge.pop { animation:pop .35s ease; }
-
 /* ── Match card ──────────────────────────────────────── */
 .match-card {
   display:flex; align-items:center; gap:9px;
@@ -148,11 +146,6 @@ body {
 .s-dot.empty { background:rgba(255,255,255,.07); }
 
 /* ── Animations ──────────────────────────────────────── */
-@keyframes pop {
-  0%   { transform:scale(.8); opacity:0; }
-  60%  { transform:scale(1.1); }
-  100% { transform:scale(1); opacity:1; }
-}
 </style>
 </head>
 <body>

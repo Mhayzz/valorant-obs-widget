@@ -1064,6 +1064,13 @@ function refreshPreview() {
   frame.src = '/index.html?preview=1&t=' + Date.now();
 }
 
+// Delayed refresh for account changes (wait for autoSave + API cache)
+let accountRefreshTimeout;
+function scheduleAccountRefresh() {
+  clearTimeout(accountRefreshTimeout);
+  accountRefreshTimeout = setTimeout(refreshPreview, 2000);
+}
+
 function calcHeight() {
   let h = 88; // rank card base (with padding and spacing)
   if (document.getElementById('showSessionRR').checked)  h += 18;
@@ -1085,20 +1092,14 @@ function updateObsDims() {
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
   saveToLocalStorage();
-  refreshPreview();
 });
 
 // ── Color picker sync ─────────────────────────────────────────
-// Accent color
 document.getElementById('accentPicker').addEventListener('input', function() {
   saveToLocalStorage();
-  refreshPreview();
 });
-
-// Text tertiary (labels)
 document.getElementById('textTertiaryPicker').addEventListener('input', function() {
   saveToLocalStorage();
-  refreshPreview();
 });
 
 // ── Toggle dims update ────────────────────────────────────────
@@ -1106,17 +1107,26 @@ document.getElementById('textTertiaryPicker').addEventListener('input', function
   document.getElementById(id).addEventListener('change', () => {
     saveToLocalStorage();
     updateObsDims();
-    refreshPreview();
   });
 });
 document.getElementById('widgetWidth').addEventListener('change', () => {
   saveToLocalStorage();
   updateObsDims();
-  refreshPreview();
 });
 document.getElementById('refreshRank').addEventListener('change', () => {
   saveToLocalStorage();
-  refreshPreview();
+});
+
+// ── Account fields: refresh preview 2s after typing ───────────
+['riotName', 'riotTag'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    updateStatusBar();
+    scheduleAccountRefresh();
+  });
+});
+document.getElementById('riotRegion').addEventListener('change', () => {
+  updateStatusBar();
+  scheduleAccountRefresh();
 });
 
 // ── Load config ───────────────────────────────────────────────

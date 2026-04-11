@@ -447,6 +447,7 @@ async function init() {
           lastCheck = stored;
           cfg.display = JSON.parse(stored);
           applyDisplay(cfg.display);
+          loadDemoData();
         }
       } catch(e) {}
     }, 150);

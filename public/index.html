@@ -372,6 +372,15 @@ function loadFromLocalStorage() {
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
+  // PRIORITY 1: Load from localStorage IMMEDIATELY (instant preview sync)
+  const hasLocalStorage = loadFromLocalStorage();
+
+  if (hasLocalStorage) {
+    // Display immediately from localStorage (instant)
+    applyDisplay(cfg?.display || {});
+  }
+
+  // PRIORITY 2: Fetch from API in background (don't wait for this)
   try {
     const res = await fetch('/api/config');
     cfg = await res.json();
@@ -394,12 +403,16 @@ async function init() {
 
       cfg.display = display;
     }
-  } catch(e) {}
 
-  // Try to load from localStorage (for real-time sync with setup.html)
-  loadFromLocalStorage();
-
-  applyDisplay(cfg?.display || {});
+    // Update display with API data
+    applyDisplay(cfg?.display || {});
+  } catch(e) {
+    // If API fails and no localStorage, just apply defaults
+    if (!hasLocalStorage) {
+      cfg = { display: {} };
+      applyDisplay(cfg?.display || {});
+    }
+  }
 
   const interval = (cfg?.display?.refresh_rank || 120) * 1000;
 

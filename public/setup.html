@@ -1040,7 +1040,7 @@ input[type=color]::-moz-color-swatch {
     <!-- Preview -->
     <div class="preview-wrap">
       <div class="preview-title">Aperçu</div>
-      <div class="preview-bg" id="previewBg">
+      <div class="preview-bg" id="previewBg" data-bg="map4">
         <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
       <div class="preview-btns">
@@ -1129,7 +1129,7 @@ function saveToLocalStorage() {
 
 // ── Preview ───────────────────────────────────────────────────
 // ── Preview background cycle ──────────────────────────────────
-const previewBgs = ['dark', 'map1', 'map2', 'map3', 'map4'];
+const previewBgs = ['map4', 'dark', 'map1', 'map2', 'map3'];
 let currentBgIndex = 0;
 
 function cyclePreviewBg() {

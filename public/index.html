@@ -147,14 +147,26 @@ body {
 .s-dot.draw { background:rgba(255,255,255,.2); }
 .s-dot.empty { background:rgba(255,255,255,.07); }
 
-/* ── Animations ──────────────────────────────────────── */
+/* ── Loading ─────────────────────────────────────────── */
+.loading-msg {
+  padding:16px;
+  text-align:center;
+  font-size:12px;
+  font-weight:500;
+  color:rgba(255,255,255,.4);
+  letter-spacing:.5px;
+}
+.loading-msg.hidden { display:none; }
+.overlay-content.hidden { display:none; }
 </style>
 </head>
 <body>
 
 <div class="container" id="container">
+  <!-- Loading message -->
+  <div class="card loading-msg" id="loadingMsg">Chargement des données...</div>
   <!-- Rank -->
-  <div class="card rank-card">
+  <div class="card rank-card overlay-content hidden">
     <div class="rank-icon">
       <img id="ico" src="" alt="" style="display:none">
     </div>
@@ -174,7 +186,7 @@ body {
   </div>
 
   <!-- Last match -->
-  <div class="card match-card" id="matchCard" style="display:none">
+  <div class="card match-card overlay-content hidden" id="matchCard" style="display:none">
     <div class="match-agent-wrap">
       <img id="matchIcon" src="" alt="" style="display:none">
     </div>
@@ -186,7 +198,7 @@ body {
   </div>
 
   <!-- Streak -->
-  <div class="card streak-card" id="streakCard" style="display:none">
+  <div class="card streak-card overlay-content hidden" id="streakCard" style="display:none">
     <span class="streak-label">STREAK</span>
     <div class="streak-dots" id="streakDots"></div>
   </div>
@@ -232,68 +244,6 @@ function applyDisplay(d) {
     (d.show_streak ?? true) ? 'flex' : 'none';
 }
 
-// ── Demo data for preview mode (NO external API calls) ──────
-function loadDemoData() {
-  const d = cfg?.display || {};
-
-  // Rank
-  document.getElementById('rankName').textContent = 'Diamond 2';
-  document.getElementById('rrLabel').textContent = '67 RR';
-  document.getElementById('fill').style.width = '67%';
-
-  const ico = document.getElementById('ico');
-  ico.style.display = 'block';
-  ico.src = 'https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/19/largeicon.png';
-  ico.onerror = () => { ico.style.display = 'none'; };
-
-  // Peak rank
-  if (d.show_peak_rank ?? true) {
-    const peakImg = '<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="" class="peak-icon" onerror="this.style.display=\'none\'">';
-    document.getElementById('peakRank').innerHTML = 'PEAK ' + peakImg;
-    document.getElementById('peakInline').innerHTML = peakImg;
-  }
-
-  // Session RR
-  if (d.show_session_rr ?? true) {
-    const el = document.getElementById('sessionRR');
-    el.innerHTML = 'SESSION <span class="val pos">+22 RR</span>';
-    el.style.display = 'block';
-  }
-
-  // RR badge
-  const badge = document.getElementById('badge');
-  badge.className = 'rr-badge pos';
-  document.getElementById('badgeNum').textContent = '+19';
-
-  // Last match
-  if (d.show_last_match ?? true) {
-    const card = document.getElementById('matchCard');
-    card.style.display = 'flex';
-    const icon = document.getElementById('matchIcon');
-    icon.src = 'https://media.valorant-api.com/agents/add6443a-41bd-e414-f6ad-e58d267f4e95/displayicon.png';
-    icon.style.display = 'block';
-    icon.onerror = () => { icon.style.display = 'none'; };
-    document.getElementById('matchAgent').textContent = 'Jett';
-    document.getElementById('matchKda').textContent = '21/12/5 • Haven';
-    const res = document.getElementById('matchResult');
-    res.className = 'match-result win';
-    res.textContent = 'V';
-  }
-
-  // Streak
-  if (d.show_streak ?? true) {
-    const streakCard = document.getElementById('streakCard');
-    const dots = document.getElementById('streakDots');
-    streakCard.style.display = 'flex';
-    dots.innerHTML = '';
-    ['win','loss','win','win','win'].forEach(r => {
-      const dot = document.createElement('div');
-      dot.className = 's-dot ' + r;
-      dots.appendChild(dot);
-    });
-  }
-}
-
 // ── Session RR ───────────────────────────────────────────────
 let sessionStartRR = null;
 
@@ -316,11 +266,18 @@ function renderSessionRR(rr) {
 }
 
 // ── Rank (real API - only used in OBS mode) ──────────────────
+function showOverlay() {
+  document.getElementById('loadingMsg').classList.add('hidden');
+  document.querySelectorAll('.overlay-content').forEach(el => el.classList.remove('hidden'));
+}
+
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
     let d = await res.json();
     if (!res.ok) return;
+
+    showOverlay();
 
     document.getElementById('rankName').textContent = d.rank;
     document.getElementById('rrLabel').textContent  = d.rr + ' RR';
@@ -430,11 +387,8 @@ async function init() {
   applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
-  // 4. PREVIEW MODE: show demo data instantly, then fetch real data in background
+  // 4. PREVIEW MODE: show loading, fetch real data, sync settings via localStorage
   if (IS_PREVIEW) {
-    loadDemoData();
-
-    // Fetch real data in background (non-blocking, replaces demo when ready)
     refreshRank();
     refreshMatches();
 
@@ -447,7 +401,6 @@ async function init() {
           lastCheck = stored;
           cfg.display = JSON.parse(stored);
           applyDisplay(cfg.display);
-          loadDemoData();
         }
       } catch(e) {}
     }, 150);

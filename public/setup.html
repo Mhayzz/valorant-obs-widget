@@ -870,7 +870,7 @@ input[type=color]::-moz-color-swatch {
       <div class="field" style="margin-top:14px">
         <label>Couleur d'accent</label>
         <div class="color-row">
-          <input type="color" id="accentPicker" value="#ff4655">
+          <input type="color" id="accentPicker" value="#ffffff">
         </div>
       </div>
 
@@ -1026,7 +1026,7 @@ function showSaveNotification() {
 function getDisplayFromForm() {
   return {
     bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
-    accent_color:    document.getElementById('accentPicker').value || '#ff4655',
+    accent_color:    document.getElementById('accentPicker').value || '#ffffff',
     text_primary:    '#ffffff',
     text_secondary:  'rgba(255,255,255,0.6)',
     text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',

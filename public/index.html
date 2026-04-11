@@ -8,7 +8,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
-  --accent: #ff4655;
+  --accent: #ffffff;
   --card-bg: rgba(0,0,0,0.75);
   --text-primary: #ffffff;
   --text-secondary: rgba(255,255,255,0.6);
@@ -230,7 +230,7 @@ function applyDisplay(d) {
   r.style.setProperty('--card-bg', `rgba(0,0,0,${opacity})`);
   // OBS: dark solid background matching preview look
   r.style.setProperty('--card-bg-obs', `rgba(18,18,22,${Math.min(1, opacity + 0.25)})`);
-  r.style.setProperty('--accent', d.accent_color || '#ff4655');
+  r.style.setProperty('--accent', d.accent_color || '#ffffff');
   r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
   r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');

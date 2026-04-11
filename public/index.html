@@ -291,11 +291,6 @@ async function refreshRank() {
     prevChange = chg;
 
     initSessionRR(d.rr);
-
-    if (firstLoad) {
-      document.getElementById('container').classList.add('show');
-      firstLoad = false;
-    }
   } catch(e) {}
 }
 
@@ -413,6 +408,9 @@ async function init() {
       applyDisplay(cfg?.display || {});
     }
   }
+
+  // Show container IMMEDIATELY - don't wait for external API calls
+  document.getElementById('container').classList.add('show');
 
   const interval = (cfg?.display?.refresh_rank || 120) * 1000;
 

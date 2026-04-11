@@ -648,7 +648,6 @@ input[type=color]::-moz-color-swatch {
 }
 
 .preview-bg {
-  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -659,15 +658,17 @@ input[type=color]::-moz-color-swatch {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg-tertiary);
 }
 
-.preview-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='1' height='1' fill='rgba(255,255,255,0.03)'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
+/* Background themes */
+.preview-bg[data-bg="dark"]    { background-image: none; background-color: var(--bg-tertiary); }
+.preview-bg[data-bg="haven"]   { background-image: linear-gradient(135deg, #c4a882 0%, #a89070 30%, #8b7a68 60%, #d4c4a8 100%); }
+.preview-bg[data-bg="icebox"]  { background-image: linear-gradient(135deg, #9ab0b8 0%, #b8c8d0 30%, #c0d0d8 60%, #8898a0 100%); }
+.preview-bg[data-bg="bind"]    { background-image: linear-gradient(135deg, #8b7050 0%, #6b5a40 30%, #9b8060 60%, #705838 100%); }
+.preview-bg[data-bg="abyss"]   { background-image: linear-gradient(135deg, #2a2e38 0%, #383c48 30%, #303440 60%, #252830 100%); }
 
 #previewFrame {
   border: none;
@@ -682,9 +683,14 @@ input[type=color]::-moz-color-swatch {
   opacity: 0;
 }
 
-.preview-refresh {
+.preview-btns {
+  display: flex;
+  gap: 8px;
   margin-top: 12px;
-  width: 100%;
+}
+
+.preview-refresh, .preview-bg-btn {
+  flex: 1;
   padding: 11px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border);
@@ -699,7 +705,7 @@ input[type=color]::-moz-color-swatch {
   transition: all 0.3s ease;
 }
 
-.preview-refresh:hover {
+.preview-refresh:hover, .preview-bg-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   border-color: rgba(255, 255, 255, 0.2);
@@ -984,7 +990,10 @@ input[type=color]::-moz-color-swatch {
       <div class="preview-bg" id="previewBg">
         <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
-      <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser l'aperçu</button>
+      <div class="preview-btns">
+        <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser</button>
+        <button class="preview-bg-btn" onclick="cyclePreviewBg()">◐ Changer le fond</button>
+      </div>
     </div>
 
     <!-- OBS info -->
@@ -1065,6 +1074,15 @@ function saveToLocalStorage() {
 }
 
 // ── Preview ───────────────────────────────────────────────────
+// ── Preview background cycle ──────────────────────────────────
+const previewBgs = ['dark', 'haven', 'icebox', 'bind', 'abyss'];
+let currentBgIndex = 0;
+
+function cyclePreviewBg() {
+  currentBgIndex = (currentBgIndex + 1) % previewBgs.length;
+  document.getElementById('previewBg').setAttribute('data-bg', previewBgs[currentBgIndex]);
+}
+
 function refreshPreview() {
   const frame = document.getElementById('previewFrame');
   const w = parseInt(document.getElementById('widgetWidth').value) || 300;

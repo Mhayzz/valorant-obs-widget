@@ -1258,10 +1258,10 @@ function refreshPreview() {
 }
 
 function calcHeight() {
-  let h = 74; // rank card base
-  if (document.getElementById('showSessionRR').checked)  h += 14;
-  if (document.getElementById('showLastMatch').checked)  h += 49;
-  if (document.getElementById('showStreak').checked)     h += 37;
+  let h = 88; // rank card base (with padding and spacing)
+  if (document.getElementById('showSessionRR').checked)  h += 18;
+  if (document.getElementById('showLastMatch').checked)  h += 52;
+  if (document.getElementById('showStreak').checked)     h += 40;
   return h;
 }
 

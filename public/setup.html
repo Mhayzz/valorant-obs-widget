@@ -1076,8 +1076,8 @@ input[type=color]:hover {
       <div class="field" style="margin-top:14px">
         <label>Intervalle de refresh du rang</label>
         <select id="refreshRank">
-          <option value="30">30 secondes</option>
-          <option value="60" selected>1 minute (défaut)</option>
+          <option value="60">1 minute</option>
+          <option value="120" selected>2 minutes (défaut)</option>
           <option value="300">5 minutes</option>
           <option value="600">10 minutes</option>
         </select>
@@ -1237,21 +1237,26 @@ function updateObsDims() {
   document.getElementById('previewFrame').height = calcHeight() + 20;
 }
 
-// Debounced preview update (500ms delay for smooth experience)
-const debouncedRefreshPreview = debounce(refreshPreview, 500);
+// Debounced preview update (50ms delay for near-instant updates)
+const debouncedRefreshPreview = debounce(refreshPreview, 50);
 
 // ── Opacity slider ────────────────────────────────────────────
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
+  debouncedRefreshPreview();
 });
 
 // ── Color picker sync ─────────────────────────────────────────
 document.getElementById('accentPicker').addEventListener('input', function() {
   document.getElementById('accentHex').value = this.value;
+  debouncedRefreshPreview();
 });
 document.getElementById('accentHex').addEventListener('input', function() {
   const v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('accentPicker').value = v;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('accentPicker').value = v;
+    debouncedRefreshPreview();
+  }
 });
 
 // ── Toggle dims update ────────────────────────────────────────

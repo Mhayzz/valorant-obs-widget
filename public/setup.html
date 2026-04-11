@@ -1124,6 +1124,7 @@ function saveToLocalStorage() {
   };
   localStorage.setItem('valo_display', JSON.stringify(display));
   showSaveNotification();
+  scheduleRefreshPreview();
 }
 
 // ── Preview ───────────────────────────────────────────────────
@@ -1146,11 +1147,11 @@ function refreshPreview() {
   frame.src = '/index.html?preview=1&t=' + Date.now();
 }
 
-// Delayed refresh for account changes (wait for autoSave + API cache)
-let accountRefreshTimeout;
-function scheduleAccountRefresh() {
-  clearTimeout(accountRefreshTimeout);
-  accountRefreshTimeout = setTimeout(refreshPreview, 2000);
+// Delayed refresh (2s after last change)
+let previewRefreshTimeout;
+function scheduleRefreshPreview() {
+  clearTimeout(previewRefreshTimeout);
+  previewRefreshTimeout = setTimeout(refreshPreview, 2000);
 }
 
 function calcHeight() {
@@ -1204,16 +1205,16 @@ document.getElementById('refreshRank').addEventListener('change', () => {
   saveToLocalStorage();
 });
 
-// ── Account fields: refresh preview 2s after typing ───────────
+// ── Account fields ────────────────────────────────────────────
 ['riotName', 'riotTag'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     updateStatusBar();
-    scheduleAccountRefresh();
+    scheduleRefreshPreview();
   });
 });
 document.getElementById('riotRegion').addEventListener('change', () => {
   updateStatusBar();
-  scheduleAccountRefresh();
+  scheduleRefreshPreview();
 });
 
 // ── Load config ───────────────────────────────────────────────

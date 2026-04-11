@@ -25,7 +25,7 @@ const DEFAULT_DISPLAY = {
   show_last_match: true,
   show_streak:     true,
   widget_width:    300,
-  refresh_rank:    60,
+  refresh_rank:    120,
 };
 
 function loadFileConfig() {

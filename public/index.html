@@ -433,10 +433,9 @@ async function init() {
 
   // 5. OBS MODE: apply obs-mode class for frosted glass simulation
   document.body.classList.add('obs-mode');
-  const interval = (cfg?.display?.refresh_rank || 120) * 1000;
   refreshRank();
   refreshMatches();
-  setInterval(refreshRank, interval);
+  setInterval(refreshRank, 120000);
   setInterval(refreshMatches, 120000);
 
   // Poll localStorage for live config updates from setup page

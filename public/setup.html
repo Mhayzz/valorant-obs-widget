@@ -1040,15 +1040,15 @@ input[type=color]:hover {
         <div class="field" style="margin-top:14px">
           <label>Texte secondaire (détails)</label>
           <div class="color-row">
-            <input type="color" id="textSecondaryPicker" value="#99ccff">
-            <input type="text" class="color-hex" id="textSecondaryHex" value="#99ccff" maxlength="7" placeholder="#99ccff">
+            <input type="color" id="textSecondaryPicker" value="#999999">
+            <input type="text" class="color-hex" id="textSecondaryHex" value="#999999" maxlength="7" placeholder="#999999">
           </div>
         </div>
         <div class="field" style="margin-top:14px">
           <label>Texte tertiaire (labels)</label>
           <div class="color-row">
-            <input type="color" id="textTertiaryPicker" value="#4d7a99">
-            <input type="text" class="color-hex" id="textTertiaryHex" value="#4d7a99" maxlength="7" placeholder="#4d7a99">
+            <input type="color" id="textTertiaryPicker" value="#666666">
+            <input type="text" class="color-hex" id="textTertiaryHex" value="#666666" maxlength="7" placeholder="#666666">
           </div>
         </div>
       </div>
@@ -1394,16 +1394,12 @@ async function loadConfig() {
       document.getElementById('textPrimaryHex').value    = d.text_primary;
     }
     if (d.text_secondary) {
-      // Extract hex from rgba if needed
-      const sec = d.text_secondary.match(/#[0-9a-fA-F]{6}/) ? d.text_secondary.match(/#[0-9a-fA-F]{6}/)[0] : '#99ccff';
-      document.getElementById('textSecondaryPicker').value = sec;
-      document.getElementById('textSecondaryHex').value    = sec;
+      document.getElementById('textSecondaryPicker').value = d.text_secondary;
+      document.getElementById('textSecondaryHex').value    = d.text_secondary;
     }
     if (d.text_tertiary) {
-      // Extract hex from rgba if needed
-      const tert = d.text_tertiary.match(/#[0-9a-fA-F]{6}/) ? d.text_tertiary.match(/#[0-9a-fA-F]{6}/)[0] : '#4d7a99';
-      document.getElementById('textTertiaryPicker').value = tert;
-      document.getElementById('textTertiaryHex').value    = tert;
+      document.getElementById('textTertiaryPicker').value = d.text_tertiary;
+      document.getElementById('textTertiaryHex').value    = d.text_tertiary;
     }
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
     if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
@@ -1456,8 +1452,8 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       bg_color:        document.getElementById('bgColorHex').value || '#000000',
       accent_color:    document.getElementById('accentHex').value || '#ff4655',
       text_primary:    document.getElementById('textPrimaryHex').value || '#ffffff',
-      text_secondary:  document.getElementById('textSecondaryHex').value || '#99ccff',
-      text_tertiary:   document.getElementById('textTertiaryHex').value || '#4d7a99',
+      text_secondary:  document.getElementById('textSecondaryHex').value || '#999999',
+      text_tertiary:   document.getElementById('textTertiaryHex').value || '#666666',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
       show_peak_rank:  document.getElementById('showPeakRank').checked,

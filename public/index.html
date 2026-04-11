@@ -339,10 +339,21 @@ async function init() {
   try {
     const res = await fetch('/api/config');
     cfg = await res.json();
+
+    // Check for preview query parameters (from setup.html)
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('opacity') || params.has('accentColor')) {
+      // Override display settings with preview parameters
+      const display = cfg.display || {};
+      if (params.has('opacity')) display.bg_opacity = parseFloat(params.get('opacity'));
+      if (params.has('accentColor')) display.accent_color = params.get('accentColor');
+      cfg.display = display;
+    }
+
     applyDisplay(cfg.display || {});
   } catch(e) {}
 
-  const interval = (cfg?.display?.refresh_rank || 30) * 1000;
+  const interval = (cfg?.display?.refresh_rank || 120) * 1000;
 
   refreshRank();
   refreshMatches();

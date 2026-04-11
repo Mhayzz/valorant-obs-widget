@@ -664,11 +664,11 @@ input[type=color]::-moz-color-swatch {
 }
 
 /* Background themes */
-.preview-bg[data-bg="dark"]    { background-image: none; background-color: var(--bg-tertiary); }
-.preview-bg[data-bg="haven"]   { background-image: linear-gradient(135deg, #c4a882 0%, #a89070 30%, #8b7a68 60%, #d4c4a8 100%); }
-.preview-bg[data-bg="icebox"]  { background-image: linear-gradient(135deg, #9ab0b8 0%, #b8c8d0 30%, #c0d0d8 60%, #8898a0 100%); }
-.preview-bg[data-bg="bind"]    { background-image: linear-gradient(135deg, #8b7050 0%, #6b5a40 30%, #9b8060 60%, #705838 100%); }
-.preview-bg[data-bg="abyss"]   { background-image: linear-gradient(135deg, #2a2e38 0%, #383c48 30%, #303440 60%, #252830 100%); }
+.preview-bg[data-bg="dark"]  { background-image: none; background-color: var(--bg-tertiary); }
+.preview-bg[data-bg="map1"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608166847058031/HyANINP4aUkTAAAAAElFTkSuQmCC.png?ex=69dbf32e&is=69daa1ae&hm=3e702f4e0514c8d8846088e02a415d32f7a81f70bce7f47910880e60357e3d54&=&format=webp&quality=lossless'); }
+.preview-bg[data-bg="map2"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608167316820044/wbReFnY6ScHGAAAAABJRU5ErkJggg.png?ex=69dbf32e&is=69daa1ae&hm=942e0d3a7dca7df2fff4a76d3a8e5739dcd5ee575ecb58ec833c0d7be4c73657&=&format=webp&quality=lossless'); }
+.preview-bg[data-bg="map3"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608168021328104/DUqtUtWYwxAAAAAElFTkSuQmCC.png?ex=69dbf32e&is=69daa1ae&hm=8f3f948d2dcba51009e1d56dc13925220619b39158c3af78a1985fbea9e2a677&=&format=webp&quality=lossless'); }
+.preview-bg[data-bg="map4"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608168742883429/wdSLRdICS6sdQAAAABJRU5ErkJggg.png?ex=69dbf32e&is=69daa1ae&hm=3f4c98bec0c3ba411953381ec3643cfe16795d9c9c973cb3aa058e0794df0fb2&=&format=webp&quality=lossless'); }
 
 #previewFrame {
   border: none;
@@ -928,22 +928,13 @@ input[type=color]::-moz-color-swatch {
         <div class="opt-row">
           <div class="opt-info">
             <div class="opt-label">Peak Rank</div>
-            <div class="opt-sub">Affiche le meilleur rang atteint (si différent du rang actuel)</div>
+            <div class="opt-sub">Affiche le meilleur rang atteint</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="showPeakRank" checked>
-            <span class="toggle-track"></span>
-          </label>
-        </div>
-        <div class="opt-row" id="peakInlineRow">
-          <div class="opt-info">
-            <div class="opt-label">Peak inline</div>
-            <div class="opt-sub">Icône à côté du rang au lieu d'en dessous (réduit la hauteur)</div>
-          </div>
-          <label class="toggle">
-            <input type="checkbox" id="peakInline">
-            <span class="toggle-track"></span>
-          </label>
+          <select id="peakRankMode" style="width:auto; min-width:130px; padding:8px 12px; font-size:12px;">
+            <option value="off">Désactivé</option>
+            <option value="below" selected>Sous le rang</option>
+            <option value="inline">À côté du rang</option>
+          </select>
         </div>
         <div class="opt-row">
           <div class="opt-info">
@@ -1063,8 +1054,8 @@ function saveToLocalStorage() {
     text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
     widget_width:    parseInt(document.getElementById('widgetWidth').value),
     refresh_rank:    parseInt(document.getElementById('refreshRank').value),
-    show_peak_rank:  document.getElementById('showPeakRank').checked,
-    peak_inline:     document.getElementById('peakInline').checked,
+    show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
+    peak_inline:     document.getElementById('peakRankMode').value === 'inline',
     show_session_rr: document.getElementById('showSessionRR').checked,
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
@@ -1075,7 +1066,7 @@ function saveToLocalStorage() {
 
 // ── Preview ───────────────────────────────────────────────────
 // ── Preview background cycle ──────────────────────────────────
-const previewBgs = ['dark', 'haven', 'icebox', 'bind', 'abyss'];
+const previewBgs = ['dark', 'map1', 'map2', 'map3', 'map4'];
 let currentBgIndex = 0;
 
 function cyclePreviewBg() {
@@ -1102,7 +1093,7 @@ function scheduleAccountRefresh() {
 
 function calcHeight() {
   let h = 88;
-  if (document.getElementById('showPeakRank').checked && !document.getElementById('peakInline').checked) h += 16;
+  if (document.getElementById('peakRankMode').value === 'below') h += 16;
   if (document.getElementById('showSessionRR').checked)  h += 18;
   if (document.getElementById('showLastMatch').checked)  h += 52;
   if (document.getElementById('showStreak').checked)     h += 40;
@@ -1133,11 +1124,15 @@ document.getElementById('textTertiaryPicker').addEventListener('input', function
 });
 
 // ── Toggle dims update ────────────────────────────────────────
-['showPeakRank','peakInline','showSessionRR','showLastMatch','showStreak'].forEach(id => {
+['showSessionRR','showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
     saveToLocalStorage();
     updateObsDims();
   });
+});
+document.getElementById('peakRankMode').addEventListener('change', () => {
+  saveToLocalStorage();
+  updateObsDims();
 });
 document.getElementById('widgetWidth').addEventListener('change', () => {
   saveToLocalStorage();
@@ -1185,8 +1180,10 @@ async function loadConfig() {
     }
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
     if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
-    if (d.show_peak_rank  !== undefined) document.getElementById('showPeakRank').checked  = d.show_peak_rank;
-    if (d.peak_inline     !== undefined) document.getElementById('peakInline').checked    = d.peak_inline;
+    if (d.show_peak_rank !== undefined || d.peak_inline !== undefined) {
+      const mode = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
+      document.getElementById('peakRankMode').value = mode;
+    }
     if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;

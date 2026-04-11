@@ -1159,6 +1159,24 @@ async function loadConfig() {
   }
 }
 
+// ── Update status bar (called when inputs change) ────────
+function updateStatusBar() {
+  const dot  = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  const riotName = document.getElementById('riotName').value.trim();
+  const riotTag = document.getElementById('riotTag').value.trim();
+  const riotRegion = document.getElementById('riotRegion').value;
+
+  const hasAccount = !!(riotName && riotTag);
+  if (hasAccount) {
+    dot.className  = 'status-dot ok';
+    text.innerHTML = `Compte actif : <strong>${riotName}#${riotTag}</strong> — région <strong>${riotRegion.toUpperCase()}</strong>`;
+  } else {
+    dot.className  = 'status-dot err';
+    text.innerHTML = 'Aucun compte configuré — remplis le formulaire';
+  }
+}
+
 // ── Auto-save ─────────────────────────────────────────────
 let autoSaveTimeout;
 async function autoSave() {
@@ -1205,6 +1223,12 @@ function scheduleAutoSave() {
 document.querySelectorAll('input[type=text], input[type=password], input[type=color], input[type=range], select, input[type=checkbox]').forEach(el => {
   el.addEventListener('change', scheduleAutoSave);
   el.addEventListener('input', scheduleAutoSave);
+});
+
+// Update status bar when account fields change
+['riotName', 'riotTag', 'riotRegion'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateStatusBar);
+  document.getElementById(id).addEventListener('change', updateStatusBar);
 });
 
 loadConfig();

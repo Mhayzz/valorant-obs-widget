@@ -1068,9 +1068,12 @@ function refreshPreview() {
   frame.height = calcHeight();
   document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
 
-  // Settings are now synced via localStorage, so we just need to reload the frame
-  // Add timestamp to force reload
-  frame.src = '/index.html?preview=' + Date.now();
+  // Force reload: remove src, wait, then reload with cache-buster
+  const newSrc = '/index.html?ts=' + Date.now() + '&_=' + Math.random();
+  frame.src = '';
+  setTimeout(() => {
+    frame.src = newSrc;
+  }, 0);
 }
 
 function calcHeight() {

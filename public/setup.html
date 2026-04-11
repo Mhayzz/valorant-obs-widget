@@ -1010,12 +1010,46 @@ input[type=color]:hover {
         </div>
       </div>
 
+      <!-- Couleur du fond -->
+      <div class="field" style="margin-top:14px">
+        <label>Couleur du fond</label>
+        <div class="color-row">
+          <input type="color" id="bgColorPicker" value="#000000">
+          <input type="text" class="color-hex" id="bgColorHex" value="#000000" maxlength="7" placeholder="#000000">
+        </div>
+      </div>
+
       <!-- Couleur accent -->
       <div class="field" style="margin-top:14px">
         <label>Couleur d'accent</label>
         <div class="color-row">
           <input type="color" id="accentPicker" value="#ff4655">
           <input type="text" class="color-hex" id="accentHex" value="#ff4655" maxlength="7" placeholder="#ff4655">
+        </div>
+      </div>
+
+      <!-- Couleurs du texte -->
+      <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,.06); padding-top:18px;">
+        <div class="field">
+          <label>Texte principal (rang, noms)</label>
+          <div class="color-row">
+            <input type="color" id="textPrimaryPicker" value="#ffffff">
+            <input type="text" class="color-hex" id="textPrimaryHex" value="#ffffff" maxlength="7" placeholder="#ffffff">
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Texte secondaire (détails)</label>
+          <div class="color-row">
+            <input type="color" id="textSecondaryPicker" value="#99ccff">
+            <input type="text" class="color-hex" id="textSecondaryHex" value="#99ccff" maxlength="7" placeholder="#99ccff">
+          </div>
+        </div>
+        <div class="field" style="margin-top:14px">
+          <label>Texte tertiaire (labels)</label>
+          <div class="color-row">
+            <input type="color" id="textTertiaryPicker" value="#4d7a99">
+            <input type="text" class="color-hex" id="textTertiaryHex" value="#4d7a99" maxlength="7" placeholder="#4d7a99">
+          </div>
         </div>
       </div>
 
@@ -1181,7 +1215,11 @@ function refreshPreview() {
 
   // Get ALL current display settings to pass to preview
   const opacity = document.getElementById('bgOpacity').value;
+  const bgColor = document.getElementById('bgColorHex').value;
   const accentColor = document.getElementById('accentHex').value;
+  const textPrimary = document.getElementById('textPrimaryHex').value;
+  const textSecondary = document.getElementById('textSecondaryHex').value;
+  const textTertiary = document.getElementById('textTertiaryHex').value;
   const widgetWidth = document.getElementById('widgetWidth').value;
   const refreshRank = document.getElementById('refreshRank').value;
   const showPeakRank = document.getElementById('showPeakRank').checked;
@@ -1195,7 +1233,11 @@ function refreshPreview() {
   // Update src with ALL display parameters and timestamp
   const params = new URLSearchParams({
     opacity: opacity,
+    bgColor: bgColor,
     accentColor: accentColor,
+    textPrimary: textPrimary,
+    textSecondary: textSecondary,
+    textTertiary: textTertiary,
     widgetWidth: widgetWidth,
     refreshRank: refreshRank,
     showPeakRank: showPeakRank,
@@ -1241,6 +1283,20 @@ document.getElementById('bgOpacity').addEventListener('input', function() {
 });
 
 // ── Color picker sync ─────────────────────────────────────────
+// Background color
+document.getElementById('bgColorPicker').addEventListener('input', function() {
+  document.getElementById('bgColorHex').value = this.value;
+  debouncedRefreshPreview();
+});
+document.getElementById('bgColorHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('bgColorPicker').value = v;
+    debouncedRefreshPreview();
+  }
+});
+
+// Accent color
 document.getElementById('accentPicker').addEventListener('input', function() {
   document.getElementById('accentHex').value = this.value;
   debouncedRefreshPreview();
@@ -1249,6 +1305,45 @@ document.getElementById('accentHex').addEventListener('input', function() {
   const v = this.value;
   if (/^#[0-9a-fA-F]{6}$/.test(v)) {
     document.getElementById('accentPicker').value = v;
+    debouncedRefreshPreview();
+  }
+});
+
+// Text primary
+document.getElementById('textPrimaryPicker').addEventListener('input', function() {
+  document.getElementById('textPrimaryHex').value = this.value;
+  debouncedRefreshPreview();
+});
+document.getElementById('textPrimaryHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('textPrimaryPicker').value = v;
+    debouncedRefreshPreview();
+  }
+});
+
+// Text secondary
+document.getElementById('textSecondaryPicker').addEventListener('input', function() {
+  document.getElementById('textSecondaryHex').value = this.value;
+  debouncedRefreshPreview();
+});
+document.getElementById('textSecondaryHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('textSecondaryPicker').value = v;
+    debouncedRefreshPreview();
+  }
+});
+
+// Text tertiary
+document.getElementById('textTertiaryPicker').addEventListener('input', function() {
+  document.getElementById('textTertiaryHex').value = this.value;
+  debouncedRefreshPreview();
+});
+document.getElementById('textTertiaryHex').addEventListener('input', function() {
+  const v = this.value;
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    document.getElementById('textTertiaryPicker').value = v;
     debouncedRefreshPreview();
   }
 });
@@ -1286,9 +1381,29 @@ async function loadConfig() {
       document.getElementById('bgOpacity').value = d.bg_opacity;
       document.getElementById('bgOpacityVal').textContent = parseFloat(d.bg_opacity).toFixed(2);
     }
+    if (d.bg_color) {
+      document.getElementById('bgColorPicker').value = d.bg_color;
+      document.getElementById('bgColorHex').value    = d.bg_color;
+    }
     if (d.accent_color) {
       document.getElementById('accentPicker').value = d.accent_color;
       document.getElementById('accentHex').value    = d.accent_color;
+    }
+    if (d.text_primary) {
+      document.getElementById('textPrimaryPicker').value = d.text_primary;
+      document.getElementById('textPrimaryHex').value    = d.text_primary;
+    }
+    if (d.text_secondary) {
+      // Extract hex from rgba if needed
+      const sec = d.text_secondary.match(/#[0-9a-fA-F]{6}/) ? d.text_secondary.match(/#[0-9a-fA-F]{6}/)[0] : '#99ccff';
+      document.getElementById('textSecondaryPicker').value = sec;
+      document.getElementById('textSecondaryHex').value    = sec;
+    }
+    if (d.text_tertiary) {
+      // Extract hex from rgba if needed
+      const tert = d.text_tertiary.match(/#[0-9a-fA-F]{6}/) ? d.text_tertiary.match(/#[0-9a-fA-F]{6}/)[0] : '#4d7a99';
+      document.getElementById('textTertiaryPicker').value = tert;
+      document.getElementById('textTertiaryHex').value    = tert;
     }
     if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
     if (d.refresh_rank)    document.getElementById('refreshRank').value   = d.refresh_rank;
@@ -1338,7 +1453,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     riot_region: document.getElementById('riotRegion').value,
     display: {
       bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
+      bg_color:        document.getElementById('bgColorHex').value || '#000000',
       accent_color:    document.getElementById('accentHex').value || '#ff4655',
+      text_primary:    document.getElementById('textPrimaryHex').value || '#ffffff',
+      text_secondary:  document.getElementById('textSecondaryHex').value || '#99ccff',
+      text_tertiary:   document.getElementById('textTertiaryHex').value || '#4d7a99',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
       show_peak_rank:  document.getElementById('showPeakRank').checked,

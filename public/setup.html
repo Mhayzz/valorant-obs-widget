@@ -1342,7 +1342,9 @@ async function autoSave() {
     display: {
       bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
       accent_color:    document.getElementById('accentHex').value || '#ff4655',
-      text_tertiary:   document.getElementById('textTertiaryHex').value || '#666666',
+      text_primary:    '#ffffff',
+      text_secondary:  'rgba(255,255,255,0.6)',
+      text_tertiary:   'rgba(255,255,255,0.3)',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),
       show_peak_rank:  document.getElementById('showPeakRank').checked,

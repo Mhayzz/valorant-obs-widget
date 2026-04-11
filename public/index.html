@@ -9,10 +9,7 @@
 
 :root {
   --accent: #ff4655;
-  --bg-color: #000000;
   --card-bg: rgba(0,0,0,0.75);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255,255,255,0.6);
   --text-tertiary: rgba(255,255,255,0.3);
   --w: 300px;
 }
@@ -207,18 +204,9 @@ function applyDisplay(d) {
   let opacity = d.bg_opacity ?? 0.75;
   // Normalize opacity: if > 1, assume it's a percentage (0-100)
   if (opacity > 1) opacity = opacity / 100;
-  const bgColor = d.bg_color || '#000000';
-  // Convert hex to rgb, then create rgba
-  const rgb = parseInt(bgColor.slice(1), 16);
-  const red = (rgb >> 16) & 255;
-  const green = (rgb >> 8) & 255;
-  const blue = rgb & 255;
-  const bg = `rgba(${red},${green},${blue},${opacity})`;
+  const bg = `rgba(0,0,0,${opacity})`;
   r.style.setProperty('--card-bg', bg);
-  r.style.setProperty('--bg-color', bgColor);
   r.style.setProperty('--accent', d.accent_color || '#ff4655');
-  r.style.setProperty('--text-primary', d.text_primary || '#ffffff');
-  r.style.setProperty('--text-secondary', d.text_secondary || '#999999');
   r.style.setProperty('--text-tertiary', d.text_tertiary || '#666666');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
@@ -375,10 +363,7 @@ async function init() {
       const display = cfg.display || {};
 
       if (params.has('opacity')) display.bg_opacity = parseFloat(params.get('opacity'));
-      if (params.has('bgColor')) display.bg_color = params.get('bgColor');
       if (params.has('accentColor')) display.accent_color = params.get('accentColor');
-      if (params.has('textPrimary')) display.text_primary = params.get('textPrimary');
-      if (params.has('textSecondary')) display.text_secondary = params.get('textSecondary');
       if (params.has('textTertiary')) display.text_tertiary = params.get('textTertiary');
       if (params.has('widgetWidth')) display.widget_width = parseInt(params.get('widgetWidth'));
       if (params.has('refreshRank')) display.refresh_rank = parseInt(params.get('refreshRank'));
@@ -400,7 +385,7 @@ async function init() {
   setInterval(refreshRank,   interval);
   setInterval(refreshMatches, 120000);
 
-  // Reload config every 30 seconds to pick up changes from setup.html
+  // Reload config every 5 seconds to pick up changes from setup.html
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
@@ -409,7 +394,7 @@ async function init() {
         applyDisplay(cfg.display || {});
       }
     } catch(e) {}
-  }, 30000);
+  }, 5000);
 }
 
 init();

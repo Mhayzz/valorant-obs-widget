@@ -753,9 +753,7 @@ input[type=color]:hover {
 }
 
 .preview-bg {
-  background:
-    repeating-linear-gradient(45deg, #333, #333 10px, #2a2a2a 10px, #2a2a2a 20px),
-    repeating-linear-gradient(-45deg, #333, #333 10px, #2a2a2a 10px, #2a2a2a 20px);
+  background: rgba(22, 32, 43, 0.5);
   border-radius: 12px;
   padding: 20px;
   display: flex;
@@ -1010,15 +1008,6 @@ input[type=color]:hover {
         </div>
       </div>
 
-      <!-- Couleur du fond -->
-      <div class="field" style="margin-top:14px">
-        <label>Couleur du fond</label>
-        <div class="color-row">
-          <input type="color" id="bgColorPicker" value="#000000">
-          <input type="text" class="color-hex" id="bgColorHex" value="#000000" maxlength="7" placeholder="#000000">
-        </div>
-      </div>
-
       <!-- Couleur accent -->
       <div class="field" style="margin-top:14px">
         <label>Couleur d'accent</label>
@@ -1028,24 +1017,10 @@ input[type=color]:hover {
         </div>
       </div>
 
-      <!-- Couleurs du texte -->
+      <!-- Couleur des labels -->
       <div style="margin-top:18px; border-top:1px solid rgba(255,255,255,.06); padding-top:18px;">
         <div class="field">
-          <label>Texte principal (rang, noms)</label>
-          <div class="color-row">
-            <input type="color" id="textPrimaryPicker" value="#ffffff">
-            <input type="text" class="color-hex" id="textPrimaryHex" value="#ffffff" maxlength="7" placeholder="#ffffff">
-          </div>
-        </div>
-        <div class="field" style="margin-top:14px">
-          <label>Texte secondaire (détails)</label>
-          <div class="color-row">
-            <input type="color" id="textSecondaryPicker" value="#999999">
-            <input type="text" class="color-hex" id="textSecondaryHex" value="#999999" maxlength="7" placeholder="#999999">
-          </div>
-        </div>
-        <div class="field" style="margin-top:14px">
-          <label>Texte tertiaire (labels)</label>
+          <label>Couleur des labels</label>
           <div class="color-row">
             <input type="color" id="textTertiaryPicker" value="#666666">
             <input type="text" class="color-hex" id="textTertiaryHex" value="#666666" maxlength="7" placeholder="#666666">
@@ -1210,10 +1185,7 @@ function refreshPreview() {
 
   // Get ALL current display settings to pass to preview
   const opacity = document.getElementById('bgOpacity').value;
-  const bgColor = document.getElementById('bgColorHex').value;
   const accentColor = document.getElementById('accentHex').value;
-  const textPrimary = document.getElementById('textPrimaryHex').value;
-  const textSecondary = document.getElementById('textSecondaryHex').value;
   const textTertiary = document.getElementById('textTertiaryHex').value;
   const widgetWidth = document.getElementById('widgetWidth').value;
   const refreshRank = document.getElementById('refreshRank').value;
@@ -1222,16 +1194,10 @@ function refreshPreview() {
   const showLastMatch = document.getElementById('showLastMatch').checked;
   const showStreak = document.getElementById('showStreak').checked;
 
-  // Fade out
-  frame.classList.add('fading');
-
-  // Update src with ALL display parameters and timestamp
+  // Update src with ALL display parameters and timestamp (no fade for better stability)
   const params = new URLSearchParams({
     opacity: opacity,
-    bgColor: bgColor,
     accentColor: accentColor,
-    textPrimary: textPrimary,
-    textSecondary: textSecondary,
     textTertiary: textTertiary,
     widgetWidth: widgetWidth,
     refreshRank: refreshRank,
@@ -1243,12 +1209,6 @@ function refreshPreview() {
   });
 
   const newSrc = '/index.html?' + params.toString();
-
-  // Fade back in when iframe loads
-  frame.onload = () => {
-    frame.classList.remove('fading');
-  };
-
   frame.src = newSrc;
 }
 
@@ -1278,19 +1238,6 @@ document.getElementById('bgOpacity').addEventListener('input', function() {
 });
 
 // ── Color picker sync ─────────────────────────────────────────
-// Background color
-document.getElementById('bgColorPicker').addEventListener('input', function() {
-  document.getElementById('bgColorHex').value = this.value;
-  debouncedRefreshPreview();
-});
-document.getElementById('bgColorHex').addEventListener('input', function() {
-  const v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    document.getElementById('bgColorPicker').value = v;
-    debouncedRefreshPreview();
-  }
-});
-
 // Accent color
 document.getElementById('accentPicker').addEventListener('input', function() {
   document.getElementById('accentHex').value = this.value;
@@ -1304,33 +1251,7 @@ document.getElementById('accentHex').addEventListener('input', function() {
   }
 });
 
-// Text primary
-document.getElementById('textPrimaryPicker').addEventListener('input', function() {
-  document.getElementById('textPrimaryHex').value = this.value;
-  debouncedRefreshPreview();
-});
-document.getElementById('textPrimaryHex').addEventListener('input', function() {
-  const v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    document.getElementById('textPrimaryPicker').value = v;
-    debouncedRefreshPreview();
-  }
-});
-
-// Text secondary
-document.getElementById('textSecondaryPicker').addEventListener('input', function() {
-  document.getElementById('textSecondaryHex').value = this.value;
-  debouncedRefreshPreview();
-});
-document.getElementById('textSecondaryHex').addEventListener('input', function() {
-  const v = this.value;
-  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    document.getElementById('textSecondaryPicker').value = v;
-    debouncedRefreshPreview();
-  }
-});
-
-// Text tertiary
+// Text tertiary (labels)
 document.getElementById('textTertiaryPicker').addEventListener('input', function() {
   document.getElementById('textTertiaryHex').value = this.value;
   debouncedRefreshPreview();
@@ -1373,21 +1294,9 @@ async function loadConfig() {
       document.getElementById('bgOpacity').value = d.bg_opacity;
       document.getElementById('bgOpacityVal').textContent = parseFloat(d.bg_opacity).toFixed(2);
     }
-    if (d.bg_color) {
-      document.getElementById('bgColorPicker').value = d.bg_color;
-      document.getElementById('bgColorHex').value    = d.bg_color;
-    }
     if (d.accent_color) {
       document.getElementById('accentPicker').value = d.accent_color;
       document.getElementById('accentHex').value    = d.accent_color;
-    }
-    if (d.text_primary) {
-      document.getElementById('textPrimaryPicker').value = d.text_primary;
-      document.getElementById('textPrimaryHex').value    = d.text_primary;
-    }
-    if (d.text_secondary) {
-      document.getElementById('textSecondaryPicker').value = d.text_secondary;
-      document.getElementById('textSecondaryHex').value    = d.text_secondary;
     }
     if (d.text_tertiary) {
       document.getElementById('textTertiaryPicker').value = d.text_tertiary;
@@ -1432,10 +1341,7 @@ async function autoSave() {
     riot_region: document.getElementById('riotRegion').value,
     display: {
       bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
-      bg_color:        document.getElementById('bgColorHex').value || '#000000',
       accent_color:    document.getElementById('accentHex').value || '#ff4655',
-      text_primary:    document.getElementById('textPrimaryHex').value || '#ffffff',
-      text_secondary:  document.getElementById('textSecondaryHex').value || '#999999',
       text_tertiary:   document.getElementById('textTertiaryHex').value || '#666666',
       widget_width:    parseInt(document.getElementById('widgetWidth').value),
       refresh_rank:    parseInt(document.getElementById('refreshRank').value),

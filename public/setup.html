@@ -486,7 +486,7 @@ if (new URLSearchParams(window.location.search).has('client')) {
 document.getElementById('copyBtn').addEventListener('click', () => {
   const text = document.getElementById('overlayLink').textContent;
   const btn = document.getElementById('copyBtn');
-  const copy = txt => {
+  const copy = () => {
     btn.textContent = '✓ Copié'; btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
   };

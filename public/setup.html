@@ -519,11 +519,10 @@ input[type=color]::-moz-color-swatch {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: rgba(22, 32, 43, 0.5);
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   margin-bottom: 24px;
-  backdrop-filter: blur(10px);
 }
 
 .status-dot {
@@ -975,7 +974,7 @@ input[type=color]::-moz-color-swatch {
       <div class="preview-bg" id="previewBg">
         <iframe id="previewFrame" src="/index.html" scrolling="no" height="220"></iframe>
       </div>
-      <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser l'aperçu</button>
+      <button class="preview-refresh" onclick="forceRefreshPreview()">↻ Actualiser l'aperçu</button>
     </div>
 
     <!-- OBS info -->
@@ -1069,22 +1068,18 @@ function saveToLocalStorage() {
 
 // ── Preview ───────────────────────────────────────────────────
 function refreshPreview() {
-  const bg = document.getElementById('previewBg');
+  const frame = document.getElementById('previewFrame');
   const w = parseInt(document.getElementById('widgetWidth').value) || 300;
   const h = calcHeight();
-  bg.style.minHeight = (h + 32) + 'px';
+  frame.width = w;
+  frame.height = h;
+  document.getElementById('previewBg').style.minHeight = (h + 32) + 'px';
+  // Don't reload iframe - localStorage polling in index.html syncs instantly
+}
 
-  // Recreate iframe completely to force hard refresh
-  const oldFrame = document.getElementById('previewFrame');
-  const newFrame = document.createElement('iframe');
-  newFrame.id = 'previewFrame';
-  newFrame.width = w;
-  newFrame.height = h;
-  newFrame.scrolling = 'no';
-  newFrame.src = '/index.html?t=' + Date.now();
-
-  bg.innerHTML = '';
-  bg.appendChild(newFrame);
+function forceRefreshPreview() {
+  const frame = document.getElementById('previewFrame');
+  frame.src = '/index.html?t=' + Date.now();
 }
 
 function calcHeight() {

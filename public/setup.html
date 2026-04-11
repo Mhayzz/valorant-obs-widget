@@ -1268,6 +1268,8 @@ async function loadConfig() {
     updateObsDims();
     saveToLocalStorage();
     refreshPreview();
+    // Force sync form state back to API to fix any stale config
+    autoSave();
   } catch(e) {
     dot.className  = 'status-dot err';
     text.textContent = 'Impossible de contacter le serveur';

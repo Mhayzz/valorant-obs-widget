@@ -1094,6 +1094,24 @@ function debounce(func, wait) {
   };
 }
 
+// ── Save to localStorage ──────────────────────────────────────
+function saveToLocalStorage() {
+  const display = {
+    bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
+    accent_color:    document.getElementById('accentPicker').value || '#ff4655',
+    text_primary:    '#ffffff',
+    text_secondary:  'rgba(255,255,255,0.6)',
+    text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
+    widget_width:    parseInt(document.getElementById('widgetWidth').value),
+    refresh_rank:    parseInt(document.getElementById('refreshRank').value),
+    show_peak_rank:  document.getElementById('showPeakRank').checked,
+    show_session_rr: document.getElementById('showSessionRR').checked,
+    show_last_match: document.getElementById('showLastMatch').checked,
+    show_streak:     document.getElementById('showStreak').checked,
+  };
+  localStorage.setItem('valo_display', JSON.stringify(display));
+}
+
 // ── Preview ───────────────────────────────────────────────────
 function refreshPreview() {
   const frame = document.getElementById('previewFrame');
@@ -1102,33 +1120,9 @@ function refreshPreview() {
   frame.height = calcHeight();
   document.getElementById('previewBg').style.minHeight = (calcHeight() + 32) + 'px';
 
-  // Get ALL current display settings to pass to preview
-  const opacity = document.getElementById('bgOpacity').value;
-  const accentColor = document.getElementById('accentPicker').value;
-  const textTertiary = document.getElementById('textTertiaryPicker').value;
-  const widgetWidth = document.getElementById('widgetWidth').value;
-  const refreshRank = document.getElementById('refreshRank').value;
-  const showPeakRank = document.getElementById('showPeakRank').checked;
-  const showSessionRR = document.getElementById('showSessionRR').checked;
-  const showLastMatch = document.getElementById('showLastMatch').checked;
-  const showStreak = document.getElementById('showStreak').checked;
-
-  // Update src with ALL display parameters and timestamp (no fade for better stability)
-  const params = new URLSearchParams({
-    opacity: opacity,
-    accentColor: accentColor,
-    textTertiary: textTertiary,
-    widgetWidth: widgetWidth,
-    refreshRank: refreshRank,
-    showPeakRank: showPeakRank,
-    showSessionRR: showSessionRR,
-    showLastMatch: showLastMatch,
-    showStreak: showStreak,
-    ts: Date.now()
-  });
-
-  const newSrc = '/index.html?' + params.toString();
-  frame.src = newSrc;
+  // Settings are now synced via localStorage, so we just need to reload the frame
+  // Add timestamp to force reload
+  frame.src = '/index.html?preview=' + Date.now();
 }
 
 function calcHeight() {
@@ -1153,30 +1147,38 @@ const debouncedRefreshPreview = debounce(refreshPreview, 50);
 // ── Opacity slider ────────────────────────────────────────────
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
+  saveToLocalStorage();
   debouncedRefreshPreview();
 });
 
 // ── Color picker sync ─────────────────────────────────────────
 // Accent color
 document.getElementById('accentPicker').addEventListener('input', function() {
+  saveToLocalStorage();
   debouncedRefreshPreview();
 });
 
 // Text tertiary (labels)
 document.getElementById('textTertiaryPicker').addEventListener('input', function() {
+  saveToLocalStorage();
   debouncedRefreshPreview();
 });
 
 // ── Toggle dims update ────────────────────────────────────────
 ['showPeakRank','showSessionRR','showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
+    saveToLocalStorage();
     updateObsDims();
     debouncedRefreshPreview();
   });
 });
 document.getElementById('widgetWidth').addEventListener('change', () => {
+  saveToLocalStorage();
   updateObsDims();
   debouncedRefreshPreview();
+});
+document.getElementById('refreshRank').addEventListener('change', () => {
+  saveToLocalStorage();
 });
 
 // ── Load config ───────────────────────────────────────────────
@@ -1221,6 +1223,7 @@ async function loadConfig() {
     }
 
     updateObsDims();
+    saveToLocalStorage();
     refreshPreview();
   } catch(e) {
     dot.className  = 'status-dot err';
@@ -1255,6 +1258,7 @@ async function autoSave() {
     },
   };
 
+  saveToLocalStorage();
   try {
     await fetch('/api/config', {
       method:  'POST',

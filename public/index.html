@@ -194,8 +194,8 @@ body {
 let cfg = null;
 let prevChange = undefined;
 const SS_KEY = 'valo_session_start_rr';
-const IS_PREVIEW = new URLSearchParams(window.location.search).has('preview')
-                || window.self !== window.top; // detect iframe
+let IS_PREVIEW = false;
+try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') || window.self !== window.top; } catch(e) { IS_PREVIEW = true; }
 
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
@@ -238,7 +238,7 @@ function loadDemoData() {
   // Peak rank
   if (d.show_peak_rank ?? true) {
     const peakEl = document.getElementById('peakRank');
-    peakEl.innerHTML = 'PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="peak" class="peak-icon">';
+    peakEl.innerHTML = 'PEAK <img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/27/largeicon.png" alt="" class="peak-icon" onerror="this.style.display=\'none\'">';
     peakEl.style.display = 'block';
   }
 
@@ -416,11 +416,15 @@ async function init() {
   applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
-  // 4. PREVIEW MODE: use demo data, poll localStorage, done.
+  // 4. PREVIEW MODE: show demo data instantly, then fetch real data in background
   if (IS_PREVIEW) {
     loadDemoData();
 
-    // Poll localStorage every 150ms for instant preview sync
+    // Fetch real data in background (non-blocking, replaces demo when ready)
+    refreshRank();
+    refreshMatches();
+
+    // Poll localStorage every 150ms for instant display settings sync
     let lastCheck = localStorage.getItem('valo_display');
     setInterval(() => {
       try {
@@ -429,11 +433,10 @@ async function init() {
           lastCheck = stored;
           cfg.display = JSON.parse(stored);
           applyDisplay(cfg.display);
-          loadDemoData();
         }
       } catch(e) {}
     }, 150);
-    return; // Exit here - no external API calls in preview mode
+    return;
   }
 
   // 5. OBS MODE: fetch real data from external APIs

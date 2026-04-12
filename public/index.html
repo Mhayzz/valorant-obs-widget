@@ -570,14 +570,29 @@ async function init() {
 
   // Connect to rank stream (real-time updates from server)
   if (cfg?.display?.realtime_notifications ?? true) {
-    const eventSource = new EventSource('/api/rank-stream');
-    eventSource.onmessage = (event) => {
+    const rankSource = new EventSource('/api/rank-stream');
+    rankSource.onmessage = (event) => {
       if (event.data === 'connected') return;
       try {
         const msg = JSON.parse(event.data);
-        if (msg.type === 'rankup' || msg.type === 'rankdown') {
-          triggerRankAnimation(msg.type);
+        if ((cfg?.display?.animation_type ?? 'rank') === 'rank' && (msg.type === 'rankup' || msg.type === 'rankdown')) {
+          triggerAnimation(msg.type);
           lastRankTier = msg.tier;
+        }
+      } catch(e) {}
+    };
+  }
+
+  // Connect to match stream (real-time updates from server)
+  if (cfg?.display?.realtime_notifications ?? true) {
+    const matchSource = new EventSource('/api/matches-stream');
+    matchSource.onmessage = (event) => {
+      if (event.data === 'connected') return;
+      try {
+        const msg = JSON.parse(event.data);
+        if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose')) {
+          triggerAnimation(msg.type);
+          lastMatchId = null; // Reset to allow next match animation
         }
       } catch(e) {}
     };

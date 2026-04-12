@@ -988,24 +988,6 @@ input[type="color"]:focus {
             <option value="match">Match W/L</option>
           </select>
         </div>
-        <div class="opt-row">
-          <div class="opt-info">
-            <div class="opt-label">Style du fond OBS</div>
-            <div class="opt-sub">Choisir l'apparence des cartes</div>
-          </div>
-          <select id="cardBackground" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-            <option value="inset-glow">Test 1: Inset Glow</option>
-            <option value="radial-vignette">Test 2: Radial Vignette</option>
-            <option value="multi-shadow">Test 3: Multi Shadow</option>
-            <option value="css-filter">Test 4: CSS Filter</option>
-            <option value="dot-texture">Test 5: Dot Texture</option>
-            <option value="edge-glow">Test 6: Edge Glow</option>
-            <option value="linear-subtle">Test 7: Linear Subtle</option>
-            <option value="blur-halo">Test 8: Blur Halo</option>
-            <option value="line-pattern">Test 9: Line Pattern</option>
-            <option value="chromatic">Test 10: Chromatic</option>
-          </select>
-        </div>
         <div class="opt-row" style="gap: 8px;">
           <button id="testRankUp" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Up</button>
           <button id="testRankDown" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Down</button>
@@ -1109,7 +1091,6 @@ function getDisplayFromForm() {
     show_streak:     document.getElementById('showStreak').checked,
     realtime_notifications: document.getElementById('realtimeNotifications').checked,
     animation_type:  document.getElementById('animationType').value,
-    card_background: document.getElementById('cardBackground').value,
   };
 }
 
@@ -1301,7 +1282,6 @@ async function loadConfig() {
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
     if (d.realtime_notifications !== undefined) document.getElementById('realtimeNotifications').checked = d.realtime_notifications;
     if (d.animation_type) document.getElementById('animationType').value = d.animation_type;
-    if (d.card_background) document.getElementById('cardBackground').value = d.card_background;
 
     // Status
     const hasAccount = !!(cfg.riot_name && cfg.riot_tag);
@@ -1403,12 +1383,6 @@ document.querySelectorAll('input[type=text], input[type=password], input[type=co
 
 // Ensure animationType also triggers auto-save
 document.getElementById('animationType').addEventListener('change', () => {
-  saveToLocalStorage();
-  scheduleAutoSave();
-});
-
-// Ensure cardBackground also triggers auto-save
-document.getElementById('cardBackground').addEventListener('change', () => {
   saveToLocalStorage();
   scheduleAutoSave();
 });

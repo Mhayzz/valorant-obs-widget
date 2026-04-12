@@ -626,6 +626,19 @@ async function init() {
   if (IS_PREVIEW) {
     refreshRank();
     refreshMatches();
+
+    // Poll localStorage every 300ms for instant display settings sync in preview
+    let lastCheck = localStorage.getItem('valo_display');
+    setInterval(() => {
+      try {
+        const stored = localStorage.getItem('valo_display');
+        if (stored !== lastCheck) {
+          lastCheck = stored;
+          cfg.display = JSON.parse(stored);
+          applyDisplay(cfg.display);
+        }
+      } catch(e) {}
+    }, 300);
     return;
   }
 

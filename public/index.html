@@ -171,64 +171,36 @@ body.obs-mode .card {
 .overlay-content.hidden { display:none; }
 
 /* ── Rank animations ─────────────────────────────────────── */
-@keyframes spin-rankup {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes rankup-glow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-@keyframes spin-rankdown {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes fade-in-rankup {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-@keyframes fade-in-rankdown {
-  0% { opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { opacity: 0; }
+@keyframes rankdown-glow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .rank-card.animate-rankup {
   position: relative;
-  animation: fade-in-rankup 1s ease-in-out;
-}
-
-.rank-card.animate-rankup::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: conic-gradient(from 0deg, #5fffb5, #5fffb5 90deg, transparent 180deg);
-  border-radius: 10px;
-  animation: spin-rankup 0.8s linear;
-  z-index: -1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+              linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5);
+  background-size: 100% 100%, 200% 200%;
+  animation: rankup-glow 0.8s ease-in-out;
+  border: 2px solid #5fffb5;
+  box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
 }
 
 .rank-card.animate-rankdown {
   position: relative;
-  animation: fade-in-rankdown 1s ease-in-out;
-}
-
-.rank-card.animate-rankdown::before {
-  content: '';
-  position: absolute;
-  top: -3px;
-  left: -3px;
-  right: -3px;
-  bottom: -3px;
-  background: conic-gradient(from 0deg, #ff5060, #ff5060 90deg, transparent 180deg);
-  border-radius: 10px;
-  animation: spin-rankdown 0.8s linear;
-  z-index: -1;
+  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+              linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060);
+  background-size: 100% 100%, 200% 200%;
+  animation: rankdown-glow 0.8s ease-in-out;
+  border: 2px solid #ff5060;
+  box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
 }
 </style>
 </head>
@@ -343,7 +315,7 @@ function triggerRankAnimation(type) {
 
   setTimeout(() => {
     rankCard.classList.remove('animate-rankup', 'animate-rankdown');
-  }, 1000);
+  }, 800);
 }
 
 function renderSessionRR(rr) {

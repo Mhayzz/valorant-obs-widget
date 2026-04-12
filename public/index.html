@@ -544,7 +544,7 @@ async function init() {
     refreshRank();
     refreshMatches();
 
-    // Poll localStorage every 150ms for instant display settings sync
+    // Poll localStorage every 300ms for instant display settings sync (reduced flickering)
     let lastCheck = localStorage.getItem('valo_display');
     setInterval(() => {
       try {
@@ -555,7 +555,7 @@ async function init() {
           applyDisplay(cfg.display);
         }
       } catch(e) {}
-    }, 150);
+    }, 300);
     return;
   }
 
@@ -577,7 +577,7 @@ async function init() {
         applyDisplay(cfg.display);
       }
     } catch(e) {}
-  }, 1000);
+  }, 500);
 
   // Connect to rank stream (real-time updates from server)
   if (cfg?.display?.realtime_notifications ?? true) {

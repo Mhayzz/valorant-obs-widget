@@ -1158,12 +1158,13 @@ function scheduleRefreshPreview() {
 }
 
 function calcHeight() {
-  let h = 88;
-  if (document.getElementById('peakRankMode').value === 'below') h += 16;
-  if (document.getElementById('showSessionRR').checked)  h += 18;
-  if (document.getElementById('showLastMatch').checked)  h += 52;
-  if (document.getElementById('showStreak').checked)     h += 40;
-  return h;
+  // Always show max height (all modules enabled) for consistent preview size
+  let h = 88;  // Base height
+  h += 16;     // Peak rank (below)
+  h += 18;     // Session RR
+  h += 52;     // Last match
+  h += 40;     // Streak
+  return h;    // Always ~214px
 }
 
 function updateObsDims() {

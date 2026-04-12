@@ -475,6 +475,9 @@ async function refreshMatches() {
 
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
+  // Clear old session data
+  sessionStorage.clear();
+
   // 1. Load display settings from localStorage (instant, synchronous)
   try {
     const stored = localStorage.getItem('valo_display');

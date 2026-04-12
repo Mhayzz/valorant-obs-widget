@@ -13,19 +13,20 @@ app.use(express.static(path.join(__dirname, "public")));
 const CONFIG_PATH = path.join(__dirname, "data", "config.json");
 
 const DEFAULT_DISPLAY = {
-  bg_opacity:      0.20,
-  accent_color:    "#ffffff",
-  text_primary:    "#ffffff",
-  text_secondary:  "rgba(255,255,255,0.6)",
-  text_tertiary:   "rgba(255,255,255,0.3)",
-  show_session_rr: false,
-  show_peak_rank:  false,
-  peak_inline:     false,
-  peak_align:      "left",
-  show_last_match: true,
-  show_streak:     true,
-  widget_width:    300,
-  refresh_rank:    120,
+  bg_opacity:           0.20,
+  accent_color:         "#ffffff",
+  text_primary:         "#ffffff",
+  text_secondary:       "rgba(255,255,255,0.6)",
+  text_tertiary:        "rgba(255,255,255,0.3)",
+  show_session_rr:      false,
+  show_peak_rank:       false,
+  peak_inline:          false,
+  peak_align:           "left",
+  show_last_match:      true,
+  show_streak:          true,
+  widget_width:         300,
+  refresh_rank:         120,
+  realtime_notifications: true,
 };
 
 function loadFileConfig() {
@@ -61,11 +62,73 @@ const SETUP_PASSWORD = process.env.SETUP_PASSWORD || "";
 // ── Caches ──────────────────────────────────────────────────
 let rankCache  = { data: null, ts: 0 };
 let matchCache = { data: null, ts: 0, size: 0 };
+let rankHistory = {}; // Track rank changes per account
 
 function invalidateCaches() {
   rankCache  = { data: null, ts: 0 };
   matchCache = { data: null, ts: 0, size: 0 };
 }
+
+// ── Rank Stream (SSE) ────────────────────────────────────────
+const rankStreamClients = new Set(); // Track active SSE connections
+
+app.get("/api/rank-stream", (req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+  });
+  rankStreamClients.add(res);
+  res.write("data: connected\n\n");
+
+  req.on("close", () => {
+    rankStreamClients.delete(res);
+  });
+});
+
+// Poll rank every 30 seconds and notify clients of changes
+setInterval(async () => {
+  const cfg = getCfg();
+  if (!cfg.riot_name || !cfg.riot_tag) return;
+
+  const accountKey = `${cfg.riot_name}#${cfg.riot_tag}`;
+
+  try {
+    const headers = { "Content-Type": "application/json" };
+    if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
+    const r = await fetch(
+      `https://api.henrikdev.xyz/valorant/v3/mmr/${cfg.riot_region}/pc/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}`,
+      { headers }
+    );
+    if (!r.ok) return;
+
+    const json = await r.json();
+    const current = json.data?.current;
+    const newTier = current?.tier?.id ?? 0;
+    const newRank = current?.tier?.name || "Unranked";
+
+    const lastRank = rankHistory[accountKey];
+    if (lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank)) {
+      const change = newTier > lastRank.tier ? "rankup" : newTier < lastRank.tier ? "rankdown" : null;
+      if (change) {
+        rankHistory[accountKey] = { tier: newTier, rank: newRank };
+        const msg = JSON.stringify({
+          type: change,
+          tier: newTier,
+          rank: newRank,
+          rr: current?.rr ?? 0,
+        });
+        rankStreamClients.forEach(client => {
+          client.write(`data: ${msg}\n\n`);
+        });
+      }
+    } else {
+      rankHistory[accountKey] = { tier: newTier, rank: newRank };
+    }
+  } catch(e) {
+    console.error("rank-stream poll error:", e.message);
+  }
+}, 30000);
 
 // ── Config API ──────────────────────────────────────────────
 app.get("/api/config", (req, res) => {

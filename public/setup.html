@@ -1175,12 +1175,12 @@ document.getElementById('widgetWidth').addEventListener('change', () => {
 ['riotName', 'riotTag'].forEach(id => {
   document.getElementById(id).addEventListener('input', () => {
     updateStatusBar();
-    scheduleRefreshPreview();
+    // Don't refresh on input, wait for blur or auto-save
   });
 });
 document.getElementById('riotRegion').addEventListener('change', () => {
   updateStatusBar();
-  scheduleRefreshPreview();
+  // Don't refresh on change, auto-save will handle it
 });
 
 // ── Test animations ──────────────────────────────────────────

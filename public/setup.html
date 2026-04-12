@@ -1345,7 +1345,7 @@ async function autoSave() {
   if (!riotName || !riotTag) return; // Don't save incomplete config
 
   const currentAccount = `${riotName}#${riotTag}`;
-  const accountChanged = lastSavedAccount && lastSavedAccount !== currentAccount;
+  const accountChanged = lastSavedAccount !== currentAccount;
 
   const body = {
     riot_name:   riotName,

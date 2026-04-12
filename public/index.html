@@ -507,6 +507,14 @@ async function init() {
       refreshRank();
       refreshMatches();
     }
+    if (e.key === 'valo_test_animation') {
+      // Test animation from setup page
+      try {
+        const msg = JSON.parse(e.newValue);
+        console.log('Test animation:', msg);
+        triggerAnimation(msg.type);
+      } catch(e) {}
+    }
   });
 
   // Listen for test messages from parent window (iframe mode)

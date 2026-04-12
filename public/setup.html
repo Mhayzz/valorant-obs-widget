@@ -1185,17 +1185,22 @@ document.getElementById('riotRegion').addEventListener('change', () => {
 
 // ── Test animations ──────────────────────────────────────────
 function sendTestAnimation(type, isMatch = false) {
-  const iframe = document.getElementById('previewFrame');
-  if (!iframe?.contentWindow) {
-    alert('Preview not loaded yet');
-    return;
-  }
+  // Send via localStorage (works across all pages/tabs of same origin)
+  localStorage.setItem('valo_test_animation', JSON.stringify({
+    type,
+    isMatch,
+    ts: Date.now()
+  }));
 
-  const msgType = isMatch ? 'matchtest' : 'ranktest';
-  iframe.contentWindow.postMessage({
-    type: msgType,
-    detail: { type }
-  }, '*');
+  // Also send to iframe preview
+  const iframe = document.getElementById('previewFrame');
+  if (iframe?.contentWindow) {
+    const msgType = isMatch ? 'matchtest' : 'ranktest';
+    iframe.contentWindow.postMessage({
+      type: msgType,
+      detail: { type }
+    }, '*');
+  }
 }
 
 document.getElementById('testRankUp').addEventListener('click', () => sendTestAnimation('rankup'));

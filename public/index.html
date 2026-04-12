@@ -23,44 +23,78 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* OBS background styles */
+/* OBS background styles - 10 different styles */
 body.obs-mode { background: transparent; }
 
-/* Style 1: Blur (frosted glass) */
-body.obs-mode.bg-blur .card {
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: rgba(0, 0, 0, 0.3);
+/* 1. Glassmorphism strong */
+body.obs-mode.bg-glass-strong .card {
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  background: rgba(20, 20, 28, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Style 2: Solid dark */
-body.obs-mode.bg-solid .card {
-  backdrop-filter: none;
-  background: rgba(18, 18, 22, 0.85);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+/* 2. Neon Cyan */
+body.obs-mode.bg-neon-cyan .card {
+  background: rgba(10, 10, 15, 0.9);
+  border: 2px solid rgba(95, 255, 181, 0.6);
+  box-shadow: 0 0 15px rgba(95, 255, 181, 0.4), inset 0 0 15px rgba(95, 255, 181, 0.1);
 }
 
-/* Style 3: Gradient dark */
-body.obs-mode.bg-gradient .card {
-  backdrop-filter: none;
-  background: linear-gradient(135deg, rgba(20, 20, 28, 0.8), rgba(15, 15, 20, 0.9));
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+/* 3. Neon Purple */
+body.obs-mode.bg-neon-purple .card {
+  background: rgba(10, 10, 15, 0.9);
+  border: 2px solid rgba(168, 85, 247, 0.6);
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.1);
 }
 
-/* Style 4: Glow edges */
-body.obs-mode.bg-glow .card {
-  backdrop-filter: none;
-  background: rgba(18, 18, 22, 0.8);
-  box-shadow: 0 0 30px rgba(95, 255, 181, 0.15), 0 0 60px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(95, 255, 181, 0.2);
+/* 4. Ultra Dark (almost invisible) */
+body.obs-mode.bg-ultra-dark .card {
+  background: rgba(5, 5, 8, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
-/* Style 5: Minimal */
-body.obs-mode.bg-minimal .card {
-  backdrop-filter: none;
-  background: rgba(20, 20, 28, 0.7);
+/* 5. Heavy Shadow */
+body.obs-mode.bg-heavy-shadow .card {
+  background: rgba(15, 15, 20, 0.85);
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 6. Light Border */
+body.obs-mode.bg-light-border .card {
+  background: rgba(10, 10, 15, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   box-shadow: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 7. Gradient Blue-Purple */
+body.obs-mode.bg-gradient-blue .card {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(59, 33, 120, 0.6));
+  border: 1px solid rgba(147, 112, 219, 0.3);
+  box-shadow: 0 0 20px rgba(59, 33, 120, 0.3);
+}
+
+/* 8. Pure Black */
+body.obs-mode.bg-pure-black .card {
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+/* 9. Super Transparent */
+body.obs-mode.bg-super-transparent .card {
+  background: rgba(20, 20, 28, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* 10. Neon Green */
+body.obs-mode.bg-neon-green .card {
+  background: rgba(10, 10, 15, 0.9);
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4), inset 0 0 15px rgba(34, 197, 94, 0.1);
 }
 
 .container {
@@ -322,8 +356,12 @@ function applyDisplay(d) {
 
   // Apply OBS background style
   if (document.body.classList.contains('obs-mode')) {
-    const bgStyle = d.card_background || 'blur';
-    document.body.classList.remove('bg-blur', 'bg-solid', 'bg-gradient', 'bg-glow', 'bg-minimal');
+    const bgStyle = d.card_background || 'glass-strong';
+    document.body.classList.remove(
+      'bg-glass-strong', 'bg-neon-cyan', 'bg-neon-purple', 'bg-ultra-dark',
+      'bg-heavy-shadow', 'bg-light-border', 'bg-gradient-blue', 'bg-pure-black',
+      'bg-super-transparent', 'bg-neon-green'
+    );
     document.body.classList.add(`bg-${bgStyle}`);
   }
 

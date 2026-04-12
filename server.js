@@ -18,7 +18,6 @@ const DEFAULT_DISPLAY = {
   text_primary:         "#ffffff",
   text_secondary:       "rgba(255,255,255,0.6)",
   text_tertiary:        "rgba(255,255,255,0.3)",
-  show_session_rr:      false,
   show_peak_rank:       false,
   peak_inline:          false,
   peak_align:           "left",

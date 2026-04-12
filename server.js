@@ -27,7 +27,7 @@ const DEFAULT_DISPLAY = {
   refresh_rank:         120,
   realtime_notifications: true,
   animation_type:       "rank",
-  card_background:      "glass-strong",
+  card_background:      "inset-glow",
 };
 
 function loadFileConfig() {

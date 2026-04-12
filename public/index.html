@@ -23,78 +23,96 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* OBS background styles - 10 different styles */
+/* OBS background styles - 10 BLUR TEST METHODS */
 body.obs-mode { background: transparent; }
 
-/* 1. Glassmorphism strong */
-body.obs-mode.bg-glass-strong .card {
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
-  background: rgba(20, 20, 28, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* 1. Inset Glow Shadow (simulate blur with large inset shadow) */
+body.obs-mode.bg-inset-glow .card {
+  background: rgba(10, 10, 15, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 80px 20px rgba(95, 255, 181, 0.08), inset 0 0 40px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* 2. Neon Cyan */
-body.obs-mode.bg-neon-cyan .card {
-  background: rgba(10, 10, 15, 0.9);
-  border: 2px solid rgba(95, 255, 181, 0.6);
-  box-shadow: 0 0 15px rgba(95, 255, 181, 0.4), inset 0 0 15px rgba(95, 255, 181, 0.1);
-}
-
-/* 3. Neon Purple */
-body.obs-mode.bg-neon-purple .card {
-  background: rgba(10, 10, 15, 0.9);
-  border: 2px solid rgba(168, 85, 247, 0.6);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4), inset 0 0 15px rgba(168, 85, 247, 0.1);
-}
-
-/* 4. Ultra Dark (almost invisible) */
-body.obs-mode.bg-ultra-dark .card {
-  background: rgba(5, 5, 8, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-}
-
-/* 5. Heavy Shadow */
-body.obs-mode.bg-heavy-shadow .card {
-  background: rgba(15, 15, 20, 0.85);
-  border: none;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 0, 0, 0.5);
-}
-
-/* 6. Light Border */
-body.obs-mode.bg-light-border .card {
-  background: rgba(10, 10, 15, 0.7);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  box-shadow: none;
-}
-
-/* 7. Gradient Blue-Purple */
-body.obs-mode.bg-gradient-blue .card {
-  background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(59, 33, 120, 0.6));
-  border: 1px solid rgba(147, 112, 219, 0.3);
-  box-shadow: 0 0 20px rgba(59, 33, 120, 0.3);
-}
-
-/* 8. Pure Black */
-body.obs-mode.bg-pure-black .card {
-  background: #000000;
+/* 2. Radial Gradient Vignette (subtle center glow for backdrop-filter) */
+body.obs-mode.bg-radial-vignette .card {
+  background: radial-gradient(circle at center, rgba(20, 20, 28, 0.6), rgba(10, 10, 15, 0.95));
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* 9. Super Transparent */
-body.obs-mode.bg-super-transparent .card {
-  background: rgba(20, 20, 28, 0.2);
+/* 3. Multi-layer Box Shadow (stack shadows to simulate blur) */
+body.obs-mode.bg-multi-shadow .card {
+  background: rgba(12, 12, 18, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 100px 30px rgba(0, 0, 0, 0.1),
+    0 0 60px 15px rgba(0, 0, 0, 0.15),
+    0 0 30px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* 4. SVG Filter Blur Effect (CSS filter blur on element) */
+body.obs-mode.bg-css-filter .card {
+  background: rgba(15, 15, 22, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  filter: drop-shadow(0 0 15px rgba(0, 0, 0, 0.5));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 5. Minimal Texture Dot Pattern (for backdrop-filter) */
+body.obs-mode.bg-dot-texture .card {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    rgba(10, 10, 15, 0.8);
+  background-size: 20px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 6. Soft Edge Glow (glow from edges inward) */
+body.obs-mode.bg-edge-glow .card {
+  background: rgba(12, 12, 18, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    inset 0 0 50px rgba(255, 255, 255, 0.05),
+    0 0 40px rgba(95, 255, 181, 0.1);
 }
 
-/* 10. Neon Green */
-body.obs-mode.bg-neon-green .card {
-  background: rgba(10, 10, 15, 0.9);
-  border: 2px solid rgba(34, 197, 94, 0.6);
-  box-shadow: 0 0 15px rgba(34, 197, 94, 0.4), inset 0 0 15px rgba(34, 197, 94, 0.1);
+/* 7. Linear Gradient Subtle (imperceptible gradient for backdrop) */
+body.obs-mode.bg-linear-subtle .card {
+  background: linear-gradient(135deg, rgba(15, 15, 22, 0.85), rgba(12, 12, 18, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
+/* 8. Large Blur Shadow Halo (very large blurred shadow around card) */
+body.obs-mode.bg-blur-halo .card {
+  background: rgba(10, 10, 15, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 120px 40px rgba(95, 255, 181, 0.05);
+}
+
+/* 9. Fine Line Pattern (micro pattern for backdrop-filter) */
+body.obs-mode.bg-line-pattern .card {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.01) 1px, transparent 1px, transparent 2px),
+    rgba(12, 12, 18, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+/* 10. Chromatic Aberration Style (color edge glow simulation) */
+body.obs-mode.bg-chromatic .card {
+  background: rgba(10, 10, 15, 0.88);
+  border: 1px solid rgba(95, 255, 181, 0.2);
+  box-shadow:
+    0 0 20px rgba(95, 255, 181, 0.15),
+    inset 0 0 60px rgba(95, 255, 181, 0.05),
+    0 0 50px rgba(0, 0, 0, 0.4);
 }
 
 .container {
@@ -356,11 +374,11 @@ function applyDisplay(d) {
 
   // Apply OBS background style
   if (document.body.classList.contains('obs-mode')) {
-    const bgStyle = d.card_background || 'glass-strong';
+    const bgStyle = d.card_background || 'inset-glow';
     document.body.classList.remove(
-      'bg-glass-strong', 'bg-neon-cyan', 'bg-neon-purple', 'bg-ultra-dark',
-      'bg-heavy-shadow', 'bg-light-border', 'bg-gradient-blue', 'bg-pure-black',
-      'bg-super-transparent', 'bg-neon-green'
+      'bg-inset-glow', 'bg-radial-vignette', 'bg-multi-shadow', 'bg-css-filter',
+      'bg-dot-texture', 'bg-edge-glow', 'bg-linear-subtle', 'bg-blur-halo',
+      'bg-line-pattern', 'bg-chromatic'
     );
     document.body.classList.add(`bg-${bgStyle}`);
   }

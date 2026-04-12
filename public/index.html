@@ -88,7 +88,8 @@ body.obs-mode .card {
   height:100%; border-radius:2px;
   background:var(--accent);
   opacity:.6;
-  transition:width 0.6s ease;
+  transition:width 0.2s linear;
+  will-change:width;
 }
 
 .rr-badge {
@@ -628,7 +629,7 @@ async function init() {
   // Connect to SSE streams for real-time updates
   connectSSE();
 
-  // Poll localStorage every 100ms for instant setting changes in OBS
+  // Poll localStorage every 50ms for OBS (faster refresh detection)
   let lastCheck = localStorage.getItem('valo_display');
   setInterval(() => {
     try {
@@ -637,9 +638,11 @@ async function init() {
         lastCheck = stored;
         cfg.display = JSON.parse(stored);
         applyDisplay(cfg.display);
+        // Force DOM refresh in OBS
+        void document.documentElement.offsetHeight;
       }
     } catch(e) {}
-  }, 100);
+  }, 50);
 
   // Reload config from API every 5 seconds (faster detection in OBS)
   setInterval(async () => {

@@ -1108,7 +1108,6 @@ function getDisplayFromForm() {
 function saveToLocalStorage() {
   localStorage.setItem('valo_display', JSON.stringify(getDisplayFromForm()));
   showSaveNotification();
-  scheduleRefreshPreview();
 }
 
 // ── Preview ───────────────────────────────────────────────────
@@ -1119,7 +1118,6 @@ document.getElementById('peakAlignLeft').addEventListener('click', () => {
   currentPeakAlign = 'left';
   document.getElementById('peakAlignLeft').classList.add('active');
   document.getElementById('peakAlignRight').classList.remove('active');
-  saveToLocalStorage();
   scheduleAutoSave();
 });
 
@@ -1127,7 +1125,6 @@ document.getElementById('peakAlignRight').addEventListener('click', () => {
   currentPeakAlign = 'right';
   document.getElementById('peakAlignRight').classList.add('active');
   document.getElementById('peakAlignLeft').classList.remove('active');
-  saveToLocalStorage();
   scheduleAutoSave();
 });
 
@@ -1179,30 +1176,30 @@ function updateObsDims() {
 // ── Opacity slider ────────────────────────────────────────────
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
-  saveToLocalStorage();
+  scheduleAutoSave();
 });
 
 // ── Color picker sync ─────────────────────────────────────────
 document.getElementById('accentPicker').addEventListener('input', function() {
-  saveToLocalStorage();
+  scheduleAutoSave();
 });
 document.getElementById('textTertiaryPicker').addEventListener('input', function() {
-  saveToLocalStorage();
+  scheduleAutoSave();
 });
 
 // ── Toggle dims update ────────────────────────────────────────
 ['showSessionRR','showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
-    saveToLocalStorage();
+    scheduleAutoSave();
     updateObsDims();
   });
 });
 document.getElementById('peakRankMode').addEventListener('change', () => {
-  saveToLocalStorage();
+  scheduleAutoSave();
   updateObsDims();
 });
 document.getElementById('widgetWidth').addEventListener('change', () => {
-  saveToLocalStorage();
+  scheduleAutoSave();
   updateObsDims();
 });
 
@@ -1387,6 +1384,9 @@ document.querySelectorAll('input[type=text], input[type=password], input[type=co
   el.addEventListener('change', scheduleAutoSave);
   el.addEventListener('input', scheduleAutoSave);
 });
+
+// Ensure animationType also triggers auto-save
+document.getElementById('animationType').addEventListener('change', scheduleAutoSave);
 
 // Update status bar when account fields change
 ['riotName', 'riotTag', 'riotRegion'].forEach(id => {

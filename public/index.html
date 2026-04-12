@@ -473,11 +473,79 @@ async function refreshMatches() {
   } catch(e) {}
 }
 
+// ── SSE connection management ──────────────────────────────────
+let rankSource = null;
+let matchSource = null;
+let lastSessionStorageCleared = null;
+
+function closeSSEConnections() {
+  if (rankSource) {
+    rankSource.close();
+    rankSource = null;
+  }
+  if (matchSource) {
+    matchSource.close();
+    matchSource = null;
+  }
+}
+
+function connectSSE() {
+  closeSSEConnections();
+
+  if (!(cfg?.display?.realtime_notifications ?? true)) return;
+
+  // Connect to rank stream
+  rankSource = new EventSource('/api/rank-stream');
+  rankSource.onmessage = (event) => {
+    if (event.data === 'connected') return;
+    try {
+      const msg = JSON.parse(event.data);
+      // Only trigger if animation type is 'rank' and message is rank change
+      if ((cfg?.display?.animation_type ?? 'rank') === 'rank' && (msg.type === 'rankup' || msg.type === 'rankdown')) {
+        triggerAnimation(msg.type);
+        lastRankTier = msg.tier;
+      }
+    } catch(e) {
+      console.error('Rank parse error:', e);
+    }
+  };
+  rankSource.onerror = () => {
+    console.error('Rank stream error');
+    rankSource = null;
+  };
+
+  // Connect to match stream
+  matchSource = new EventSource('/api/matches-stream');
+  matchSource.onopen = () => {
+    console.log('Match stream connected');
+  };
+  matchSource.onmessage = (event) => {
+    if (event.data === 'connected') {
+      console.log('Match stream ready');
+      return;
+    }
+    try {
+      const msg = JSON.parse(event.data);
+      console.log('Match event received:', msg);
+      // Only trigger if animation type is 'match' and message is match result
+      if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose')) {
+        console.log('Triggering animation:', msg.type);
+        triggerAnimation(msg.type);
+        lastMatchId = null; // Reset to force refresh
+        refreshMatches();
+      }
+    } catch(e) {
+      console.error('Match parse error:', e);
+    }
+  };
+  matchSource.onerror = () => {
+    console.error('Match stream error');
+    matchSource = null;
+  };
+}
+
 // ── Init ──────────────────────────────────────────────────────
 async function init() {
-  // Clear old session data
-  sessionStorage.clear();
-
   // 1. Load display settings from localStorage (instant, synchronous)
   try {
     const stored = localStorage.getItem('valo_display');
@@ -500,13 +568,18 @@ async function init() {
   applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
+  // 4. Initialize session RR tracking (only clear on account change, not on every page load)
+  lastSessionStorageCleared = localStorage.getItem('valo_display');
+  initSessionRR(0); // Will be overwritten by first rank fetch
+
   // ── Common listeners (both preview and OBS modes) ──────────────
   // Listen for account changes from setup page (real-time refresh)
   window.addEventListener('storage', (e) => {
     if (e.key === 'valo_account_change') {
-      // Account changed, refresh rank and matches immediately
+      // Account changed, clear session and refresh
+      sessionStorage.clear();
       lastRankTier = null;
-      lastMatchId = null; // Reset tracking for new account
+      lastMatchId = null;
       refreshRank();
       refreshMatches();
     }
@@ -516,6 +589,16 @@ async function init() {
         const msg = JSON.parse(e.newValue);
         console.log('Test animation:', msg);
         triggerAnimation(msg.type);
+      } catch(e) {}
+    }
+    // Monitor for config changes
+    if (e.key === 'valo_display' && e.newValue !== lastSessionStorageCleared) {
+      lastSessionStorageCleared = e.newValue;
+      try {
+        cfg.display = JSON.parse(e.newValue);
+        applyDisplay(cfg.display);
+        // Reconnect SSE if realtime notifications setting changed
+        connectSSE();
       } catch(e) {}
     }
   });
@@ -539,90 +622,22 @@ async function init() {
     triggerAnimation(e.detail.type);
   });
 
-  // 4. PREVIEW MODE: show loading, fetch real data, sync settings via localStorage
+  // 5. PREVIEW MODE: show loading, fetch real data, sync settings via localStorage
   if (IS_PREVIEW) {
     refreshRank();
     refreshMatches();
-
-    // Poll localStorage every 300ms for instant display settings sync (reduced flickering)
-    let lastCheck = localStorage.getItem('valo_display');
-    setInterval(() => {
-      try {
-        const stored = localStorage.getItem('valo_display');
-        if (stored !== lastCheck) {
-          lastCheck = stored;
-          cfg.display = JSON.parse(stored);
-          applyDisplay(cfg.display);
-        }
-      } catch(e) {}
-    }, 300);
     return;
   }
 
-  // 5. OBS MODE: apply obs-mode class for frosted glass simulation
+  // 6. OBS MODE: apply obs-mode class for frosted glass simulation
   document.body.classList.add('obs-mode');
   refreshRank();
   refreshMatches();
   setInterval(refreshRank, 60000);
   setInterval(refreshMatches, 60000);
 
-  // Poll localStorage for live config updates from setup page
-  let lastCheck = localStorage.getItem('valo_display');
-  setInterval(() => {
-    try {
-      const stored = localStorage.getItem('valo_display');
-      if (stored !== lastCheck) {
-        lastCheck = stored;
-        cfg.display = JSON.parse(stored);
-        applyDisplay(cfg.display);
-      }
-    } catch(e) {}
-  }, 500);
-
-  // Connect to rank stream (real-time updates from server)
-  if (cfg?.display?.realtime_notifications ?? true) {
-    const rankSource = new EventSource('/api/rank-stream');
-    rankSource.onmessage = (event) => {
-      if (event.data === 'connected') return;
-      try {
-        const msg = JSON.parse(event.data);
-        if ((cfg?.display?.animation_type ?? 'rank') === 'rank' && (msg.type === 'rankup' || msg.type === 'rankdown')) {
-          triggerAnimation(msg.type);
-          lastRankTier = msg.tier;
-        }
-      } catch(e) {}
-    };
-  }
-
-  // Connect to match stream (real-time updates from server)
-  if (cfg?.display?.realtime_notifications ?? true) {
-    const matchSource = new EventSource('/api/matches-stream');
-    matchSource.onopen = () => {
-      console.log('Match stream connected');
-    };
-    matchSource.onmessage = (event) => {
-      if (event.data === 'connected') {
-        console.log('Match stream ready');
-        return;
-      }
-      try {
-        const msg = JSON.parse(event.data);
-        console.log('Match event received:', msg);
-        if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose')) {
-          console.log('Triggering animation:', msg.type);
-          triggerAnimation(msg.type);
-          // Force refresh matches to update display
-          refreshMatches();
-          lastMatchId = null;
-        }
-      } catch(e) {
-        console.error('Match parse error:', e);
-      }
-    };
-    matchSource.onerror = () => {
-      console.error('Match stream error');
-    };
-  }
+  // Connect to SSE streams for real-time updates
+  connectSSE();
 
   // Reload config from API every 30 seconds (fallback for account changes)
   setInterval(async () => {
@@ -632,6 +647,8 @@ async function init() {
         const newCfg = await res.json();
         cfg = newCfg;
         applyDisplay(cfg.display || {});
+        // Reconnect SSE if config changed
+        connectSSE();
       }
     } catch(e) {}
   }, 30000);

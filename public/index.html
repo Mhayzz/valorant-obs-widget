@@ -171,60 +171,64 @@ body.obs-mode .card {
 .overlay-content.hidden { display:none; }
 
 /* ── Rank animations ─────────────────────────────────────── */
-@keyframes rankup-border-glow {
-  0% {
-    opacity: 0;
-    border-color: rgba(95, 255, 181, 0);
-    box-shadow: 0 0 0 rgba(95, 255, 181, 0), inset 0 0 0 rgba(95, 255, 181, 0);
-  }
-  10% {
-    opacity: 1;
-    border-color: #5fffb5;
-    box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
-  }
-  90% {
-    opacity: 1;
-    border-color: #5fffb5;
-    box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
-  }
-  100% {
-    opacity: 0;
-    border-color: rgba(95, 255, 181, 0);
-    box-shadow: 0 0 0 rgba(95, 255, 181, 0), inset 0 0 0 rgba(95, 255, 181, 0);
-  }
+@keyframes spin-rankup {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-@keyframes rankdown-border-glow {
-  0% {
-    opacity: 0;
-    border-color: rgba(255, 80, 96, 0);
-    box-shadow: 0 0 0 rgba(255, 80, 96, 0), inset 0 0 0 rgba(255, 80, 96, 0);
-  }
-  10% {
-    opacity: 1;
-    border-color: #ff5060;
-    box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
-  }
-  90% {
-    opacity: 1;
-    border-color: #ff5060;
-    box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
-  }
-  100% {
-    opacity: 0;
-    border-color: rgba(255, 80, 96, 0);
-    box-shadow: 0 0 0 rgba(255, 80, 96, 0), inset 0 0 0 rgba(255, 80, 96, 0);
-  }
+@keyframes spin-rankdown {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-rankup {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fade-in-rankdown {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .rank-card.animate-rankup {
-  animation: rankup-border-glow 1s ease-in-out;
-  border: 2px solid #5fffb5;
+  position: relative;
+  animation: fade-in-rankup 1s ease-in-out;
+}
+
+.rank-card.animate-rankup::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: conic-gradient(from 0deg, #5fffb5, #5fffb5 90deg, transparent 180deg);
+  border-radius: 10px;
+  animation: spin-rankup 0.8s linear;
+  z-index: -1;
 }
 
 .rank-card.animate-rankdown {
-  animation: rankdown-border-glow 1s ease-in-out;
-  border: 2px solid #ff5060;
+  position: relative;
+  animation: fade-in-rankdown 1s ease-in-out;
+}
+
+.rank-card.animate-rankdown::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: conic-gradient(from 0deg, #ff5060, #ff5060 90deg, transparent 180deg);
+  border-radius: 10px;
+  animation: spin-rankdown 0.8s linear;
+  z-index: -1;
 }
 </style>
 </head>

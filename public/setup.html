@@ -1107,6 +1107,7 @@ document.getElementById('peakAlignLeft').addEventListener('click', () => {
   currentPeakAlign = 'left';
   document.getElementById('peakAlignLeft').classList.add('active');
   document.getElementById('peakAlignRight').classList.remove('active');
+  saveToLocalStorage();
   scheduleAutoSave();
 });
 
@@ -1114,6 +1115,7 @@ document.getElementById('peakAlignRight').addEventListener('click', () => {
   currentPeakAlign = 'right';
   document.getElementById('peakAlignRight').classList.add('active');
   document.getElementById('peakAlignLeft').classList.remove('active');
+  saveToLocalStorage();
   scheduleAutoSave();
 });
 
@@ -1165,31 +1167,37 @@ function updateObsDims() {
 // ── Opacity slider ────────────────────────────────────────────
 document.getElementById('bgOpacity').addEventListener('input', function() {
   document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
+  saveToLocalStorage();
   scheduleAutoSave();
 });
 
 // ── Color picker sync ─────────────────────────────────────────
 document.getElementById('accentPicker').addEventListener('input', function() {
+  saveToLocalStorage();
   scheduleAutoSave();
 });
 document.getElementById('textTertiaryPicker').addEventListener('input', function() {
+  saveToLocalStorage();
   scheduleAutoSave();
 });
 
 // ── Toggle dims update ────────────────────────────────────────
 ['showLastMatch','showStreak'].forEach(id => {
   document.getElementById(id).addEventListener('change', () => {
-    scheduleAutoSave();
+    saveToLocalStorage();
     updateObsDims();
+    scheduleAutoSave();
   });
 });
 document.getElementById('peakRankMode').addEventListener('change', () => {
-  scheduleAutoSave();
+  saveToLocalStorage();
   updateObsDims();
+  scheduleAutoSave();
 });
 document.getElementById('widgetWidth').addEventListener('change', () => {
-  scheduleAutoSave();
+  saveToLocalStorage();
   updateObsDims();
+  scheduleAutoSave();
 });
 
 // ── Account fields ────────────────────────────────────────────
@@ -1374,7 +1382,10 @@ document.querySelectorAll('input[type=text], input[type=password], input[type=co
 });
 
 // Ensure animationType also triggers auto-save
-document.getElementById('animationType').addEventListener('change', scheduleAutoSave);
+document.getElementById('animationType').addEventListener('change', () => {
+  saveToLocalStorage();
+  scheduleAutoSave();
+});
 
 // Update status bar when account fields change
 ['riotName', 'riotTag', 'riotRegion'].forEach(id => {

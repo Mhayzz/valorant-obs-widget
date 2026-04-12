@@ -172,15 +172,37 @@ body.obs-mode .card {
 
 /* ── Rank animations ─────────────────────────────────────── */
 @keyframes rankup-glow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0;
+  }
 }
 
 @keyframes rankdown-glow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 0% 50%;
+    opacity: 0;
+  }
 }
 
 .rank-card.animate-rankup {

@@ -944,6 +944,20 @@ input[type=color]::-moz-color-swatch {
             <span class="toggle-track"></span>
           </label>
         </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Notifications temps réel</div>
+            <div class="opt-sub">Animations quand tu rank up/down en jeu</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="realtimeNotifications" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <div class="opt-row" style="gap: 8px;">
+          <button id="testRankUp" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Up</button>
+          <button id="testRankDown" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Down</button>
+        </div>
       </div>
     </div>
 
@@ -1038,6 +1052,7 @@ function getDisplayFromForm() {
     show_session_rr: document.getElementById('showSessionRR').checked,
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
+    realtime_notifications: document.getElementById('realtimeNotifications').checked,
   };
 }
 
@@ -1153,6 +1168,15 @@ document.getElementById('riotRegion').addEventListener('change', () => {
   scheduleRefreshPreview();
 });
 
+// ── Test rank animations ──────────────────────────────────────
+document.getElementById('testRankUp').addEventListener('click', () => {
+  localStorage.setItem('valo_rank_test', JSON.stringify({ type: 'rankup', tier: 99, rank: 'Test Rank Up' }));
+});
+
+document.getElementById('testRankDown').addEventListener('click', () => {
+  localStorage.setItem('valo_rank_test', JSON.stringify({ type: 'rankdown', tier: 97, rank: 'Test Rank Down' }));
+});
+
 // ── Load config ───────────────────────────────────────────────
 async function loadConfig() {
   const dot  = document.getElementById('statusDot');
@@ -1197,6 +1221,7 @@ async function loadConfig() {
     if (d.show_session_rr !== undefined) document.getElementById('showSessionRR').checked = d.show_session_rr;
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
+    if (d.realtime_notifications !== undefined) document.getElementById('realtimeNotifications').checked = d.realtime_notifications;
 
     // Status
     const hasAccount = !!(cfg.riot_name && cfg.riot_tag);

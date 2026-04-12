@@ -586,15 +586,30 @@ async function init() {
   // Connect to match stream (real-time updates from server)
   if (cfg?.display?.realtime_notifications ?? true) {
     const matchSource = new EventSource('/api/matches-stream');
+    matchSource.onopen = () => {
+      console.log('Match stream connected');
+    };
     matchSource.onmessage = (event) => {
-      if (event.data === 'connected') return;
+      if (event.data === 'connected') {
+        console.log('Match stream ready');
+        return;
+      }
       try {
         const msg = JSON.parse(event.data);
+        console.log('Match event received:', msg);
         if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose')) {
+          console.log('Triggering animation:', msg.type);
           triggerAnimation(msg.type);
-          lastMatchId = null; // Reset to allow next match animation
+          // Force refresh matches to update display
+          refreshMatches();
+          lastMatchId = null;
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error('Match parse error:', e);
+      }
+    };
+    matchSource.onerror = () => {
+      console.error('Match stream error');
     };
   }
 

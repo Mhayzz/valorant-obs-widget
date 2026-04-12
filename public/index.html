@@ -23,36 +23,16 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* OBS background - MAP behind cards only */
-body.obs-mode { background: transparent; }
+/* OBS background - BLACK 50% + BLUR = FROSTED GLASS */
+body.obs-mode { background: rgba(0, 0, 0, 0.5); }
 
 .container {
   display:flex; flex-direction:column; gap:5px; padding:2px;
   opacity:0; transform:translateY(6px);
-  position: relative;
 }
 .container.show {
   opacity:1; transform:translateY(0);
   transition:opacity .2s ease, transform .2s ease;
-}
-
-/* Map background behind the cards */
-body.obs-mode .container::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background:
-    radial-gradient(ellipse 800px 400px at 50% 40%, rgba(80,120,180,0.25) 0%, transparent 40%),
-    radial-gradient(ellipse 600px 300px at 70% 70%, rgba(100,80,140,0.2) 0%, transparent 45%),
-    linear-gradient(135deg, #1a2840 0%, #0f1923 50%, #1a2840 100%);
-  background-size: 100% 100%, 100% 100%, 150% 150%;
-  background-position: 0 0, 0 0, 0 0;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: 10px;
 }
 
 .card {

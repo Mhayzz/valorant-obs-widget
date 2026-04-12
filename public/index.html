@@ -23,12 +23,44 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-/* OBS mode: subtle noise texture for backdrop-filter (imperceptible but enables blur) */
-body.obs-mode {
-  background-image:
-    repeating-linear-gradient(0deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 2px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02) 1px, transparent 1px, transparent 2px);
-  background-size: 2px 2px;
+/* OBS background styles */
+body.obs-mode { background: transparent; }
+
+/* Style 1: Blur (frosted glass) */
+body.obs-mode.bg-blur .card {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Style 2: Solid dark */
+body.obs-mode.bg-solid .card {
+  backdrop-filter: none;
+  background: rgba(18, 18, 22, 0.85);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Style 3: Gradient dark */
+body.obs-mode.bg-gradient .card {
+  backdrop-filter: none;
+  background: linear-gradient(135deg, rgba(20, 20, 28, 0.8), rgba(15, 15, 20, 0.9));
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Style 4: Glow edges */
+body.obs-mode.bg-glow .card {
+  backdrop-filter: none;
+  background: rgba(18, 18, 22, 0.8);
+  box-shadow: 0 0 30px rgba(95, 255, 181, 0.15), 0 0 60px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(95, 255, 181, 0.2);
+}
+
+/* Style 5: Minimal */
+body.obs-mode.bg-minimal .card {
+  backdrop-filter: none;
+  background: rgba(20, 20, 28, 0.7);
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .container {
@@ -287,6 +319,13 @@ function applyDisplay(d) {
   r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
+
+  // Apply OBS background style
+  if (document.body.classList.contains('obs-mode')) {
+    const bgStyle = d.card_background || 'blur';
+    document.body.classList.remove('bg-blur', 'bg-solid', 'bg-gradient', 'bg-glow', 'bg-minimal');
+    document.body.classList.add(`bg-${bgStyle}`);
+  }
 
   // Peak rank: inline (next to rank name) or below
   const peakInline = d.peak_inline ?? false;

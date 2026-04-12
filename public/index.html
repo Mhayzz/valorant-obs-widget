@@ -628,7 +628,7 @@ async function init() {
   // Connect to SSE streams for real-time updates
   connectSSE();
 
-  // Poll localStorage every 500ms for instant setting changes (like preview does)
+  // Poll localStorage every 100ms for instant setting changes in OBS
   let lastCheck = localStorage.getItem('valo_display');
   setInterval(() => {
     try {
@@ -639,9 +639,9 @@ async function init() {
         applyDisplay(cfg.display);
       }
     } catch(e) {}
-  }, 500);
+  }, 100);
 
-  // Reload config from API every 30 seconds (fallback for account changes)
+  // Reload config from API every 5 seconds (faster detection in OBS)
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
@@ -653,7 +653,7 @@ async function init() {
         connectSSE();
       }
     } catch(e) {}
-  }, 30000);
+  }, 5000);
 }
 
 init();

@@ -515,13 +515,18 @@ async function init() {
       refreshRank();
       refreshMatches();
     }
-    // Listen for rank animation tests from setup page
-    if (e.key === 'valo_rank_test') {
-      try {
-        const msg = JSON.parse(localStorage.getItem('valo_rank_test'));
-        triggerRankAnimation(msg.type);
-      } catch(e) {}
+  });
+
+  // Listen for test messages from parent window (iframe mode)
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'ranktest' && e.data?.detail?.type) {
+      triggerRankAnimation(e.data.detail.type);
     }
+  });
+
+  // Listen for custom events (direct page mode)
+  window.addEventListener('valoRankTest', (e) => {
+    triggerRankAnimation(e.detail.type);
   });
 
   // Connect to rank stream (real-time updates from server)

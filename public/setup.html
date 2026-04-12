@@ -1170,11 +1170,23 @@ document.getElementById('riotRegion').addEventListener('change', () => {
 
 // ── Test rank animations ──────────────────────────────────────
 document.getElementById('testRankUp').addEventListener('click', () => {
-  localStorage.setItem('valo_rank_test', JSON.stringify({ type: 'rankup', tier: 99, rank: 'Test Rank Up' }));
+  const event = new CustomEvent('valoRankTest', { detail: { type: 'rankup' } });
+  window.dispatchEvent(event);
+  // Also notify iframe via postMessage
+  const iframe = document.getElementById('previewFrame');
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankup' } }, '*');
+  }
 });
 
 document.getElementById('testRankDown').addEventListener('click', () => {
-  localStorage.setItem('valo_rank_test', JSON.stringify({ type: 'rankdown', tier: 97, rank: 'Test Rank Down' }));
+  const event = new CustomEvent('valoRankTest', { detail: { type: 'rankdown' } });
+  window.dispatchEvent(event);
+  // Also notify iframe via postMessage
+  const iframe = document.getElementById('previewFrame');
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankdown' } }, '*');
+  }
 });
 
 // ── Load config ───────────────────────────────────────────────

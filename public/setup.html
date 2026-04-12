@@ -1184,41 +1184,24 @@ document.getElementById('riotRegion').addEventListener('change', () => {
 });
 
 // ── Test animations ──────────────────────────────────────────
-document.getElementById('testRankUp').addEventListener('click', () => {
-  const event = new CustomEvent('valoRankTest', { detail: { type: 'rankup' } });
-  window.dispatchEvent(event);
+function sendTestAnimation(type, isMatch = false) {
   const iframe = document.getElementById('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankup' } }, '*');
+  if (!iframe?.contentWindow) {
+    alert('Preview not loaded yet');
+    return;
   }
-});
 
-document.getElementById('testRankDown').addEventListener('click', () => {
-  const event = new CustomEvent('valoRankTest', { detail: { type: 'rankdown' } });
-  window.dispatchEvent(event);
-  const iframe = document.getElementById('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankdown' } }, '*');
-  }
-});
+  const msgType = isMatch ? 'matchtest' : 'ranktest';
+  iframe.contentWindow.postMessage({
+    type: msgType,
+    detail: { type }
+  }, '*');
+}
 
-document.getElementById('testWin').addEventListener('click', () => {
-  const event = new CustomEvent('valoMatchTest', { detail: { type: 'win' } });
-  window.dispatchEvent(event);
-  const iframe = document.getElementById('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'matchtest', detail: { type: 'win' } }, '*');
-  }
-});
-
-document.getElementById('testLose').addEventListener('click', () => {
-  const event = new CustomEvent('valoMatchTest', { detail: { type: 'lose' } });
-  window.dispatchEvent(event);
-  const iframe = document.getElementById('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'matchtest', detail: { type: 'lose' } }, '*');
-  }
-});
+document.getElementById('testRankUp').addEventListener('click', () => sendTestAnimation('rankup'));
+document.getElementById('testRankDown').addEventListener('click', () => sendTestAnimation('rankdown'));
+document.getElementById('testWin').addEventListener('click', () => sendTestAnimation('win', true));
+document.getElementById('testLose').addEventListener('click', () => sendTestAnimation('lose', true));
 
 // ── Load config ───────────────────────────────────────────────
 async function loadConfig() {

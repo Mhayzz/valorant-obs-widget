@@ -41,11 +41,11 @@ body {
   overflow:hidden;
 }
 
-/* OBS mode: simulate frosted glass without backdrop-filter */
+/* OBS mode: keep styling but use darker background for visibility */
 body.obs-mode .card {
-  backdrop-filter:none;
-  -webkit-backdrop-filter:none;
-  background:var(--card-bg-obs);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  background:var(--card-bg);
   border:1px solid rgba(255,255,255,0.1);
 }
 

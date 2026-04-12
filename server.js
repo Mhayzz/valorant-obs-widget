@@ -64,6 +64,7 @@ const SETUP_PASSWORD = process.env.SETUP_PASSWORD || "";
 let rankCache  = { data: null, ts: 0 };
 let matchCache = { data: null, ts: 0, size: 0 };
 let rankHistory = {}; // Track rank changes per account
+let matchHistory = {}; // Track last match per account
 
 function invalidateCaches() {
   rankCache  = { data: null, ts: 0 };
@@ -86,6 +87,24 @@ app.get("/api/rank-stream", (req, res) => {
     rankStreamClients.delete(res);
   });
 });
+
+// ── Match Stream (SSE) ───────────────────────────────────────
+const matchStreamClients = new Set(); // Track active SSE connections
+
+app.get("/api/matches-stream", (req, res) => {
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream",
+    "Cache-Control": "no-cache",
+    "Connection": "keep-alive",
+  });
+  matchStreamClients.add(res);
+  res.write("data: connected\n\n");
+
+  req.on("close", () => {
+    matchStreamClients.delete(res);
+  });
+});
+
 
 // Poll rank every 30 seconds and notify clients of changes
 setInterval(async () => {
@@ -128,6 +147,51 @@ setInterval(async () => {
     }
   } catch(e) {
     console.error("rank-stream poll error:", e.message);
+  }
+}, 30000);
+
+// Poll matches every 30 seconds and notify clients of new matches
+setInterval(async () => {
+  const cfg = getCfg();
+  if (!cfg.riot_name || !cfg.riot_tag) return;
+
+  const accountKey = `${cfg.riot_name}#${cfg.riot_tag}`;
+
+  try {
+    const headers = { "Content-Type": "application/json" };
+    if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
+    const r = await fetch(
+      `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${cfg.riot_region}/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}?size=1`,
+      { headers }
+    );
+    if (!r.ok) return;
+
+    const json = await r.json();
+    const matches = json.data || [];
+    if (!matches.length) return;
+
+    const lastMatch = matchHistory[accountKey];
+    const currentMatch = matches[0];
+    const matchKey = `${currentMatch.stats?.character?.id}${currentMatch.stats?.kills}${currentMatch.stats?.deaths}`;
+
+    if (lastMatch && lastMatch !== matchKey) {
+      const stats = currentMatch.stats;
+      const won = currentMatch.teams?.red > currentMatch.teams?.blue
+        ? stats?.team?.toLowerCase() === 'red'
+        : stats?.team?.toLowerCase() === 'blue';
+
+      const msg = JSON.stringify({
+        type: won ? "win" : "lose",
+        agent: stats?.character?.name || "Unknown",
+        map: currentMatch.meta?.map?.name || "Unknown",
+      });
+      matchStreamClients.forEach(client => {
+        client.write(`data: ${msg}\n\n`);
+      });
+    }
+    matchHistory[accountKey] = matchKey;
+  } catch(e) {
+    console.error("match-stream poll error:", e.message);
   }
 }, 30000);
 

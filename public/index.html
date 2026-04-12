@@ -467,6 +467,29 @@ async function init() {
   applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
+  // ── Common listeners (both preview and OBS modes) ──────────────
+  // Listen for account changes from setup page (real-time refresh)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'valo_account_change') {
+      // Account changed, refresh rank and matches immediately
+      lastRankTier = null; // Reset rank tracking for new account
+      refreshRank();
+      refreshMatches();
+    }
+  });
+
+  // Listen for test messages from parent window (iframe mode)
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'ranktest' && e.data?.detail?.type) {
+      triggerRankAnimation(e.data.detail.type);
+    }
+  });
+
+  // Listen for custom events (direct page mode)
+  window.addEventListener('valoRankTest', (e) => {
+    triggerRankAnimation(e.detail.type);
+  });
+
   // 4. PREVIEW MODE: show loading, fetch real data, sync settings via localStorage
   if (IS_PREVIEW) {
     refreshRank();
@@ -506,28 +529,6 @@ async function init() {
       }
     } catch(e) {}
   }, 1000);
-
-  // Listen for account changes from setup page (real-time refresh)
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'valo_account_change') {
-      // Account changed, refresh rank and matches immediately
-      lastRankTier = null; // Reset rank tracking for new account
-      refreshRank();
-      refreshMatches();
-    }
-  });
-
-  // Listen for test messages from parent window (iframe mode)
-  window.addEventListener('message', (e) => {
-    if (e.data?.type === 'ranktest' && e.data?.detail?.type) {
-      triggerRankAnimation(e.data.detail.type);
-    }
-  });
-
-  // Listen for custom events (direct page mode)
-  window.addEventListener('valoRankTest', (e) => {
-    triggerRankAnimation(e.detail.type);
-  });
 
   // Connect to rank stream (real-time updates from server)
   if (cfg?.display?.realtime_notifications ?? true) {

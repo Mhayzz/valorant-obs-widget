@@ -139,7 +139,11 @@ setInterval(async () => {
           rr: current?.rr ?? 0,
         });
         rankStreamClients.forEach(client => {
-          client.write(`data: ${msg}\n\n`);
+          try {
+            client.write(`data: ${msg}\n\n`);
+          } catch(e) {
+            console.error("Error writing to rank stream client:", e.message);
+          }
         });
       }
     } else {
@@ -186,7 +190,11 @@ setInterval(async () => {
         map: currentMatch.meta?.map?.name || "Unknown",
       });
       matchStreamClients.forEach(client => {
-        client.write(`data: ${msg}\n\n`);
+        try {
+          client.write(`data: ${msg}\n\n`);
+        } catch(e) {
+          console.error("Error writing to match stream client:", e.message);
+        }
       });
     }
     matchHistory[accountKey] = matchKey;

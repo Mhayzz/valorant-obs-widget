@@ -33,12 +33,16 @@ body.obs-mode.bg-inset-glow .card {
   box-shadow: inset 0 0 80px 20px rgba(95, 255, 181, 0.08), inset 0 0 40px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* 2. Radial Gradient Vignette (subtle center glow for backdrop-filter) */
+/* 2. Radial Gradient Vignette + ULTRA SUBTLE TEXTURE for backdrop-filter */
 body.obs-mode.bg-radial-vignette .card {
-  background: radial-gradient(circle at center, rgba(20, 20, 28, 0.6), rgba(10, 10, 15, 0.95));
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.015), rgba(255,255,255,0.015) 1px, transparent 1px, transparent 2px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.015), rgba(255,255,255,0.015) 1px, transparent 1px, transparent 2px),
+    radial-gradient(circle at center, rgba(20, 20, 28, 0.6), rgba(10, 10, 15, 0.95));
+  background-size: 3px 3px, 3px 3px, 100% 100%;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 /* 3. Multi-layer Box Shadow (stack shadows to simulate blur) */

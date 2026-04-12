@@ -23,6 +23,11 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
+/* OBS mode: dark background for backdrop-filter blur to work */
+body.obs-mode {
+  background-color: #0a0a0a;
+}
+
 .container {
   display:flex; flex-direction:column; gap:5px; padding:2px;
   opacity:0; transform:translateY(6px);

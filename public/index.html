@@ -78,15 +78,6 @@ body.obs-mode .card {
 .peak-rank span { color:rgba(255,255,255,.45); font-family:'DM Mono',monospace; }
 .peak-icon { width:22px; height:22px; vertical-align:middle; margin-left:4px; }
 
-.session-rr {
-  font-size:9px; font-weight:600; letter-spacing:.7px;
-  text-transform:uppercase; color:var(--text-tertiary);
-  line-height:1; margin-top:1px;
-}
-.session-rr .val { font-family:'DM Mono',monospace; }
-.session-rr .pos { color:rgba(95,255,181,.8); }
-.session-rr .neg { color:rgba(255,80,96,.8); }
-
 .rr-row { display:flex; align-items:center; gap:6px; }
 .rr-label {
   font-family:'DM Mono',monospace; font-size:11px;
@@ -237,7 +228,6 @@ body.obs-mode .card {
     <div class="rank-info">
       <div class="rank-name"><span id="rankName">—</span><span class="peak-inline" id="peakInline"></span></div>
       <div class="peak-rank" id="peakRank" style="display:none"></div>
-      <div class="session-rr" id="sessionRR" style="display:none"></div>
       <div class="rr-row">
         <div class="rr-label" id="rrLabel">0 RR</div>
         <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
@@ -271,7 +261,6 @@ body.obs-mode .card {
 <script>
 let cfg = null;
 let prevChange = undefined;
-const SS_KEY = 'valo_session_start_rr';
 let IS_PREVIEW = false;
 try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') || window.self !== window.top; } catch(e) { IS_PREVIEW = true; }
 
@@ -304,22 +293,10 @@ function applyDisplay(d) {
     document.getElementById('peakRank').style.display = 'block';
     peakAlignEl.style.display = 'none';
   }
-  document.getElementById('sessionRR').style.display =
-    (d.show_session_rr ?? true) ? 'block' : 'none';
   document.getElementById('matchCard').style.display =
     (d.show_last_match ?? true) ? 'flex' : 'none';
   document.getElementById('streakCard').style.display =
     (d.show_streak ?? true) ? 'flex' : 'none';
-}
-
-// ── Session RR ───────────────────────────────────────────────
-let sessionStartRR = null;
-
-function initSessionRR(rr) {
-  const stored = sessionStorage.getItem(SS_KEY);
-  sessionStartRR = stored !== null ? parseInt(stored, 10) : rr;
-  if (stored === null) sessionStorage.setItem(SS_KEY, rr);
-  renderSessionRR(rr);
 }
 
 // ── Animations ──────────────────────────────────────────────
@@ -339,16 +316,6 @@ function triggerAnimation(type) {
   }, 800);
 }
 
-function renderSessionRR(rr) {
-  if (!(cfg?.display?.show_session_rr ?? true)) return;
-  if (sessionStartRR === null) return;
-  const diff = rr - sessionStartRR;
-  const el = document.getElementById('sessionRR');
-  if (diff === 0) { el.style.display = 'none'; return; }
-  const cls = diff > 0 ? 'pos' : 'neg';
-  el.innerHTML = `SESSION <span class="val ${cls}">${diff > 0 ? '+' : ''}${diff} RR</span>`;
-  el.style.display = 'block';
-}
 
 // ── Rank (real API - only used in OBS mode) ──────────────────
 function showOverlay() {
@@ -417,8 +384,6 @@ async function refreshRank() {
     badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
     document.getElementById('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
     prevChange = chg;
-
-    initSessionRR(d.rr);
   } catch(e) {}
 }
 
@@ -575,9 +540,8 @@ async function init() {
   applyDisplay(cfg.display || {});
   document.getElementById('container').classList.add('show');
 
-  // 4. Initialize session RR tracking (only clear on account change, not on every page load)
+  // 4. Initialize display tracking
   lastSessionStorageCleared = localStorage.getItem('valo_display');
-  initSessionRR(0); // Will be overwritten by first rank fetch
 
   // ── Common listeners (both preview and OBS modes) ──────────────
   // Listen for account changes from setup page (real-time refresh)

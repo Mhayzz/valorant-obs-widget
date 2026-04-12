@@ -628,6 +628,19 @@ async function init() {
   // Connect to SSE streams for real-time updates
   connectSSE();
 
+  // Poll localStorage every 500ms for instant setting changes (like preview does)
+  let lastCheck = localStorage.getItem('valo_display');
+  setInterval(() => {
+    try {
+      const stored = localStorage.getItem('valo_display');
+      if (stored !== lastCheck) {
+        lastCheck = stored;
+        cfg.display = JSON.parse(stored);
+        applyDisplay(cfg.display);
+      }
+    } catch(e) {}
+  }, 500);
+
   // Reload config from API every 30 seconds (fallback for account changes)
   setInterval(async () => {
     try {

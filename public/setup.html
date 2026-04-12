@@ -1165,6 +1165,11 @@ async function loadConfig() {
     document.getElementById('riotTag').value    = cfg.riot_tag    || '';
     document.getElementById('riotRegion').value = cfg.riot_region || 'eu';
 
+    // Initialize lastSavedAccount to track account changes
+    if (cfg.riot_name && cfg.riot_tag) {
+      lastSavedAccount = `${cfg.riot_name}#${cfg.riot_tag}`;
+    }
+
     // Display
     const d = cfg.display || {};
     if (d.bg_opacity !== undefined) {
@@ -1238,11 +1243,16 @@ function updateStatusBar() {
 
 // ── Auto-save ─────────────────────────────────────────────
 let autoSaveTimeout;
+let lastSavedAccount = null;
+
 async function autoSave() {
   const riotName = document.getElementById('riotName').value.trim();
   const riotTag  = document.getElementById('riotTag').value.trim();
 
   if (!riotName || !riotTag) return; // Don't save incomplete config
+
+  const currentAccount = `${riotName}#${riotTag}`;
+  const accountChanged = lastSavedAccount && lastSavedAccount !== currentAccount;
 
   const body = {
     riot_name:   riotName,
@@ -1261,6 +1271,13 @@ async function autoSave() {
     // Pre-fetch to warm up server cache after config change
     fetch('/api/rank').catch(() => {});
     fetch('/api/matches?size=5').catch(() => {});
+
+    // Notify widget pages of account change for instant refresh
+    if (accountChanged) {
+      localStorage.setItem('valo_account_change', Date.now().toString());
+    }
+
+    lastSavedAccount = currentAccount;
   } catch(e) {}
 }
 

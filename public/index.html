@@ -451,7 +451,16 @@ async function init() {
     } catch(e) {}
   }, 1000);
 
-  // Reload config from API every 60 seconds
+  // Listen for account changes from setup page (real-time refresh)
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'valo_account_change') {
+      // Account changed, refresh rank and matches immediately
+      refreshRank();
+      refreshMatches();
+    }
+  });
+
+  // Reload config from API every 60 seconds (fallback for account changes)
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');

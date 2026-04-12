@@ -386,18 +386,25 @@ async function refreshRank() {
 
     const peakEl = document.getElementById('peakRank');
     const peakInline = document.getElementById('peakInline');
-    if ((cfg?.display?.show_peak_rank ?? true) && d.peak_rank) {
+    // Always populate peak rank data if available (visibility controlled by applyDisplay)
+    if (d.peak_rank) {
       const tier = d.peak_tier;
       const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
       peakEl.innerHTML = `PEAK ${peakImg}`;
       peakInline.innerHTML = 'PEAK ' + peakImg;
-      // Set display and alignment based on settings
       peakInline.className = 'peak-inline align-' + (cfg?.display?.peak_align || 'left');
-      if (cfg?.display?.peak_inline) {
-        peakEl.style.display = 'none';
-        peakInline.style.display = 'flex';
+
+      // Show/hide based on settings
+      if ((cfg?.display?.show_peak_rank ?? true)) {
+        if (cfg?.display?.peak_inline) {
+          peakEl.style.display = 'none';
+          peakInline.style.display = 'flex';
+        } else {
+          peakEl.style.display = 'block';
+          peakInline.style.display = 'none';
+        }
       } else {
-        peakEl.style.display = 'block';
+        peakEl.style.display = 'none';
         peakInline.style.display = 'none';
       }
     } else {
@@ -599,6 +606,11 @@ async function init() {
         applyDisplay(cfg.display);
         // Reconnect SSE if realtime notifications setting changed
         connectSSE();
+        // Refresh data when display settings change to ensure correct content is shown
+        if (!IS_PREVIEW) {
+          refreshRank();
+          refreshMatches();
+        }
       } catch(e) {}
     }
   });

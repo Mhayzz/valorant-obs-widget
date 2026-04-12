@@ -954,9 +954,23 @@ input[type=color]::-moz-color-swatch {
             <span class="toggle-track"></span>
           </label>
         </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Type d'animation</div>
+            <div class="opt-sub">Choisir quand afficher l'animation</div>
+          </div>
+          <select id="animationType" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+            <option value="rank">Rank up/down</option>
+            <option value="match">Match W/L</option>
+          </select>
+        </div>
         <div class="opt-row" style="gap: 8px;">
           <button id="testRankUp" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Up</button>
           <button id="testRankDown" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Down</button>
+        </div>
+        <div class="opt-row" style="gap: 8px;">
+          <button id="testWin" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Win</button>
+          <button id="testLose" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Lose</button>
         </div>
       </div>
     </div>
@@ -1053,6 +1067,7 @@ function getDisplayFromForm() {
     show_last_match: document.getElementById('showLastMatch').checked,
     show_streak:     document.getElementById('showStreak').checked,
     realtime_notifications: document.getElementById('realtimeNotifications').checked,
+    animation_type:  document.getElementById('animationType').value,
   };
 }
 
@@ -1168,11 +1183,10 @@ document.getElementById('riotRegion').addEventListener('change', () => {
   scheduleRefreshPreview();
 });
 
-// ── Test rank animations ──────────────────────────────────────
+// ── Test animations ──────────────────────────────────────────
 document.getElementById('testRankUp').addEventListener('click', () => {
   const event = new CustomEvent('valoRankTest', { detail: { type: 'rankup' } });
   window.dispatchEvent(event);
-  // Also notify iframe via postMessage
   const iframe = document.getElementById('previewFrame');
   if (iframe?.contentWindow) {
     iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankup' } }, '*');
@@ -1182,10 +1196,27 @@ document.getElementById('testRankUp').addEventListener('click', () => {
 document.getElementById('testRankDown').addEventListener('click', () => {
   const event = new CustomEvent('valoRankTest', { detail: { type: 'rankdown' } });
   window.dispatchEvent(event);
-  // Also notify iframe via postMessage
   const iframe = document.getElementById('previewFrame');
   if (iframe?.contentWindow) {
     iframe.contentWindow.postMessage({ type: 'ranktest', detail: { type: 'rankdown' } }, '*');
+  }
+});
+
+document.getElementById('testWin').addEventListener('click', () => {
+  const event = new CustomEvent('valoMatchTest', { detail: { type: 'win' } });
+  window.dispatchEvent(event);
+  const iframe = document.getElementById('previewFrame');
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'matchtest', detail: { type: 'win' } }, '*');
+  }
+});
+
+document.getElementById('testLose').addEventListener('click', () => {
+  const event = new CustomEvent('valoMatchTest', { detail: { type: 'lose' } });
+  window.dispatchEvent(event);
+  const iframe = document.getElementById('previewFrame');
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'matchtest', detail: { type: 'lose' } }, '*');
   }
 });
 
@@ -1234,6 +1265,7 @@ async function loadConfig() {
     if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
     if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
     if (d.realtime_notifications !== undefined) document.getElementById('realtimeNotifications').checked = d.realtime_notifications;
+    if (d.animation_type) document.getElementById('animationType').value = d.animation_type;
 
     // Status
     const hasAccount = !!(cfg.riot_name && cfg.riot_tag);

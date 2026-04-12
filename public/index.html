@@ -202,6 +202,26 @@ body.obs-mode .card {
   border: 2px solid #ff5060;
   box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
 }
+
+.rank-card.animate-win {
+  position: relative;
+  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+              linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5);
+  background-size: 100% 100%, 200% 200%;
+  animation: rankup-glow 0.8s ease-in-out;
+  border: 2px solid #5fffb5;
+  box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
+}
+
+.rank-card.animate-lose {
+  position: relative;
+  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
+              linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060);
+  background-size: 100% 100%, 200% 200%;
+  animation: rankdown-glow 0.8s ease-in-out;
+  border: 2px solid #ff5060;
+  box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
+}
 </style>
 </head>
 <body>
@@ -302,19 +322,20 @@ function initSessionRR(rr) {
   renderSessionRR(rr);
 }
 
-// ── Rank animations ──────────────────────────────────────────
+// ── Animations ──────────────────────────────────────────────
 let lastRankTier = null;
+let lastMatchId = null;
 
-function triggerRankAnimation(type) {
+function triggerAnimation(type) {
   const rankCard = document.querySelector('.rank-card');
   if (!rankCard) return;
 
-  rankCard.classList.remove('animate-rankup', 'animate-rankdown');
+  rankCard.classList.remove('animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose');
   void rankCard.offsetWidth; // Trigger reflow to reset animation
-  rankCard.classList.add(type === 'rankup' ? 'animate-rankup' : 'animate-rankdown');
+  rankCard.classList.add(`animate-${type}`);
 
   setTimeout(() => {
-    rankCard.classList.remove('animate-rankup', 'animate-rankdown');
+    rankCard.classList.remove('animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose');
   }, 800);
 }
 
@@ -344,9 +365,9 @@ async function refreshRank() {
     showOverlay();
 
     // Detect rank changes for animation
-    if ((cfg?.display?.realtime_notifications ?? true) && lastRankTier !== null) {
-      if (d.tier > lastRankTier) triggerRankAnimation('rankup');
-      else if (d.tier < lastRankTier) triggerRankAnimation('rankdown');
+    if ((cfg?.display?.realtime_notifications ?? true) && (cfg?.display?.animation_type ?? 'rank') === 'rank' && lastRankTier !== null) {
+      if (d.tier > lastRankTier) triggerAnimation('rankup');
+      else if (d.tier < lastRankTier) triggerAnimation('rankdown');
     }
     lastRankTier = d.tier;
 
@@ -409,6 +430,15 @@ async function refreshMatches() {
 
     if (showMatch) {
       const m = matches[0];
+
+      // Detect match result changes for animation
+      const matchKey = `${m.agent}${m.kills}${m.deaths}${m.assists}`;
+      if ((cfg?.display?.realtime_notifications ?? true) && (cfg?.display?.animation_type ?? 'rank') === 'match' && lastMatchId !== null && lastMatchId !== matchKey) {
+        if (m.won === true) triggerAnimation('win');
+        else if (m.won === false) triggerAnimation('lose');
+      }
+      lastMatchId = matchKey;
+
       document.getElementById('matchCard').style.display = 'flex';
       const icon = document.getElementById('matchIcon');
       if (m.agent_icon) {
@@ -472,7 +502,8 @@ async function init() {
   window.addEventListener('storage', (e) => {
     if (e.key === 'valo_account_change') {
       // Account changed, refresh rank and matches immediately
-      lastRankTier = null; // Reset rank tracking for new account
+      lastRankTier = null;
+      lastMatchId = null; // Reset tracking for new account
       refreshRank();
       refreshMatches();
     }
@@ -481,13 +512,20 @@ async function init() {
   // Listen for test messages from parent window (iframe mode)
   window.addEventListener('message', (e) => {
     if (e.data?.type === 'ranktest' && e.data?.detail?.type) {
-      triggerRankAnimation(e.data.detail.type);
+      triggerAnimation(e.data.detail.type);
+    }
+    if (e.data?.type === 'matchtest' && e.data?.detail?.type) {
+      triggerAnimation(e.data.detail.type);
     }
   });
 
   // Listen for custom events (direct page mode)
   window.addEventListener('valoRankTest', (e) => {
-    triggerRankAnimation(e.detail.type);
+    triggerAnimation(e.detail.type);
+  });
+
+  window.addEventListener('valoMatchTest', (e) => {
+    triggerAnimation(e.detail.type);
   });
 
   // 4. PREVIEW MODE: show loading, fetch real data, sync settings via localStorage

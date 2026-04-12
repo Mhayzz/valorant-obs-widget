@@ -560,8 +560,8 @@ async function init() {
   document.body.classList.add('obs-mode');
   refreshRank();
   refreshMatches();
-  setInterval(refreshRank, 120000);
-  setInterval(refreshMatches, 120000);
+  setInterval(refreshRank, 10000);
+  setInterval(refreshMatches, 10000);
 
   // Poll localStorage for live config updates from setup page
   let lastCheck = localStorage.getItem('valo_display');
@@ -621,7 +621,7 @@ async function init() {
     };
   }
 
-  // Reload config from API every 60 seconds (fallback for account changes)
+  // Reload config from API every 10 seconds (fallback for account changes)
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
@@ -631,7 +631,7 @@ async function init() {
         applyDisplay(cfg.display || {});
       }
     } catch(e) {}
-  }, 60000);
+  }, 10000);
 }
 
 init();

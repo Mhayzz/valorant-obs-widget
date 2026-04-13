@@ -2,8 +2,15 @@ const express = require("express");
 const fetch = require("node-fetch");
 const path = require("path");
 const fs = require("fs");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: { origin: "*" },
+  transports: ["websocket", "polling"],
+});
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -70,39 +77,11 @@ function invalidateCaches() {
   matchCache = { data: null, ts: 0, size: 0 };
 }
 
-// ── Rank Stream (SSE) ────────────────────────────────────────
-const rankStreamClients = new Set(); // Track active SSE connections
-
-app.get("/api/rank-stream", (req, res) => {
-  res.writeHead(200, {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-  });
-  rankStreamClients.add(res);
-  console.log(`[SSE] Rank client connected. Total: ${rankStreamClients.size}`);
-  res.write("data: connected\n\n");
-
-  req.on("close", () => {
-    rankStreamClients.delete(res);
-    console.log(`[SSE] Rank client disconnected. Total: ${rankStreamClients.size}`);
-  });
-});
-
-// ── Match Stream (SSE) ───────────────────────────────────────
-const matchStreamClients = new Set(); // Track active SSE connections
-
-app.get("/api/matches-stream", (req, res) => {
-  res.writeHead(200, {
-    "Content-Type": "text/event-stream",
-    "Cache-Control": "no-cache",
-  });
-  matchStreamClients.add(res);
-  console.log(`[SSE] Match client connected. Total: ${matchStreamClients.size}`);
-  res.write("data: connected\n\n");
-
-  req.on("close", () => {
-    matchStreamClients.delete(res);
-    console.log(`[SSE] Match client disconnected. Total: ${matchStreamClients.size}`);
+// ── WebSocket connections ────────────────────────────────────
+io.on("connection", (socket) => {
+  console.log(`[WebSocket] Client connected: ${socket.id}`);
+  socket.on("disconnect", () => {
+    console.log(`[WebSocket] Client disconnected: ${socket.id}`);
   });
 });
 
@@ -133,19 +112,13 @@ setInterval(async () => {
       const change = newTier > lastRank.tier ? "rankup" : newTier < lastRank.tier ? "rankdown" : null;
       if (change) {
         rankHistory[accountKey] = { tier: newTier, rank: newRank };
-        const msg = JSON.stringify({
+        const msg = {
           type: change,
           tier: newTier,
           rank: newRank,
           rr: current?.rr ?? 0,
-        });
-        rankStreamClients.forEach(client => {
-          try {
-            client.write(`data: ${msg}\n\n`);
-          } catch(e) {
-            console.error("Error writing to rank stream client:", e.message);
-          }
-        });
+        };
+        io.emit("rank", msg);
       }
     } else {
       rankHistory[accountKey] = { tier: newTier, rank: newRank };
@@ -195,18 +168,12 @@ setInterval(async () => {
         won = playerTeam === 'blue';
       }
 
-      const msg = JSON.stringify({
+      const msg = {
         type: won === null ? "draw" : (won ? "win" : "lose"),
         agent: stats?.character?.name || "Unknown",
         map: currentMatch.meta?.map?.name || "Unknown",
-      });
-      matchStreamClients.forEach(client => {
-        try {
-          client.write(`data: ${msg}\n\n`);
-        } catch(e) {
-          console.error("Error writing to match stream client:", e.message);
-        }
-      });
+      };
+      io.emit("match", msg);
     }
     matchHistory[accountKey] = matchKey;
   } catch(e) {
@@ -402,4 +369,4 @@ app.get("/api/matches", async (req, res) => {
 
 
 app.get("/health", (_, res) => res.send("ok"));
-app.listen(PORT, "0.0.0.0", () => console.log(`Running on port ${PORT}`));
+httpServer.listen(PORT, "0.0.0.0", () => console.log(`Running on port ${PORT}`));

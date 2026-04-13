@@ -1320,6 +1320,9 @@ async function validateAccount() {
       return;
     }
 
+    // Small delay to ensure server is ready with new config
+    await new Promise(r => setTimeout(r, 200));
+
     // Then test the account by fetching rank data
     const rankRes = await fetch('/api/rank');
     const rankData = await rankRes.json();
@@ -1331,6 +1334,10 @@ async function validateAccount() {
       updateAccountUI();
       connectBtn.textContent = originalText;
       connectBtn.disabled = false;
+
+      // Trigger account change event to notify other pages
+      localStorage.setItem('valo_account_change', Date.now().toString());
+
       // Refresh preview when account is successfully connected
       refreshPreview();
     } else {

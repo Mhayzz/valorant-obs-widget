@@ -361,6 +361,9 @@ function triggerAnimation(type) {
   const rankCard = document.querySelector('.rank-card');
   if (!rankCard) return;
 
+  // Ensure overlay is visible
+  showOverlay();
+
   rankCard.classList.remove('animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose');
   void rankCard.offsetWidth; // Trigger reflow to reset animation
   rankCard.classList.add(`animate-${type}`);

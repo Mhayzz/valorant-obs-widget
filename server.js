@@ -5,16 +5,49 @@ const fs = require("fs");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
+// ── Constants ────────────────────────────────────────────────
+const RANK_POLL_INTERVAL = 30000;   // 30 seconds
+const MATCH_POLL_INTERVAL = 10000;  // 10 seconds
+const FETCH_TIMEOUT = 10000;        // 10 seconds
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;           // 1 second
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  cors: { origin: "*" },
+  cors: {
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000",
+    methods: ["GET", "POST"]
+  },
   transports: ["websocket", "polling"],
 });
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+// ── Fetch with timeout and retry ─────────────────────────────
+async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (retries > 0 && (error.name === 'AbortError' || error.code === 'ETIMEDOUT')) {
+      console.warn(`Fetch timeout/error, retrying (${MAX_RETRIES - retries + 1}/${MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return fetchWithRetry(url, options, retries - 1);
+    }
+    throw error;
+  }
+}
 
 // ── Config fichier ──────────────────────────────────────────
 const CONFIG_PATH = path.join(__dirname, "data", "config.json");
@@ -96,16 +129,23 @@ setInterval(async () => {
   try {
     const headers = { "Content-Type": "application/json" };
     if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/mmr/${cfg.riot_region}/pc/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}`,
       { headers }
     );
-    if (!r.ok) return;
+    if (!r.ok) {
+      console.warn(`Rank poll failed: ${r.status}`);
+      return;
+    }
 
     const json = await r.json();
-    const current = json.data?.current;
-    const newTier = current?.tier?.id ?? 0;
-    const newRank = current?.tier?.name || "Unranked";
+    if (!json.data?.current) {
+      console.warn('Invalid rank response in poll');
+      return;
+    }
+    const current = json.data.current;
+    const newTier = current.tier?.id ?? 0;
+    const newRank = current.tier?.name || "Unranked";
 
     const lastRank = rankHistory[accountKey];
     if (lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank)) {
@@ -126,7 +166,7 @@ setInterval(async () => {
   } catch(e) {
     console.error("rank-stream poll error:", e.message);
   }
-}, 30000);
+}, RANK_POLL_INTERVAL);
 
 // Poll matches every 10 seconds and notify clients of new matches
 setInterval(async () => {
@@ -138,15 +178,18 @@ setInterval(async () => {
   try {
     const headers = { "Content-Type": "application/json" };
     if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${cfg.riot_region}/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}?size=1`,
       { headers }
     );
-    if (!r.ok) return;
+    if (!r.ok) {
+      console.warn(`Match poll failed: ${r.status}`);
+      return;
+    }
 
     const json = await r.json();
     const matches = json.data || [];
-    if (!matches.length) return;
+    if (!Array.isArray(matches) || !matches.length) return;
 
     const lastMatch = matchHistory[accountKey];
     const currentMatch = matches[0];
@@ -179,7 +222,7 @@ setInterval(async () => {
   } catch(e) {
     console.error("match-stream poll error:", e.message);
   }
-}, 10000);
+}, MATCH_POLL_INTERVAL);
 
 // ── Config API ──────────────────────────────────────────────
 app.get("/api/config", (req, res) => {
@@ -224,22 +267,31 @@ app.get("/api/rank", async (req, res) => {
   try {
     const headers = { "Content-Type": "application/json" };
     if (apiKey) headers["Authorization"] = apiKey;
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/mmr/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
       { headers }
     );
     const json = await r.json();
-    if (!r.ok) return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
+    if (!r.ok) {
+      console.error(`Rank API error: ${r.status}`, json.errors?.[0]?.message);
+      return res.status(r.status).json({ error: json.errors?.[0]?.message || "Erreur API" });
+    }
 
-    const current = json.data?.current;
-    const peak    = json.data?.peak;
-    const tier    = current?.tier?.id ?? 0;
+    // Validate response structure
+    if (!json.data?.current) {
+      console.error('Invalid rank response structure:', json);
+      return res.status(500).json({ error: "Format API invalide" });
+    }
+
+    const current = json.data.current;
+    const peak    = json.data.peak;
+    const tier    = current.tier?.id ?? 0;
     const result  = {
-      rank:         current?.tier?.name || "Unranked",
-      rr:           current?.rr         ?? 0,
-      rr_change:    current?.last_change ?? null,
+      rank:         current.tier?.name || "Unranked",
+      rr:           current.rr ?? 0,
+      rr_change:    current.last_change ?? null,
       tier,
-      rank_icon:    current?.images?.large || current?.images?.small ||
+      rank_icon:    current.images?.large || current.images?.small ||
         `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png`,
       peak_rank:    peak?.tier?.name   || null,
       peak_tier:    peak?.tier?.id     ?? 0,
@@ -248,7 +300,10 @@ app.get("/api/rank", async (req, res) => {
     };
     rankCache = { data: result, ts: now };
     res.json(result);
-  } catch(e) { res.status(500).json({ error: "Erreur serveur" }); }
+  } catch(e) {
+    console.error("Rank API request failed:", e.message);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
 });
 
 // ── Matches ──────────────────────────────────────────────────
@@ -267,7 +322,7 @@ app.get("/api/matches", async (req, res) => {
 
   // Essaye v1/lifetime (le plus fiable pour l'historique par joueur)
   try {
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
       { headers }
     );
@@ -318,7 +373,7 @@ app.get("/api/matches", async (req, res) => {
 
   // Fallback : v3 sans /pc/
   try {
-    const r = await fetch(
+    const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
       { headers }
     );

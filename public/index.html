@@ -694,6 +694,7 @@ async function init() {
 
   // Poll localStorage every 50ms for OBS (faster refresh detection)
   let lastCheck = localStorage.getItem('valo_display');
+  let lastAccountChange = localStorage.getItem('valo_account_change');
   setInterval(() => {
     try {
       const stored = localStorage.getItem('valo_display');
@@ -704,23 +705,52 @@ async function init() {
         // Force DOM refresh in OBS
         void document.documentElement.offsetHeight;
       }
+
+      // Also check for account change events in case storage events don't fire in OBS
+      const accountChange = localStorage.getItem('valo_account_change');
+      if (accountChange !== lastAccountChange) {
+        lastAccountChange = accountChange;
+        console.log('Account change detected via localStorage polling');
+        sessionStorage.clear();
+        lastRankTier = null;
+        lastMatchId = null;
+        document.getElementById('loadingMsg').textContent = 'Chargement des données...';
+        document.getElementById('loadingMsg').classList.remove('hidden');
+        // Trigger immediate refresh
+        setTimeout(() => {
+          refreshRank();
+          refreshMatches();
+        }, 100);
+      }
     } catch(e) {}
   }, 50);
 
   // Reload config from API every 1 second (instant account/data updates in OBS)
+  let lastConfigAccount = `${cfg?.riot_name}#${cfg?.riot_tag}`;
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
       if (res.ok) {
         const newCfg = await res.json();
+        const currentAccount = `${newCfg?.riot_name}#${newCfg?.riot_tag}`;
+
         // Check if account changed
-        const accountChanged = cfg?.riot_name !== newCfg?.riot_name || cfg?.riot_tag !== newCfg?.riot_tag;
+        const accountChanged = lastConfigAccount !== currentAccount;
+
         cfg = newCfg;
         applyDisplay(cfg.display || {});
         // Reconnect SSE if config changed
         connectSSE();
+
         // Refresh data if account changed
         if (accountChanged) {
+          lastConfigAccount = currentAccount;
+          sessionStorage.clear();
+          lastRankTier = null;
+          lastMatchId = null;
+          // Show loading message and ensure overlay is visible
+          document.getElementById('loadingMsg').textContent = 'Chargement des données...';
+          document.getElementById('loadingMsg').classList.remove('hidden');
           refreshRank();
           refreshMatches();
         }

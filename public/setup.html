@@ -1218,7 +1218,7 @@ document.getElementById('widgetWidth').addEventListener('change', () => {
 });
 document.getElementById('riotRegion').addEventListener('change', () => {
   updateStatusBar();
-  // Don't refresh on change, auto-save will handle it
+  // Account fields only save when "Se connecter" is clicked
 });
 
 // ── Account connection ────────────────────────────────────────
@@ -1488,8 +1488,11 @@ function scheduleAutoSave() {
   autoSaveTimeout = setTimeout(autoSave, 300); // Save 300ms after last change
 }
 
-// Add auto-save to all inputs
+// Add auto-save to all inputs (except account fields which only save when "Se connecter" is clicked)
 document.querySelectorAll('input[type=text], input[type=password], input[type=color], input[type=range], select, input[type=checkbox]').forEach(el => {
+  // Skip account fields (riotName, riotTag, riotRegion)
+  if (el.id === 'riotName' || el.id === 'riotTag' || el.id === 'riotRegion') return;
+
   el.addEventListener('change', scheduleAutoSave);
   el.addEventListener('input', scheduleAutoSave);
 });

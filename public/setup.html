@@ -1254,25 +1254,47 @@ async function validateAccount() {
   connectBtn.disabled = true;
 
   try {
-    // Test the account by fetching rank data
-    const res = await fetch('/api/rank');
-    const data = await res.json();
+    // First, save the config to server
+    const body = {
+      riot_name:   riotName,
+      riot_tag:    riotTag,
+      riot_region: riotRegion,
+      display:     getDisplayFromForm(),
+    };
 
-    if (res.ok) {
+    const configRes = await fetch('/api/config', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+
+    if (!configRes.ok) {
+      const error = await configRes.json();
+      alert('Erreur de sauvegarde: ' + (error.error || 'Erreur inconnue'));
+      connectBtn.textContent = originalText;
+      connectBtn.disabled = false;
+      return;
+    }
+
+    // Then test the account by fetching rank data
+    const rankRes = await fetch('/api/rank');
+    const rankData = await rankRes.json();
+
+    if (rankRes.ok) {
       isAccountConnected = true;
       connectedAccount = `${riotName}#${riotTag}`;
+      lastSavedAccount = connectedAccount;
       updateAccountUI();
       connectBtn.textContent = originalText;
       connectBtn.disabled = false;
-      // Auto-save after successful connection
-      autoSave();
     } else {
-      alert('Compte introuvable: ' + (data.error || 'Vérifiez le pseudo et la région'));
+      alert('Compte introuvable: ' + (rankData.error || 'Vérifiez le pseudo, tag et région'));
       connectBtn.textContent = originalText;
       connectBtn.disabled = false;
     }
   } catch(e) {
     alert('Erreur de connexion au serveur');
+    console.error(e);
     connectBtn.textContent = originalText;
     connectBtn.disabled = false;
   }

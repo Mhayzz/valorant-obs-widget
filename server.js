@@ -77,7 +77,6 @@ app.get("/api/rank-stream", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
   });
   rankStreamClients.add(res);
   res.write("data: connected\n\n");
@@ -94,7 +93,6 @@ app.get("/api/matches-stream", (req, res) => {
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
-    "Connection": "keep-alive",
   });
   matchStreamClients.add(res);
   res.write("data: connected\n\n");

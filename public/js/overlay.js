@@ -118,7 +118,7 @@ async function refreshRank() {
     showOverlay();
 
     // Detect rank changes for animation
-    if ((cfg?.display?.realtime_notifications ?? true) && (cfg?.display?.animation_type ?? 'rank') === 'rank' && lastRankTier !== null) {
+    if ((cfg?.display?.realtime_notifications ?? true) && ['rank', 'both'].includes(cfg?.display?.animation_type ?? 'both') && lastRankTier !== null) {
       if (d.tier > lastRankTier) triggerAnimation('rankup');
       else if (d.tier < lastRankTier) triggerAnimation('rankdown');
     }
@@ -193,7 +193,7 @@ async function refreshMatches() {
 
       // Detect match result changes for animation
       const matchKey = `${m.agent}${m.kills}${m.deaths}${m.assists}`;
-      if ((cfg?.display?.realtime_notifications ?? true) && (cfg?.display?.animation_type ?? 'rank') === 'match' && lastMatchId !== null && lastMatchId !== matchKey) {
+      if ((cfg?.display?.realtime_notifications ?? true) && ['match', 'both'].includes(cfg?.display?.animation_type ?? 'both') && lastMatchId !== null && lastMatchId !== matchKey) {
         if (m.won === true) triggerAnimation('win');
         else if (m.won === false) triggerAnimation('lose');
       }
@@ -294,7 +294,7 @@ function connectWebSocket() {
       const badge = getElement('badge');
       badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
       getElement('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-      if ((cfg?.display?.animation_type ?? 'rank') === 'rank' && data.animation && (data.animation === 'rankup' || data.animation === 'rankdown')) {
+      if (['rank', 'both'].includes(cfg?.display?.animation_type ?? 'both') && data.animation && (data.animation === 'rankup' || data.animation === 'rankdown')) {
         triggerAnimation(data.animation);
       }
     } catch(e) {
@@ -307,7 +307,7 @@ function connectWebSocket() {
       console.log('Match event received:', msg);
 
       // Trigger animation immediately
-      if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
+      if (['match', 'both'].includes(cfg?.display?.animation_type ?? 'both') && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
         console.log('Triggering animation:', msg.type);
         triggerAnimation(msg.type);
       }

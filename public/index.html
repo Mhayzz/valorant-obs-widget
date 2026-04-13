@@ -744,8 +744,11 @@ async function init() {
 
         cfg = newCfg;
         applyDisplay(cfg.display || {});
-        // Reconnect SSE if config changed
-        connectSSE();
+
+        // Only reconnect SSE if account actually changed
+        if (accountChanged) {
+          connectSSE();
+        }
 
         // Refresh data if account changed
         if (accountChanged) {

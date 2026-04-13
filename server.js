@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
 });
 
 
-// Poll rank every 10 seconds and notify clients of changes
+// Poll rank every 30 seconds and notify clients of changes
 setInterval(async () => {
   const cfg = getCfg();
   if (!cfg.riot_name || !cfg.riot_tag) return;
@@ -126,9 +126,9 @@ setInterval(async () => {
   } catch(e) {
     console.error("rank-stream poll error:", e.message);
   }
-}, 10000);
+}, 30000);
 
-// Poll matches every 5 seconds and notify clients of new matches
+// Poll matches every 10 seconds and notify clients of new matches
 setInterval(async () => {
   const cfg = getCfg();
   if (!cfg.riot_name || !cfg.riot_tag) return;
@@ -179,7 +179,7 @@ setInterval(async () => {
   } catch(e) {
     console.error("match-stream poll error:", e.message);
   }
-}, 2000);
+}, 10000);
 
 // ── Config API ──────────────────────────────────────────────
 app.get("/api/config", (req, res) => {

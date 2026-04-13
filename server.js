@@ -79,10 +79,12 @@ app.get("/api/rank-stream", (req, res) => {
     "Cache-Control": "no-cache",
   });
   rankStreamClients.add(res);
+  console.log(`[SSE] Rank client connected. Total: ${rankStreamClients.size}`);
   res.write("data: connected\n\n");
 
   req.on("close", () => {
     rankStreamClients.delete(res);
+    console.log(`[SSE] Rank client disconnected. Total: ${rankStreamClients.size}`);
   });
 });
 
@@ -95,10 +97,12 @@ app.get("/api/matches-stream", (req, res) => {
     "Cache-Control": "no-cache",
   });
   matchStreamClients.add(res);
+  console.log(`[SSE] Match client connected. Total: ${matchStreamClients.size}`);
   res.write("data: connected\n\n");
 
   req.on("close", () => {
     matchStreamClients.delete(res);
+    console.log(`[SSE] Match client disconnected. Total: ${matchStreamClients.size}`);
   });
 });
 

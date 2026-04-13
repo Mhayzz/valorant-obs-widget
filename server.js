@@ -176,7 +176,6 @@ setInterval(async () => {
 
     // Emit complete rank data via WebSocket
     io.emit("rank", rankData);
-    }
   } catch(e) {
     console.error("rank-stream poll error:", e.message);
   }

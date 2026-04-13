@@ -532,6 +532,7 @@ function connectWebSocket() {
           triggerAnimation(msg.type);
           lastRankTier = msg.tier;
         }
+        refreshRank();
       } catch(e) {
         console.error('Rank parse error:', e);
       }
@@ -540,12 +541,12 @@ function connectWebSocket() {
     socket.on('match', (msg) => {
       try {
         console.log('Match event received:', msg);
-        if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose')) {
+        if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
           console.log('Triggering animation:', msg.type);
           triggerAnimation(msg.type);
-          lastMatchId = null;
-          refreshMatches();
         }
+        lastMatchId = null;
+        refreshMatches();
       } catch(e) {
         console.error('Match parse error:', e);
       }

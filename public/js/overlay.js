@@ -40,6 +40,13 @@ function renderMatchResult(resultEl, won) {
   else               { resultEl.className = 'match-result loss'; resultEl.textContent = 'D'; }
 }
 
+function shouldShowGameMode(mode) {
+  if (!mode) return false;
+  const modeStr = mode.toLowerCase();
+  // Only show special modes, hide competitive and unrated
+  return modeStr !== 'competitive' && modeStr !== 'unrated';
+}
+
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
   const r = document.documentElement;
@@ -205,8 +212,10 @@ async function refreshMatches() {
         icon.onerror = () => { icon.style.display = 'none'; };
       }
       getElement('matchAgent').textContent = m.agent;
-      getElement('matchKda').textContent =
-        `${m.kills}/${m.deaths}/${m.assists}${m.map ? ' • ' + m.map : ''}`;
+      let kdaStr = `${m.kills}/${m.deaths}/${m.assists}`;
+      if (m.map) kdaStr += ' • ' + m.map;
+      if (shouldShowGameMode(m.mode)) kdaStr += ` • ${m.mode}`;
+      getElement('matchKda').textContent = kdaStr;
       const res2 = getElement('matchResult');
       renderMatchResult(res2, m.won);
     }
@@ -314,8 +323,10 @@ function connectWebSocket() {
           icon.onerror = () => { icon.style.display = 'none'; };
         }
         getElement('matchAgent').textContent = msg.agent;
-        getElement('matchKda').textContent =
-          `${msg.kills}/${msg.deaths}/${msg.assists}${msg.map ? ' • ' + msg.map : ''}`;
+        let kdaStr = `${msg.kills}/${msg.deaths}/${msg.assists}`;
+        if (msg.map) kdaStr += ' • ' + msg.map;
+        if (shouldShowGameMode(msg.mode)) kdaStr += ` • ${msg.mode}`;
+        getElement('matchKda').textContent = kdaStr;
         const res2 = getElement('matchResult');
         renderMatchResult(res2, msg.won);
       }

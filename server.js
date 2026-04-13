@@ -229,6 +229,7 @@ setInterval(async () => {
         deaths: stats?.deaths ?? 0,
         assists: stats?.assists ?? 0,
         map: currentMatch.meta?.map?.name || "Unknown",
+        mode: currentMatch.meta?.mode || "",
         won: won,
       };
       io.emit("match", msg);

@@ -160,29 +160,31 @@ setInterval(async () => {
     const peak = json.data.peak;
     const newTier = current.tier?.id ?? 0;
     const newRank = current.tier?.name || "Unranked";
+    const newRR = current.rr ?? 0;
 
     const lastRank = rankHistory[accountKey];
-    if (lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank)) {
-      const change = newTier > lastRank.tier ? "rankup" : newTier < lastRank.tier ? "rankdown" : null;
-      if (change) {
-        rankHistory[accountKey] = { tier: newTier, rank: newRank };
-        const msg = {
-          rank: current.tier?.name || "Unranked",
-          rr: current.rr ?? 0,
-          rr_change: current.last_change ?? null,
-          tier: newTier,
-          rank_icon: current.images?.large || current.images?.small ||
-            `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
-          peak_rank: peak?.tier?.name || null,
-          peak_tier: peak?.tier?.id ?? 0,
-          peak_season: peak?.season?.short || null,
-          player: `${cfg.riot_name}#${cfg.riot_tag}`,
-          animation: change,
-        };
-        io.emit("rank", msg);
-      }
+    const rankChanged = lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank);
+    const rrChanged = lastRank && lastRank.rr !== newRR;
+
+    if (rankChanged || rrChanged) {
+      const change = rankChanged && newTier > lastRank.tier ? "rankup" : rankChanged && newTier < lastRank.tier ? "rankdown" : null;
+      rankHistory[accountKey] = { tier: newTier, rank: newRank, rr: newRR };
+      const msg = {
+        rank: current.tier?.name || "Unranked",
+        rr: newRR,
+        rr_change: current.last_change ?? null,
+        tier: newTier,
+        rank_icon: current.images?.large || current.images?.small ||
+          `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
+        peak_rank: peak?.tier?.name || null,
+        peak_tier: peak?.tier?.id ?? 0,
+        peak_season: peak?.season?.short || null,
+        player: `${cfg.riot_name}#${cfg.riot_tag}`,
+        animation: change,
+      };
+      io.emit("rank", msg);
     } else {
-      rankHistory[accountKey] = { tier: newTier, rank: newRank };
+      rankHistory[accountKey] = { tier: newTier, rank: newRank, rr: newRR };
     }
   } catch(e) {
     console.error("rank-stream poll error:", e.message);

@@ -470,6 +470,11 @@ async function refreshMatches() {
         if (m.won === true) triggerAnimation('win');
         else if (m.won === false) triggerAnimation('lose');
       }
+
+      // When match changes, also refresh rank to update RR
+      if (lastMatchId !== null && lastMatchId !== matchKey) {
+        refreshRank();
+      }
       lastMatchId = matchKey;
 
       document.getElementById('matchCard').style.display = 'flex';

@@ -214,7 +214,12 @@ setInterval(async () => {
       const msg = {
         type: won === null ? "draw" : (won ? "win" : "lose"),
         agent: stats?.character?.name || "Unknown",
+        agent_id: stats?.character?.id,
+        kills: stats?.kills ?? 0,
+        deaths: stats?.deaths ?? 0,
+        assists: stats?.assists ?? 0,
         map: currentMatch.meta?.map?.name || "Unknown",
+        won: won,
       };
       io.emit("match", msg);
     }

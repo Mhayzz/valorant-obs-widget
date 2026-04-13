@@ -836,6 +836,50 @@ input[type="color"] {
 input[type="color"]:focus {
   box-shadow: 0 0 12px rgba(95, 255, 181, 0.3) !important;
 }
+
+/* Account buttons styling */
+#connectBtn {
+  transition: all 0.3s ease !important;
+}
+
+#connectBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
+#connectBtn:active {
+  transform: translateY(0);
+}
+
+.account-btn {
+  padding: 12px 20px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  transition: all 0.3s ease !important;
+}
+
+.account-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  transform: translateY(-2px);
+}
+
+.account-btn:active {
+  transform: translateY(0);
+}
+
+#changeAccountBtn {
+  flex: 1 !important;
+}
+
+#disconnectBtn {
+  flex: 1 !important;
+}
 </style>
 </head>
 <body>
@@ -888,10 +932,10 @@ input[type="color"]:focus {
 
       <!-- Connection Button -->
       <div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button id="connectBtn" style="flex: 1; padding: 12px 20px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Se connecter</button>
-        <div id="connectedBtns" style="display: none; gap: 10px;">
-          <button id="changeAccountBtn" style="flex: 1; padding: 12px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Changer de compte</button>
-          <button id="disconnectBtn" style="flex: 1; padding: 12px 20px; background: #ef4444; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Déconnecter</button>
+        <button id="connectBtn" style="flex: 1; padding: 12px 20px; background: #10b981; border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; font-size: 14px;">Se connecter</button>
+        <div id="connectedBtns" style="display: none; gap: 10px; flex: 1;">
+          <button id="changeAccountBtn" class="account-btn">Changer de compte</button>
+          <button id="disconnectBtn" class="account-btn">Déconnecter</button>
         </div>
       </div>
     </div>
@@ -1287,6 +1331,8 @@ async function validateAccount() {
       updateAccountUI();
       connectBtn.textContent = originalText;
       connectBtn.disabled = false;
+      // Refresh preview when account is successfully connected
+      refreshPreview();
     } else {
       alert('Compte introuvable: ' + (rankData.error || 'Vérifiez le pseudo, tag et région'));
       connectBtn.textContent = originalText;

@@ -885,6 +885,15 @@ input[type="color"]:focus {
           <option value="latam">Amérique Latine</option>
         </select>
       </div>
+
+      <!-- Connection Button -->
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <button id="connectBtn" style="flex: 1; padding: 12px 20px; background: #10b981; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Se connecter</button>
+        <div id="connectedBtns" style="display: none; gap: 10px;">
+          <button id="changeAccountBtn" style="flex: 1; padding: 12px 20px; background: #3b82f6; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Changer de compte</button>
+          <button id="disconnectBtn" style="flex: 1; padding: 12px 20px; background: #ef4444; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.3s;">Déconnecter</button>
+        </div>
+      </div>
     </div>
 
     <!-- AFFICHAGE -->
@@ -1212,6 +1221,97 @@ document.getElementById('riotRegion').addEventListener('change', () => {
   // Don't refresh on change, auto-save will handle it
 });
 
+// ── Account connection ────────────────────────────────────────
+let isAccountConnected = false;
+let connectedAccount = null;
+
+function updateAccountUI() {
+  const connectBtn = document.getElementById('connectBtn');
+  const connectedBtns = document.getElementById('connectedBtns');
+
+  if (isAccountConnected && connectedAccount) {
+    connectBtn.style.display = 'none';
+    connectedBtns.style.display = 'flex';
+  } else {
+    connectBtn.style.display = 'block';
+    connectedBtns.style.display = 'none';
+  }
+}
+
+async function validateAccount() {
+  const riotName = document.getElementById('riotName').value.trim();
+  const riotTag = document.getElementById('riotTag').value.trim();
+  const riotRegion = document.getElementById('riotRegion').value;
+
+  if (!riotName || !riotTag) {
+    alert('Veuillez remplir le pseudo et le tag');
+    return;
+  }
+
+  const connectBtn = document.getElementById('connectBtn');
+  const originalText = connectBtn.textContent;
+  connectBtn.textContent = 'Vérification...';
+  connectBtn.disabled = true;
+
+  try {
+    // Test the account by fetching rank data
+    const res = await fetch('/api/rank');
+    const data = await res.json();
+
+    if (res.ok) {
+      isAccountConnected = true;
+      connectedAccount = `${riotName}#${riotTag}`;
+      updateAccountUI();
+      connectBtn.textContent = originalText;
+      connectBtn.disabled = false;
+      // Auto-save after successful connection
+      autoSave();
+    } else {
+      alert('Compte introuvable: ' + (data.error || 'Vérifiez le pseudo et la région'));
+      connectBtn.textContent = originalText;
+      connectBtn.disabled = false;
+    }
+  } catch(e) {
+    alert('Erreur de connexion au serveur');
+    connectBtn.textContent = originalText;
+    connectBtn.disabled = false;
+  }
+}
+
+function changeAccount() {
+  isAccountConnected = false;
+  connectedAccount = null;
+  updateAccountUI();
+  document.getElementById('riotName').focus();
+}
+
+function disconnectAccount() {
+  if (confirm('Êtes-vous sûr de vouloir déconnecter ce compte?')) {
+    document.getElementById('riotName').value = '';
+    document.getElementById('riotTag').value = '';
+    isAccountConnected = false;
+    connectedAccount = null;
+    updateAccountUI();
+    updateStatusBar();
+    autoSave();
+  }
+}
+
+document.getElementById('connectBtn').addEventListener('click', validateAccount);
+document.getElementById('changeAccountBtn').addEventListener('click', changeAccount);
+document.getElementById('disconnectBtn').addEventListener('click', disconnectAccount);
+
+// Check if account is already configured on page load
+function checkAccountStatus() {
+  const riotName = document.getElementById('riotName').value.trim();
+  const riotTag = document.getElementById('riotTag').value.trim();
+  if (riotName && riotTag) {
+    isAccountConnected = true;
+    connectedAccount = `${riotName}#${riotTag}`;
+    updateAccountUI();
+  }
+}
+
 // ── Test animations ──────────────────────────────────────────
 function sendTestAnimation(type, isMatch = false) {
   // Send via localStorage (works across all pages/tabs of same origin)
@@ -1306,6 +1406,8 @@ async function loadConfig() {
     refreshPreview();
     // Force sync form state back to API to fix any stale config
     autoSave();
+    // Update account connection UI
+    checkAccountStatus();
   } catch(e) {
     dot.className  = 'status-dot err';
     text.textContent = 'Impossible de contacter le serveur';

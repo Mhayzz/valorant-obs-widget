@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, "public")));
 const CONFIG_PATH = path.join(__dirname, "data", "config.json");
 
 const DEFAULT_DISPLAY = {
-  bg_opacity:           0.20,
+  bg_opacity:           0.50,
   accent_color:         "#ffffff",
   text_primary:         "#ffffff",
   text_secondary:       "rgba(255,255,255,0.6)",

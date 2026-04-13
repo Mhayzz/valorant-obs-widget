@@ -697,19 +697,26 @@ async function init() {
     } catch(e) {}
   }, 50);
 
-  // Reload config from API every 5 seconds (faster detection in OBS)
+  // Reload config from API every 1 second (instant account/data updates in OBS)
   setInterval(async () => {
     try {
       const res = await fetch('/api/config');
       if (res.ok) {
         const newCfg = await res.json();
+        // Check if account changed
+        const accountChanged = cfg?.riot_name !== newCfg?.riot_name || cfg?.riot_tag !== newCfg?.riot_tag;
         cfg = newCfg;
         applyDisplay(cfg.display || {});
         // Reconnect SSE if config changed
         connectSSE();
+        // Refresh data if account changed
+        if (accountChanged) {
+          refreshRank();
+          refreshMatches();
+        }
       }
     } catch(e) {}
-  }, 5000);
+  }, 1000);
 }
 
 init();

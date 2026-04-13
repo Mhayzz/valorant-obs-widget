@@ -144,6 +144,7 @@ setInterval(async () => {
       return;
     }
     const current = json.data.current;
+    const peak = json.data.peak;
     const newTier = current.tier?.id ?? 0;
     const newRank = current.tier?.name || "Unranked";
 
@@ -153,10 +154,17 @@ setInterval(async () => {
       if (change) {
         rankHistory[accountKey] = { tier: newTier, rank: newRank };
         const msg = {
-          type: change,
+          rank: current.tier?.name || "Unranked",
+          rr: current.rr ?? 0,
+          rr_change: current.last_change ?? null,
           tier: newTier,
-          rank: newRank,
-          rr: current?.rr ?? 0,
+          rank_icon: current.images?.large || current.images?.small ||
+            `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
+          peak_rank: peak?.tier?.name || null,
+          peak_tier: peak?.tier?.id ?? 0,
+          peak_season: peak?.season?.short || null,
+          player: `${cfg.riot_name}#${cfg.riot_tag}`,
+          animation: change,
         };
         io.emit("rank", msg);
       }

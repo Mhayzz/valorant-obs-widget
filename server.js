@@ -144,24 +144,38 @@ setInterval(async () => {
       return;
     }
     const current = json.data.current;
+    const peak = json.data.peak;
     const newTier = current.tier?.id ?? 0;
     const newRank = current.tier?.name || "Unranked";
 
     const lastRank = rankHistory[accountKey];
+
+    // Build complete rank data (same as /api/rank endpoint)
+    const rankData = {
+      rank: current.tier?.name || "Unranked",
+      rr: current.rr ?? 0,
+      rr_change: current.last_change ?? null,
+      tier: newTier,
+      rank_icon: current.images?.large || current.images?.small ||
+        `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
+      peak_rank: peak?.tier?.name || null,
+      peak_tier: peak?.tier?.id ?? 0,
+      peak_season: peak?.season?.short || null,
+      player: `${cfg.riot_name}#${cfg.riot_tag}`,
+    };
+
+    // Detect rank change for animation
     if (lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank)) {
       const change = newTier > lastRank.tier ? "rankup" : newTier < lastRank.tier ? "rankdown" : null;
       if (change) {
-        rankHistory[accountKey] = { tier: newTier, rank: newRank };
-        const msg = {
-          type: change,
-          tier: newTier,
-          rank: newRank,
-          rr: current?.rr ?? 0,
-        };
-        io.emit("rank", msg);
+        rankData.animation = change;
       }
-    } else {
-      rankHistory[accountKey] = { tier: newTier, rank: newRank };
+    }
+
+    rankHistory[accountKey] = { tier: newTier, rank: newRank };
+
+    // Emit complete rank data via WebSocket
+    io.emit("rank", rankData);
     }
   } catch(e) {
     console.error("rank-stream poll error:", e.message);

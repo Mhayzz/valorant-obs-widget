@@ -26,13 +26,26 @@ body {
 /* OBS background - TRANSPARENT */
 body.obs-mode { background: transparent; }
 
+/* Fade-in animation for smooth scene transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .container {
   display:flex; flex-direction:column; gap:5px; padding:2px;
   opacity:0; transform:translateY(6px);
 }
 .container.show {
   opacity:1; transform:translateY(0);
-  transition:opacity .2s ease, transform .2s ease;
+  animation: fadeInUp 0.8s ease-out;
+  transition:opacity .3s ease, transform .3s ease;
 }
 
 .card {

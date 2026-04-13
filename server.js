@@ -26,7 +26,22 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// ── Fetch with timeout and retry ─────────────────────────────
+// ── Utility functions ───────────────────────────────────────
+function getApiHeaders(apiKey) {
+  const headers = { "Content-Type": "application/json" };
+  if (apiKey) headers["Authorization"] = apiKey;
+  return headers;
+}
+
+function generateMatchKey(agentId, kills, deaths, assists, timestamp) {
+  return JSON.stringify([agentId, kills, deaths, assists, timestamp]);
+}
+
+function determineMatchWin(playerTeam, redRounds, blueRounds) {
+  if (redRounds === blueRounds) return null;
+  return playerTeam === 'red' ? redRounds > blueRounds : blueRounds > redRounds;
+}
+
 async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
@@ -127,11 +142,9 @@ setInterval(async () => {
   const accountKey = `${cfg.riot_name}#${cfg.riot_tag}`;
 
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
     const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/mmr/${cfg.riot_region}/pc/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}`,
-      { headers }
+      { headers: getApiHeaders(cfg.henrik_api_key) }
     );
     if (!r.ok) {
       console.warn(`Rank poll failed: ${r.status}`);
@@ -184,11 +197,9 @@ setInterval(async () => {
   const accountKey = `${cfg.riot_name}#${cfg.riot_tag}`;
 
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (cfg.henrik_api_key) headers["Authorization"] = cfg.henrik_api_key;
     const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${cfg.riot_region}/${encodeURIComponent(cfg.riot_name)}/${encodeURIComponent(cfg.riot_tag)}?size=1`,
-      { headers }
+      { headers: getApiHeaders(cfg.henrik_api_key) }
     );
     if (!r.ok) {
       console.warn(`Match poll failed: ${r.status}`);
@@ -201,23 +212,14 @@ setInterval(async () => {
 
     const lastMatch = matchHistory[accountKey];
     const currentMatch = matches[0];
-    // Use more unique match identifier: agent + K/D/A + timestamp
-    const matchKey = `${currentMatch.stats?.character?.id}${currentMatch.stats?.kills}${currentMatch.stats?.deaths}${currentMatch.stats?.assists}${currentMatch.meta?.started_at || ''}`;
+    const stats = currentMatch.stats;
+    const matchKey = generateMatchKey(stats?.character?.id, stats?.kills, stats?.deaths, stats?.assists, currentMatch.meta?.started_at);
 
     if (lastMatch && lastMatch !== matchKey) {
-      const stats = currentMatch.stats;
       const redRounds = currentMatch.teams?.red ?? 0;
       const blueRounds = currentMatch.teams?.blue ?? 0;
       const playerTeam = (stats?.team || "").toLowerCase();
-
-      let won;
-      if (redRounds === blueRounds) {
-        won = null; // Draw
-      } else if (redRounds > blueRounds) {
-        won = playerTeam === 'red';
-      } else {
-        won = playerTeam === 'blue';
-      }
+      const won = determineMatchWin(playerTeam, redRounds, blueRounds);
 
       const msg = {
         type: won === null ? "draw" : (won ? "win" : "lose"),
@@ -227,6 +229,7 @@ setInterval(async () => {
         deaths: stats?.deaths ?? 0,
         assists: stats?.assists ?? 0,
         map: currentMatch.meta?.map?.name || "Unknown",
+        mode: currentMatch.meta?.mode || "",
         won: won,
       };
       io.emit("match", msg);
@@ -278,11 +281,9 @@ app.get("/api/rank", async (req, res) => {
   if (rankCache.data && now - rankCache.ts < 30000) return res.json(rankCache.data);
 
   try {
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers["Authorization"] = apiKey;
     const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/mmr/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
-      { headers }
+      { headers: getApiHeaders(apiKey) }
     );
     const json = await r.json();
     if (!r.ok) {
@@ -330,8 +331,7 @@ app.get("/api/matches", async (req, res) => {
     return res.json(matchCache.data.slice(0, size));
   }
 
-  const headers = { "Content-Type": "application/json" };
-  if (apiKey) headers["Authorization"] = apiKey;
+  const headers = getApiHeaders(apiKey);
 
   // Essaye v1/lifetime (le plus fiable pour l'historique par joueur)
   try {
@@ -357,9 +357,7 @@ app.get("/api/matches", async (req, res) => {
         const playerTeam = (stats.team || "").toLowerCase(); // "red" ou "blue"
         const redRounds  = teams?.red   ?? 0;
         const blueRounds = teams?.blue  ?? 0;
-        const won = playerTeam === "red"  ? redRounds  > blueRounds
-                  : playerTeam === "blue" ? blueRounds > redRounds
-                  : null;
+        const won = determineMatchWin(playerTeam, redRounds, blueRounds);
 
         const mapRaw  = meta?.map;
         const mapName = typeof mapRaw === "string" ? mapRaw : (mapRaw?.name || "Unknown");

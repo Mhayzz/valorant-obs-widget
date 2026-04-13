@@ -153,7 +153,7 @@ setInterval(async () => {
   }
 }, 30000);
 
-// Poll matches every 10 seconds and notify clients of new matches
+// Poll matches every 5 seconds and notify clients of new matches
 setInterval(async () => {
   const cfg = getCfg();
   if (!cfg.riot_name || !cfg.riot_tag) return;
@@ -201,7 +201,7 @@ setInterval(async () => {
   } catch(e) {
     console.error("match-stream poll error:", e.message);
   }
-}, 10000);
+}, 5000);
 
 // ── Config API ──────────────────────────────────────────────
 app.get("/api/config", (req, res) => {

@@ -384,7 +384,11 @@ async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
     let d = await res.json();
-    if (!res.ok) return;
+    if (!res.ok) {
+      console.error('Rank API error:', d);
+      document.getElementById('loadingMsg').textContent = 'Erreur: ' + (d.error || 'Compte non trouvé');
+      return;
+    }
 
     showOverlay();
 
@@ -605,9 +609,12 @@ async function init() {
   window.addEventListener('storage', (e) => {
     if (e.key === 'valo_account_change') {
       // Account changed, clear session and refresh
+      console.log('Account change detected, refreshing...');
       sessionStorage.clear();
       lastRankTier = null;
       lastMatchId = null;
+      document.getElementById('loadingMsg').textContent = 'Chargement des données...';
+      document.getElementById('loadingMsg').classList.remove('hidden');
       refreshRank();
       refreshMatches();
     }

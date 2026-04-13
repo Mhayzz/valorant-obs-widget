@@ -1352,22 +1352,33 @@ async function autoSave() {
 
   saveToLocalStorage();
   try {
-    await fetch('/api/config', {
+    const res = await fetch('/api/config', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(body),
     });
+
+    if (!res.ok) {
+      const error = await res.json();
+      console.error('Config save failed:', error);
+      return;
+    }
+
+    lastSavedAccount = currentAccount;
+
     // Pre-fetch to warm up server cache after config change
     fetch('/api/rank').catch(() => {});
     fetch('/api/matches?size=5').catch(() => {});
 
-    // Notify widget pages of account change for instant refresh
+    // Notify widget pages of account change for instant refresh (after small delay to ensure server is ready)
     if (accountChanged) {
-      localStorage.setItem('valo_account_change', Date.now().toString());
+      setTimeout(() => {
+        localStorage.setItem('valo_account_change', Date.now().toString());
+      }, 100);
     }
-
-    lastSavedAccount = currentAccount;
-  } catch(e) {}
+  } catch(e) {
+    console.error('Error during config save:', e);
+  }
 }
 
 function scheduleAutoSave() {

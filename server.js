@@ -180,12 +180,21 @@ setInterval(async () => {
 
     if (lastMatch && lastMatch !== matchKey) {
       const stats = currentMatch.stats;
-      const won = currentMatch.teams?.red > currentMatch.teams?.blue
-        ? stats?.team?.toLowerCase() === 'red'
-        : stats?.team?.toLowerCase() === 'blue';
+      const redRounds = currentMatch.teams?.red ?? 0;
+      const blueRounds = currentMatch.teams?.blue ?? 0;
+      const playerTeam = (stats?.team || "").toLowerCase();
+
+      let won;
+      if (redRounds === blueRounds) {
+        won = null; // Draw
+      } else if (redRounds > blueRounds) {
+        won = playerTeam === 'red';
+      } else {
+        won = playerTeam === 'blue';
+      }
 
       const msg = JSON.stringify({
-        type: won ? "win" : "lose",
+        type: won === null ? "draw" : (won ? "win" : "lose"),
         agent: stats?.character?.name || "Unknown",
         map: currentMatch.meta?.map?.name || "Unknown",
       });

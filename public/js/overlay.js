@@ -232,10 +232,33 @@ function connectWebSocket() {
     socket.on('match', (msg) => {
       try {
         console.log('Match event received:', msg);
+
+        // Trigger animation immediately
         if ((cfg?.display?.animation_type ?? 'rank') === 'match' && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
           console.log('Triggering animation:', msg.type);
           triggerAnimation(msg.type);
         }
+
+        // Display match data immediately from WebSocket
+        const showMatch = cfg?.display?.show_last_match ?? true;
+        if (showMatch && msg.agent && msg.kills !== undefined) {
+          document.getElementById('matchCard').style.display = 'flex';
+          const icon = document.getElementById('matchIcon');
+          if (msg.agent_id) {
+            icon.src = `https://media.valorant-api.com/agents/${msg.agent_id}/displayicon.png`;
+            icon.style.display = 'block';
+            icon.onerror = () => { icon.style.display = 'none'; };
+          }
+          document.getElementById('matchAgent').textContent = msg.agent;
+          document.getElementById('matchKda').textContent =
+            `${msg.kills}/${msg.deaths}/${msg.assists}${msg.map ? ' • ' + msg.map : ''}`;
+          const res2 = document.getElementById('matchResult');
+          if (msg.won === null)  { res2.className = 'match-result draw'; res2.textContent = '?'; }
+          else if (msg.won)      { res2.className = 'match-result win';  res2.textContent = 'V'; }
+          else                   { res2.className = 'match-result loss'; res2.textContent = 'D'; }
+        }
+
+        // Also refresh for streak and full sync
         lastMatchId = null;
         refreshMatches().catch(e => console.error('refreshMatches error:', e));
       } catch(e) {

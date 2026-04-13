@@ -691,8 +691,8 @@ async function init() {
   document.body.classList.add('obs-mode');
   refreshRank();
   refreshMatches();
-  setInterval(refreshRank, 60000);
-  setInterval(refreshMatches, 60000);
+  setInterval(refreshRank, 15000);
+  setInterval(refreshMatches, 15000);
 
   // Connect to SSE streams for real-time updates
   connectSSE();

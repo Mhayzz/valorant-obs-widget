@@ -218,26 +218,18 @@ function connectWebSocket() {
 
     socket.on('rank', (data) => {
       try {
-        console.log('Rank WebSocket event:', data);
-
-        // Display rank data immediately
+        console.log('Rank WebSocket:', data);
         showOverlay();
-        lastRankTier = data.tier;
-
         document.getElementById('rankName').textContent = data.rank;
         document.getElementById('rrLabel').textContent = data.rr + ' RR';
         document.getElementById('fill').style.width = Math.min(100, Math.max(0, data.rr)) + '%';
-
+        lastRankTier = data.tier;
         if (data.tier > 0) {
           const ico = document.getElementById('ico');
           ico.style.display = 'block';
           ico.src = data.rank_icon;
-          ico.onerror = () => {
-            ico.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${data.tier}/largeicon.png`;
-          };
+          ico.onerror = () => { ico.src = `https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${data.tier}/largeicon.png`; };
         }
-
-        // Peak rank
         const peakEl = document.getElementById('peakRank');
         const peakInline = document.getElementById('peakInline');
         if (data.peak_rank) {
@@ -245,7 +237,6 @@ function connectWebSocket() {
           const peakImg = `<img src="https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${tier}/largeicon.png'">`;
           peakEl.innerHTML = `PEAK ${peakImg}`;
           peakInline.innerHTML = 'PEAK ' + peakImg;
-          peakInline.className = 'peak-inline align-' + (cfg?.display?.peak_align || 'left');
           if ((cfg?.display?.show_peak_rank ?? true)) {
             if (cfg?.display?.peak_inline) {
               peakEl.style.display = 'none';
@@ -255,20 +246,12 @@ function connectWebSocket() {
               peakInline.style.display = 'none';
             }
           }
-        } else {
-          peakEl.style.display = 'none';
-          peakInline.style.display = 'none';
         }
-
-        // RR change badge
         const chg = data.rr_change;
         const badge = document.getElementById('badge');
         badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
         document.getElementById('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-
-        // Trigger animation if detected
         if ((cfg?.display?.animation_type ?? 'rank') === 'rank' && data.animation && (data.animation === 'rankup' || data.animation === 'rankdown')) {
-          console.log('Triggering animation:', data.animation);
           triggerAnimation(data.animation);
         }
       } catch(e) {
@@ -430,12 +413,10 @@ async function init() {
 
   // 6. OBS MODE: apply obs-mode class for frosted glass simulation
   document.body.classList.add('obs-mode');
-
-  // Initial load
   refreshRank();
   refreshMatches();
 
-  // Connect to WebSocket for real-time updates (replaces polling)
+  // Connect to WebSocket for real-time updates (polling handled server-side)
   connectWebSocket();
 
   // Poll localStorage every 50ms for OBS (faster refresh detection)

@@ -81,7 +81,7 @@ const DEFAULT_DISPLAY = {
   widget_width:         300,
   refresh_rank:         120,
   realtime_notifications: true,
-  animation_type:       "rank",
+  animation_type:       "both",
 };
 
 function loadFileConfig() {

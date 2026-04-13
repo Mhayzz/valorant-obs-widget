@@ -153,7 +153,7 @@ setInterval(async () => {
   }
 }, 30000);
 
-// Poll matches every 30 seconds and notify clients of new matches
+// Poll matches every 10 seconds and notify clients of new matches
 setInterval(async () => {
   const cfg = getCfg();
   if (!cfg.riot_name || !cfg.riot_tag) return;
@@ -175,7 +175,8 @@ setInterval(async () => {
 
     const lastMatch = matchHistory[accountKey];
     const currentMatch = matches[0];
-    const matchKey = `${currentMatch.stats?.character?.id}${currentMatch.stats?.kills}${currentMatch.stats?.deaths}`;
+    // Use more unique match identifier: agent + K/D/A + timestamp
+    const matchKey = `${currentMatch.stats?.character?.id}${currentMatch.stats?.kills}${currentMatch.stats?.deaths}${currentMatch.stats?.assists}${currentMatch.meta?.started_at || ''}`;
 
     if (lastMatch && lastMatch !== matchKey) {
       const stats = currentMatch.stats;
@@ -200,7 +201,7 @@ setInterval(async () => {
   } catch(e) {
     console.error("match-stream poll error:", e.message);
   }
-}, 30000);
+}, 10000);
 
 // ── Config API ──────────────────────────────────────────────
 app.get("/api/config", (req, res) => {

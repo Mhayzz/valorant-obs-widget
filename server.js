@@ -34,11 +34,12 @@ function getApiHeaders(apiKey) {
 }
 
 function generateMatchKey(agentId, kills, deaths, assists, timestamp) {
-  return JSON.stringify([agentId, kills, deaths, assists, timestamp]);
+  return `${agentId}|${kills}|${deaths}|${assists}|${timestamp}`;
 }
 
 function determineMatchWin(playerTeam, redRounds, blueRounds) {
   if (redRounds === blueRounds) return null;
+  if (playerTeam !== 'red' && playerTeam !== 'blue') return null;
   return playerTeam === 'red' ? redRounds > blueRounds : blueRounds > redRounds;
 }
 
@@ -79,22 +80,22 @@ const DEFAULT_DISPLAY = {
   show_last_match:      true,
   show_streak:          true,
   widget_width:         300,
-  refresh_rank:         120,
   realtime_notifications: true,
   animation_type:       "both",
 };
 
 function loadFileConfig() {
   try {
-    if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
-  } catch(e) {}
-  return {};
+    return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
+  } catch(e) {
+    if (e.code !== "ENOENT") console.error("loadFileConfig:", e.message);
+    return {};
+  }
 }
 
 function saveFileConfig(cfg) {
   try {
-    const dir = path.dirname(CONFIG_PATH);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2));
     return true;
   } catch(e) { console.error("saveFileConfig:", e.message); return false; }
@@ -123,6 +124,8 @@ let matchHistory = {}; // Track last match per account
 function invalidateCaches() {
   rankCache  = { data: null, ts: 0 };
   matchCache = { data: null, ts: 0, size: 0 };
+  rankHistory = {};
+  matchHistory = {};
 }
 
 // ── WebSocket connections ────────────────────────────────────
@@ -183,7 +186,7 @@ setInterval(async () => {
         animation: change,
       };
       io.emit("rank", msg);
-    } else {
+    } else if (!lastRank) {
       rankHistory[accountKey] = { tier: newTier, rank: newRank, rr: newRR };
     }
   } catch(e) {
@@ -223,6 +226,8 @@ setInterval(async () => {
       const playerTeam = (stats?.team || "").toLowerCase();
       const won = determineMatchWin(playerTeam, redRounds, blueRounds);
 
+      matchCache = { data: null, ts: 0, size: 0 };
+
       const msg = {
         type: won === null ? "draw" : (won ? "win" : "lose"),
         agent: stats?.character?.name || "Unknown",
@@ -260,6 +265,11 @@ app.post("/api/config", (req, res) => {
     return res.status(401).json({ error: "Mot de passe incorrect" });
   }
   const { riot_name, riot_tag, riot_region, henrik_api_key, display } = req.body;
+  const accountChanged =
+    (riot_name      !== undefined && riot_name      !== fileConfig.riot_name) ||
+    (riot_tag       !== undefined && riot_tag       !== fileConfig.riot_tag) ||
+    (riot_region    !== undefined && riot_region    !== fileConfig.riot_region) ||
+    (henrik_api_key !== undefined && henrik_api_key !== "" && henrik_api_key !== fileConfig.henrik_api_key);
   const newCfg = {
     ...fileConfig,
     ...(riot_name      !== undefined && { riot_name }),
@@ -270,7 +280,7 @@ app.post("/api/config", (req, res) => {
   };
   if (!saveFileConfig(newCfg)) return res.status(500).json({ error: "Erreur de sauvegarde" });
   fileConfig = newCfg;
-  invalidateCaches();
+  if (accountChanged) invalidateCaches();
   res.json({ ok: true });
 });
 

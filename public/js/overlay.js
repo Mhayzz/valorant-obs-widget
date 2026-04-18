@@ -7,6 +7,7 @@ const STORAGE_ACCOUNT_CHANGE_KEY = 'valo_account_change';
 const STORAGE_TEST_ANIMATION_KEY = 'valo_test_animation';
 const ANIMATION_CLASSES = ['animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose'];
 const ANIMATION_DURATION = 800;
+const STREAK_DOT_COUNT = 5;
 const VALORANT_TIER_API = 'https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1';
 const VALORANT_TIER_API_FALLBACK = 'https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04';
 const VALORANT_AGENT_API = 'https://media.valorant-api.com/agents';
@@ -19,7 +20,6 @@ let socket = null;
 let lastRankTier = null;
 let lastMatchId = null;
 let lastStreakSig = null;
-let lastSessionStorageCleared = null;
 
 // ── DOM element cache ────────────────────────────────────────
 let domCache = {};
@@ -33,6 +33,17 @@ try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') ||
 // ── Utility functions ───────────────────────────────────────
 function generatePeakRankHtml(tier) {
   return `<img src="${VALORANT_TIER_API}/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='${VALORANT_TIER_API_FALLBACK}/${tier}/largeicon.png'">`;
+}
+
+function matchSig(m) {
+  return `${m.agent}${m.kills}${m.deaths}${m.assists}`;
+}
+
+function matchOutcome(m) {
+  if (!m) return 'empty';
+  if (m.won === true) return 'win';
+  if (m.won === false) return 'loss';
+  return 'draw';
 }
 
 function renderMatchResult(resultEl, won) {
@@ -192,17 +203,13 @@ async function refreshMatches() {
     if (showMatch) {
       const m = matches[0];
 
-      // Detect match result changes for animation
-      const matchKey = `${m.agent}${m.kills}${m.deaths}${m.assists}`;
-      if ((cfg?.display?.realtime_notifications ?? true) && ['match', 'both'].includes(cfg?.display?.animation_type ?? 'both') && lastMatchId !== null && lastMatchId !== matchKey) {
+      const matchKey = matchSig(m);
+      const matchChanged = lastMatchId !== null && lastMatchId !== matchKey;
+      if (matchChanged && (cfg?.display?.realtime_notifications ?? true) && ['match', 'both'].includes(cfg?.display?.animation_type ?? 'both')) {
         if (m.won === true) triggerAnimation('win');
         else if (m.won === false) triggerAnimation('lose');
       }
-
-      // When match changes, also refresh rank to update RR
-      if (lastMatchId !== null && lastMatchId !== matchKey) {
-        refreshRank();
-      }
+      if (matchChanged) refreshRank();
       lastMatchId = matchKey;
 
       getElement('matchCard').style.display = 'flex';
@@ -223,19 +230,17 @@ async function refreshMatches() {
 
     if (showStreak) {
       getElement('streakCard').style.display = 'flex';
-      const filled = matches.slice(0, 5).reverse();
-      const sig = filled.map(m => m ? (m.won === true ? 'w' : m.won === false ? 'l' : 'd') : 'e').join('') + '|' + filled.length;
+      const filled = matches.slice(0, STREAK_DOT_COUNT).reverse();
+      const outcomes = [];
+      for (let i = 0; i < STREAK_DOT_COUNT; i++) outcomes.push(matchOutcome(filled[i]));
+      const sig = outcomes.join('|');
       if (sig !== lastStreakSig) {
         lastStreakSig = sig;
         const dots = getElement('streakDots');
         dots.innerHTML = '';
-        for (let i = 0; i < 5; i++) {
+        for (const outcome of outcomes) {
           const dot = document.createElement('div');
-          const m = filled[i];
-          if (!m)                     dot.className = 's-dot empty';
-          else if (m.won === true)    dot.className = 's-dot win';
-          else if (m.won === false)   dot.className = 's-dot loss';
-          else                        dot.className = 's-dot draw';
+          dot.className = 's-dot ' + outcome;
           dots.appendChild(dot);
         }
       }
@@ -336,9 +341,8 @@ function connectWebSocket() {
         renderMatchResult(res2, msg.won);
       }
 
-      // Set lastMatchId from the event so refreshMatches only updates streak
       if (msg.agent && msg.kills !== undefined) {
-        lastMatchId = `${msg.agent}${msg.kills}${msg.deaths}${msg.assists}`;
+        lastMatchId = matchSig(msg);
       }
       refreshMatches().catch(e => console.error('refreshMatches error:', e));
     } catch(e) {
@@ -379,14 +383,9 @@ async function init() {
   applyDisplay(cfg.display || {});
   getElement('container').classList.add('show');
 
-  // 4. Initialize display tracking
-  lastSessionStorageCleared = localStorage.getItem(STORAGE_DISPLAY_KEY);
-
   // ── Common listeners (both preview and OBS modes) ──────────────
-  // Listen for account changes from setup page (real-time refresh)
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_ACCOUNT_CHANGE_KEY) {
-      // Account changed, clear session and refresh
       console.log('Account change detected, refreshing...');
       sessionStorage.clear();
       lastRankTier = null;
@@ -397,22 +396,17 @@ async function init() {
       refreshMatches();
     }
     if (e.key === STORAGE_TEST_ANIMATION_KEY) {
-      // Test animation from setup page
       try {
         const msg = JSON.parse(e.newValue);
         console.log('Test animation:', msg);
         triggerAnimation(msg.type);
       } catch(e) {}
     }
-    // Monitor for config changes
-    if (e.key === STORAGE_DISPLAY_KEY && e.newValue !== lastSessionStorageCleared) {
-      lastSessionStorageCleared = e.newValue;
+    if (e.key === STORAGE_DISPLAY_KEY && e.newValue) {
       try {
         cfg.display = JSON.parse(e.newValue);
         applyDisplay(cfg.display);
-        // Reconnect WebSocket if realtime notifications setting changed
         connectWebSocket();
-        // Refresh data when display settings change to ensure correct content is shown
         if (!IS_PREVIEW) {
           refreshRank();
           refreshMatches();
@@ -465,7 +459,6 @@ async function init() {
   refreshRank();
   refreshMatches();
 
-  // Connect to WebSocket for real-time updates (polling handled server-side)
   connectWebSocket();
 }
 

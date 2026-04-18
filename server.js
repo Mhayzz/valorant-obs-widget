@@ -118,8 +118,8 @@ const SETUP_PASSWORD = process.env.SETUP_PASSWORD || "";
 // ── Caches ──────────────────────────────────────────────────
 let rankCache  = { data: null, ts: 0 };
 let matchCache = { data: null, ts: 0, size: 0 };
-let rankHistory = {}; // Track rank changes per account
-let matchHistory = {}; // Track last match per account
+let rankHistory = {};
+let matchHistory = {};
 
 function invalidateCaches() {
   rankCache  = { data: null, ts: 0 };
@@ -345,7 +345,6 @@ app.get("/api/matches", async (req, res) => {
 
   const headers = getApiHeaders(apiKey);
 
-  // Essaye v1/lifetime (le plus fiable pour l'historique par joueur)
   try {
     const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v1/lifetime/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,
@@ -389,12 +388,10 @@ app.get("/api/matches", async (req, res) => {
       matchCache = { data: matches, size, ts: now };
       return res.json(matches);
     }
-    // Si v1/lifetime échoue ou retourne rien, fallback v3
   } catch(e) {
     console.error("v1/lifetime error:", e.message);
   }
 
-  // Fallback : v3 sans /pc/
   try {
     const r = await fetchWithRetry(
       `https://api.henrikdev.xyz/valorant/v3/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}`,

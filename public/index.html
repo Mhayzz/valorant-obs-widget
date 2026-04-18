@@ -156,6 +156,10 @@ body.obs-mode .card {
   text-transform:uppercase; color:var(--text-secondary);
   margin-right:4px; flex-shrink:0;
 }
+.streak-count {
+  font-size:11px; font-weight:600; color:var(--text-primary);
+  min-width:24px; text-align:center; flex-shrink:0;
+}
 .streak-dots { display:flex; gap:4px; align-items:center; }
 .s-dot {
   width:22px; height:5px; border-radius:3px;
@@ -165,6 +169,10 @@ body.obs-mode .card {
 .s-dot.loss { background:#ff5060; opacity:.75; }
 .s-dot.draw { background:rgba(255,255,255,.2); }
 .s-dot.empty { background:rgba(255,255,255,.07); }
+.win-rate {
+  font-size:9px; color:var(--text-tertiary); margin-left:auto;
+  font-family:'DM Mono',monospace; flex-shrink:0;
+}
 
 /* ── Loading ─────────────────────────────────────────── */
 .loading-msg {
@@ -248,7 +256,9 @@ body.obs-mode .card {
   <!-- Streak -->
   <div class="card streak-card overlay-content hidden" id="streakCard" style="display:none">
     <span class="streak-label">STREAK</span>
+    <span class="streak-count" id="streakCount"></span>
     <div class="streak-dots" id="streakDots"></div>
+    <span class="win-rate" id="winRate"></span>
   </div>
 </div>
 

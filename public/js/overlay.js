@@ -13,7 +13,6 @@ const VALORANT_AGENT_API = 'https://media.valorant-api.com/agents';
 
 // ── Global state ─────────────────────────────────────────────
 let cfg = null;
-let prevChange = undefined;
 let IS_PREVIEW = false;
 let socket = null;
 let lastRankTier = null;
@@ -31,6 +30,8 @@ function getElement(id) {
 try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') || window.self !== window.top; } catch(e) { IS_PREVIEW = true; }
 
 // ── Utility functions ───────────────────────────────────────
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
 function generatePeakRankHtml(tier) {
   return `<img src="${VALORANT_TIER_API}/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='${VALORANT_TIER_API_FALLBACK}/${tier}/largeicon.png'">`;
 }
@@ -44,8 +45,69 @@ function renderMatchResult(resultEl, won) {
 function shouldShowGameMode(mode) {
   if (!mode) return false;
   const modeStr = mode.toLowerCase();
-  // Only show special modes, hide competitive and unrated
   return modeStr !== 'competitive' && modeStr !== 'unrated';
+}
+
+function shouldAnimate(kind) {
+  if (!(cfg?.display?.realtime_notifications ?? true)) return false;
+  const mode = cfg?.display?.animation_type ?? 'both';
+  return mode === 'both' || mode === kind;
+}
+
+// ── Render helpers (shared by HTTP refresh and WebSocket handlers) ──
+function applyRankData(d) {
+  getElement('rankName').textContent = d.rank;
+  getElement('rrLabel').textContent  = d.rr + ' RR';
+  getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
+
+  if (d.tier > 0) {
+    const ico = getElement('ico');
+    ico.style.display = 'block';
+    ico.src = d.rank_icon;
+    ico.onerror = () => { ico.src = `${VALORANT_TIER_API}/${d.tier}/largeicon.png`; };
+  }
+
+  const peakEl = getElement('peakRank');
+  const peakInline = getElement('peakInline');
+  if (d.peak_rank) {
+    const peakImg = generatePeakRankHtml(d.peak_tier);
+    peakEl.innerHTML = `PEAK ${peakImg}`;
+    peakInline.innerHTML = 'PEAK ' + peakImg;
+    peakInline.className = 'peak-inline align-' + (cfg?.display?.peak_align || 'left');
+    const showPeak = cfg?.display?.show_peak_rank ?? true;
+    const inline = !!cfg?.display?.peak_inline;
+    peakEl.style.display     = (showPeak && !inline) ? 'block' : 'none';
+    peakInline.style.display = (showPeak && inline)  ? 'flex'  : 'none';
+  } else {
+    peakEl.style.display = 'none';
+    peakInline.style.display = 'none';
+  }
+
+  const chg = d.rr_change;
+  const badge = getElement('badge');
+  badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
+  getElement('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
+}
+
+function renderMatch(m) {
+  getElement('matchCard').style.display = 'flex';
+  const icon = getElement('matchIcon');
+  const iconUrl = m.agent_icon || (m.agent_id ? `${VALORANT_AGENT_API}/${m.agent_id}/displayicon.png` : null);
+  if (iconUrl) {
+    icon.src = iconUrl;
+    icon.style.display = 'block';
+    icon.onerror = () => { icon.style.display = 'none'; };
+  }
+  getElement('matchAgent').textContent = m.agent;
+  let kdaStr = `${m.kills}/${m.deaths}/${m.assists}`;
+  if (m.map) kdaStr += ' • ' + m.map;
+  if (shouldShowGameMode(m.mode)) kdaStr += ` • ${m.mode}`;
+  getElement('matchKda').textContent = kdaStr;
+  renderMatchResult(getElement('matchResult'), m.won);
+}
+
+function matchKeyOf(m) {
+  return `${m.agent}|${m.kills}|${m.deaths}|${m.assists}`;
 }
 
 // ── Applique les options d'affichage ────────────────────────
@@ -109,7 +171,7 @@ function showOverlay() {
 async function refreshRank() {
   try {
     const res = await fetch('/api/rank');
-    let d = await res.json();
+    const d = await res.json();
     if (!res.ok) {
       console.error('Rank API error:', d);
       getElement('loadingMsg').textContent = 'Erreur: ' + (d.error || 'Compte non trouvé');
@@ -118,59 +180,13 @@ async function refreshRank() {
 
     showOverlay();
 
-    // Detect rank changes for animation
-    if ((cfg?.display?.realtime_notifications ?? true) && ['rank', 'both'].includes(cfg?.display?.animation_type ?? 'both') && lastRankTier !== null) {
-      if (d.tier > lastRankTier) triggerAnimation('rankup');
+    if (shouldAnimate('rank') && lastRankTier !== null) {
+      if (d.tier > lastRankTier)      triggerAnimation('rankup');
       else if (d.tier < lastRankTier) triggerAnimation('rankdown');
     }
     lastRankTier = d.tier;
 
-    getElement('rankName').textContent = d.rank;
-    getElement('rrLabel').textContent  = d.rr + ' RR';
-    getElement('fill').style.width     = Math.min(100, Math.max(0, d.rr)) + '%';
-
-    if (d.tier > 0) {
-      const ico = getElement('ico');
-      ico.style.display = 'block';
-      ico.src = d.rank_icon;
-      ico.onerror = () => {
-        ico.src = `${VALORANT_TIER_API}/${d.tier}/largeicon.png`;
-      };
-    }
-
-    const peakEl = getElement('peakRank');
-    const peakInline = getElement('peakInline');
-    // Always populate peak rank data if available (visibility controlled by applyDisplay)
-    if (d.peak_rank) {
-      const tier = d.peak_tier;
-      const peakImg = generatePeakRankHtml(tier);
-      peakEl.innerHTML = `PEAK ${peakImg}`;
-      peakInline.innerHTML = 'PEAK ' + peakImg;
-      peakInline.className = 'peak-inline align-' + (cfg?.display?.peak_align || 'left');
-
-      // Show/hide based on settings
-      if ((cfg?.display?.show_peak_rank ?? true)) {
-        if (cfg?.display?.peak_inline) {
-          peakEl.style.display = 'none';
-          peakInline.style.display = 'flex';
-        } else {
-          peakEl.style.display = 'block';
-          peakInline.style.display = 'none';
-        }
-      } else {
-        peakEl.style.display = 'none';
-        peakInline.style.display = 'none';
-      }
-    } else {
-      peakEl.style.display = 'none';
-      peakInline.style.display = 'none';
-    }
-
-    const chg = d.rr_change;
-    const badge = getElement('badge');
-    badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
-    getElement('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-    prevChange = chg;
+    applyRankData(d);
   } catch(e) {
     console.error('refreshRank error:', e);
   }
@@ -191,34 +207,17 @@ async function refreshMatches() {
 
     if (showMatch) {
       const m = matches[0];
+      const key = matchKeyOf(m);
+      const changed = lastMatchId !== null && lastMatchId !== key;
 
-      // Detect match result changes for animation
-      const matchKey = `${m.agent}${m.kills}${m.deaths}${m.assists}`;
-      if ((cfg?.display?.realtime_notifications ?? true) && ['match', 'both'].includes(cfg?.display?.animation_type ?? 'both') && lastMatchId !== null && lastMatchId !== matchKey) {
-        if (m.won === true) triggerAnimation('win');
+      if (changed && shouldAnimate('match')) {
+        if (m.won === true)       triggerAnimation('win');
         else if (m.won === false) triggerAnimation('lose');
       }
+      if (changed) refreshRank();
+      lastMatchId = key;
 
-      // When match changes, also refresh rank to update RR
-      if (lastMatchId !== null && lastMatchId !== matchKey) {
-        refreshRank();
-      }
-      lastMatchId = matchKey;
-
-      getElement('matchCard').style.display = 'flex';
-      const icon = getElement('matchIcon');
-      if (m.agent_icon) {
-        icon.src = m.agent_icon;
-        icon.style.display = 'block';
-        icon.onerror = () => { icon.style.display = 'none'; };
-      }
-      getElement('matchAgent').textContent = m.agent;
-      let kdaStr = `${m.kills}/${m.deaths}/${m.assists}`;
-      if (m.map) kdaStr += ' • ' + m.map;
-      if (shouldShowGameMode(m.mode)) kdaStr += ` • ${m.mode}`;
-      getElement('matchKda').textContent = kdaStr;
-      const res2 = getElement('matchResult');
-      renderMatchResult(res2, m.won);
+      renderMatch(m);
     }
 
     if (showStreak) {
@@ -266,40 +265,10 @@ function connectWebSocket() {
 
   socket.on('rank', (data) => {
     try {
-      console.log('Rank WebSocket:', data);
       showOverlay();
-      getElement('rankName').textContent = data.rank;
-      getElement('rrLabel').textContent = data.rr + ' RR';
-      getElement('fill').style.width = Math.min(100, Math.max(0, data.rr)) + '%';
       lastRankTier = data.tier;
-      if (data.tier > 0) {
-        const ico = getElement('ico');
-        ico.style.display = 'block';
-        ico.src = data.rank_icon;
-        ico.onerror = () => { ico.src = `${VALORANT_TIER_API}/${data.tier}/largeicon.png`; };
-      }
-      const peakEl = getElement('peakRank');
-      const peakInline = getElement('peakInline');
-      if (data.peak_rank) {
-        const tier = data.peak_tier;
-        const peakImg = generatePeakRankHtml(tier);
-        peakEl.innerHTML = `PEAK ${peakImg}`;
-        peakInline.innerHTML = 'PEAK ' + peakImg;
-        if ((cfg?.display?.show_peak_rank ?? true)) {
-          if (cfg?.display?.peak_inline) {
-            peakEl.style.display = 'none';
-            peakInline.style.display = 'flex';
-          } else {
-            peakEl.style.display = 'block';
-            peakInline.style.display = 'none';
-          }
-        }
-      }
-      const chg = data.rr_change;
-      const badge = getElement('badge');
-      badge.className = 'rr-badge ' + (chg === null ? 'neu' : chg > 0 ? 'pos' : chg < 0 ? 'neg' : 'neu');
-      getElement('badgeNum').textContent = chg === null ? '—' : (chg > 0 ? '+' : '') + chg;
-      if (['rank', 'both'].includes(cfg?.display?.animation_type ?? 'both') && data.animation && (data.animation === 'rankup' || data.animation === 'rankdown')) {
+      applyRankData(data);
+      if (shouldAnimate('rank') && (data.animation === 'rankup' || data.animation === 'rankdown')) {
         triggerAnimation(data.animation);
       }
     } catch(e) {
@@ -309,36 +278,12 @@ function connectWebSocket() {
 
   socket.on('match', (msg) => {
     try {
-      console.log('Match event received:', msg);
-
-      // Trigger animation immediately
-      if (['match', 'both'].includes(cfg?.display?.animation_type ?? 'both') && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
-        console.log('Triggering animation:', msg.type);
+      if (shouldAnimate('match') && (msg.type === 'win' || msg.type === 'lose' || msg.type === 'draw')) {
         triggerAnimation(msg.type);
       }
-
-      // Display match data immediately from WebSocket
-      const showMatch = cfg?.display?.show_last_match ?? true;
-      if (showMatch && msg.agent && msg.kills !== undefined) {
-        getElement('matchCard').style.display = 'flex';
-        const icon = getElement('matchIcon');
-        if (msg.agent_id) {
-          icon.src = `${VALORANT_AGENT_API}/${msg.agent_id}/displayicon.png`;
-          icon.style.display = 'block';
-          icon.onerror = () => { icon.style.display = 'none'; };
-        }
-        getElement('matchAgent').textContent = msg.agent;
-        let kdaStr = `${msg.kills}/${msg.deaths}/${msg.assists}`;
-        if (msg.map) kdaStr += ' • ' + msg.map;
-        if (shouldShowGameMode(msg.mode)) kdaStr += ` • ${msg.mode}`;
-        getElement('matchKda').textContent = kdaStr;
-        const res2 = getElement('matchResult');
-        renderMatchResult(res2, msg.won);
-      }
-
-      // Set lastMatchId from the event so refreshMatches only updates streak
-      if (msg.agent && msg.kills !== undefined) {
-        lastMatchId = `${msg.agent}${msg.kills}${msg.deaths}${msg.assists}`;
+      if ((cfg?.display?.show_last_match ?? true) && msg.agent && msg.kills !== undefined) {
+        renderMatch(msg);
+        lastMatchId = matchKeyOf(msg);
       }
       refreshMatches().catch(e => console.error('refreshMatches error:', e));
     } catch(e) {

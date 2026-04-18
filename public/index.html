@@ -95,6 +95,17 @@ body.obs-mode .card {
 .peak-rank span { color:rgba(255,255,255,.45); font-family:'DM Mono',monospace; }
 .peak-icon { width:22px; height:22px; vertical-align:middle; margin-left:4px; }
 
+/* ── RR Chart ───────────────────────────────────────────── */
+.rr-chart-card {
+  display:flex; flex-direction:column; gap:6px;
+  padding:8px 14px;
+}
+.rr-chart-label {
+  font-size:8px; font-weight:600; letter-spacing:.5px;
+  text-transform:uppercase; color:var(--text-secondary);
+}
+#rrChart { height:40px; }
+
 .rr-row { display:flex; align-items:center; gap:6px; }
 .rr-label {
   font-family:'DM Mono',monospace; font-size:11px;
@@ -156,10 +167,6 @@ body.obs-mode .card {
   font-size:9px; font-weight:600; letter-spacing:1px;
   text-transform:uppercase; color:var(--text-secondary);
   margin-right:4px; flex-shrink:0;
-}
-.streak-count {
-  font-size:11px; font-weight:600; color:var(--text-primary);
-  min-width:24px; text-align:center; flex-shrink:0;
 }
 .streak-dots { display:flex; gap:4px; align-items:center; }
 .s-dot {
@@ -288,9 +295,14 @@ body.slide-anim .streak-card { animation:slideIn 0.3s ease-out; }
   <!-- Streak -->
   <div class="card streak-card overlay-content hidden" id="streakCard" style="display:none">
     <span class="streak-label">STREAK</span>
-    <span class="streak-count" id="streakCount"></span>
     <div class="streak-dots" id="streakDots"></div>
     <span class="win-rate" id="winRate"></span>
+  </div>
+
+  <!-- RR History Chart -->
+  <div class="card rr-chart-card overlay-content hidden" id="rrChartCard" style="display:none">
+    <span class="rr-chart-label">RR HISTORY</span>
+    <div id="rrChart"></div>
   </div>
 </div>
 

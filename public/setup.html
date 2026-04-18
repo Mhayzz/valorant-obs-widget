@@ -1120,6 +1120,25 @@ input[type="color"]:focus {
               <option value="percentage">60%</option>
             </select>
           </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Graphique RR</div>
+              <div class="opt-sub">Afficher l'historique des RR</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="showRRChart" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Jeux affichés</div>
+              <div class="opt-sub" id="rrChartGamesLabel">20 jeux</div>
+            </div>
+            <input type="range" id="rrChartGames" min="5" max="50" value="20" style="flex: 1; cursor: pointer;">
+          </div>
         </div>
       </div>
     </div>
@@ -1248,6 +1267,8 @@ function getDisplayFromForm() {
     show_agent_icon: $('agentIconSize').value !== 'hidden',
     agent_icon_size: $('agentIconSize').value === 'hidden' ? 'small' : $('agentIconSize').value,
     winrate_format:  $('winrateFormat').value,
+    show_rr_chart:   $('showRRChart').checked,
+    rr_chart_games:  parseInt($('rrChartGames').value),
   };
 }
 
@@ -1316,6 +1337,10 @@ $('bgOpacity').addEventListener('input', function() {
 
 $('cornerRadius').addEventListener('input', function() {
   $('cornerRadiusLabel').textContent = this.value + 'px';
+});
+
+$('rrChartGames').addEventListener('input', function() {
+  $('rrChartGamesLabel').textContent = this.value + ' jeux';
 });
 
 ['showLastMatch', 'showStreak', 'peakRankMode', 'widgetWidth'].forEach(id => {
@@ -1481,6 +1506,11 @@ async function loadConfig() {
       $('agentIconSize').value = d.show_agent_icon === false ? 'hidden' : d.agent_icon_size;
     }
     if (d.winrate_format) $('winrateFormat').value = d.winrate_format;
+    if (d.show_rr_chart !== undefined) $('showRRChart').checked = d.show_rr_chart;
+    if (d.rr_chart_games !== undefined) {
+      $('rrChartGames').value = d.rr_chart_games;
+      $('rrChartGamesLabel').textContent = d.rr_chart_games + ' jeux';
+    }
 
     renderAccountStatus(cfg.riot_name, cfg.riot_tag, cfg.riot_region);
 

@@ -1191,7 +1191,7 @@ const $ = (id) => ($._c[id] ||= document.getElementById(id));
 $._c = {};
 
 // ── Preview layout (px contributions of each module) ─────────
-const PREVIEW_H = { base: 88, peak: 16, session: 18, match: 52, streak: 40 };
+const PREVIEW_H = { base: 88, peak: 16, session: 18, match: 52, streak: 40, rr_chart: 65 };
 const PREVIEW_BG_PAD = 32;
 const PREVIEW_FRAME_PAD = 20;
 
@@ -1317,8 +1317,9 @@ $('refreshPreviewBtn')?.addEventListener('click', refreshPreview);
 $('cycleBgBtn')?.addEventListener('click', cyclePreviewBg);
 
 function calcHeight() {
-  // Max height with every module visible — keeps the preview iframe stable
-  return PREVIEW_H.base + PREVIEW_H.peak + PREVIEW_H.session + PREVIEW_H.match + PREVIEW_H.streak;
+  let h = PREVIEW_H.base + PREVIEW_H.peak + PREVIEW_H.session + PREVIEW_H.match + PREVIEW_H.streak;
+  if ($('showRRChart').checked) h += PREVIEW_H.rr_chart;
+  return h;
 }
 
 function updateObsDims() {

@@ -325,21 +325,27 @@ function renderRRChart() {
 
   const maxGames = cfg?.display?.rr_chart_games ?? 20;
   const dataPoints = rrHistory.slice(-maxGames);
-  if (dataPoints.length < 2) {
+  if (dataPoints.length === 0) {
     rrChartEl.innerHTML = '';
     return;
   }
 
   const W = 200, H = 40;
-  const minRR = Math.min(...dataPoints);
-  const maxRR = Math.max(...dataPoints);
-  const rangeRR = maxRR - minRR || 1;
-
   let path = '';
-  for (let i = 0; i < dataPoints.length; i++) {
-    const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
-    const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
-    path += (i === 0 ? 'M' : 'L') + x + ',' + y;
+
+  if (dataPoints.length === 1) {
+    const x = W / 2;
+    const y = H / 2;
+    path = `M ${x} ${y} L ${x + 0.1} ${y}`;
+  } else {
+    const minRR = Math.min(...dataPoints);
+    const maxRR = Math.max(...dataPoints);
+    const rangeRR = maxRR - minRR || 1;
+    for (let i = 0; i < dataPoints.length; i++) {
+      const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
+      const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
+      path += (i === 0 ? 'M' : 'L') + x + ',' + y;
+    }
   }
 
   rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">

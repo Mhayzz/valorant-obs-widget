@@ -1050,6 +1050,77 @@ input[type="color"]:focus {
           <button id="testWin" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Win</button>
           <button id="testLose" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Lose</button>
         </div>
+
+        <div style="border-top: 1px solid var(--border); margin: 20px 0; padding-top: 20px;">
+          <div class="section-title">Apparence avancée</div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Afficher le compte</div>
+              <div class="opt-sub">Nom#TAG visible sur l'overlay</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="showAccount" checked>
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Thème</div>
+              <div class="opt-sub">Style global de l'overlay</div>
+            </div>
+            <select id="theme" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+              <option value="default">Par défaut</option>
+              <option value="compact">Compact</option>
+              <option value="dark">Sombre</option>
+            </select>
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Rayon des coins</div>
+              <div class="opt-sub" id="cornerRadiusLabel">10px</div>
+            </div>
+            <input type="range" id="cornerRadius" min="0" max="20" value="10" style="flex: 1; cursor: pointer;">
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Animations des stats</div>
+              <div class="opt-sub">Effet d'apparition des données</div>
+            </div>
+            <select id="statAnimations" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+              <option value="none">Aucune</option>
+              <option value="fade">Fondu</option>
+              <option value="slide">Glissement</option>
+            </select>
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Icône de l'agent</div>
+              <div class="opt-sub">Afficher et taille</div>
+            </div>
+            <select id="agentIconSize" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+              <option value="hidden">Cachée</option>
+              <option value="small">Petite</option>
+              <option value="large">Grande</option>
+            </select>
+          </div>
+
+          <div class="opt-row">
+            <div class="opt-info">
+              <div class="opt-label">Format du taux de victoire</div>
+              <div class="opt-sub">Affichage de W-L-D</div>
+            </div>
+            <select id="winrateFormat" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+              <option value="detailed">3-1-2 (60%)</option>
+              <option value="short">3-1-2</option>
+              <option value="percentage">60%</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1170,6 +1241,13 @@ function getDisplayFromForm() {
     show_streak:     $('showStreak').checked,
     realtime_notifications: $('realtimeNotifications').checked,
     animation_type:  $('animationType').value,
+    show_account:    $('showAccount').checked,
+    theme:           $('theme').value,
+    corner_radius:   parseInt($('cornerRadius').value),
+    stat_animations: $('statAnimations').value,
+    show_agent_icon: $('agentIconSize').value !== 'hidden',
+    agent_icon_size: $('agentIconSize').value === 'hidden' ? 'small' : $('agentIconSize').value,
+    winrate_format:  $('winrateFormat').value,
   };
 }
 
@@ -1234,6 +1312,10 @@ function updateObsDims() {
 // ── Input handlers (scheduleAutoSave handles save + notify) ───
 $('bgOpacity').addEventListener('input', function() {
   $('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
+});
+
+$('cornerRadius').addEventListener('input', function() {
+  $('cornerRadiusLabel').textContent = this.value + 'px';
 });
 
 ['showLastMatch', 'showStreak', 'peakRankMode', 'widgetWidth'].forEach(id => {
@@ -1388,6 +1470,17 @@ async function loadConfig() {
     if (d.show_streak     !== undefined) $('showStreak').checked    = d.show_streak;
     if (d.realtime_notifications !== undefined) $('realtimeNotifications').checked = d.realtime_notifications;
     if (d.animation_type) $('animationType').value = d.animation_type;
+    if (d.show_account !== undefined) $('showAccount').checked = d.show_account;
+    if (d.theme) $('theme').value = d.theme;
+    if (d.corner_radius !== undefined) {
+      $('cornerRadius').value = d.corner_radius;
+      $('cornerRadiusLabel').textContent = d.corner_radius + 'px';
+    }
+    if (d.stat_animations) $('statAnimations').value = d.stat_animations;
+    if (d.agent_icon_size) {
+      $('agentIconSize').value = d.show_agent_icon === false ? 'hidden' : d.agent_icon_size;
+    }
+    if (d.winrate_format) $('winrateFormat').value = d.winrate_format;
 
     renderAccountStatus(cfg.riot_name, cfg.riot_tag, cfg.riot_region);
 

@@ -14,6 +14,7 @@
   --text-secondary: rgba(255,255,255,0.6);
   --text-tertiary: rgba(255,255,255,0.3);
   --w: 300px;
+  --radius: 10px;
 }
 
 body {
@@ -49,7 +50,7 @@ body.obs-mode { background: transparent; }
 }
 
 .card {
-  border-radius:10px;
+  border-radius:var(--radius);
   background:var(--card-bg);
   backdrop-filter:blur(14px);
   -webkit-backdrop-filter:blur(14px);
@@ -173,6 +174,37 @@ body.obs-mode .card {
   font-size:9px; color:var(--text-tertiary); margin-left:auto;
   font-family:'DM Mono',monospace; flex-shrink:0;
 }
+
+/* ── Theme variants ──────────────────────────────────── */
+body.dark-theme {
+  --card-bg: rgba(18,18,22,1);
+}
+body.compact-theme {
+  font-size:11px;
+}
+body.compact-theme .rank-card,
+body.compact-theme .match-card,
+body.compact-theme .streak-card {
+  padding:6px 10px;
+}
+body.compact-theme .rank-name { font-size:13px; }
+body.compact-theme .peak-rank { display:none; }
+
+/* ── Animation variants ──────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+@keyframes slideIn {
+  from { opacity:0; transform:translateX(-5px); }
+  to { opacity:1; transform:translateX(0); }
+}
+body.fade-anim .rank-card,
+body.fade-anim .match-card,
+body.fade-anim .streak-card { animation:fadeIn 0.3s ease-out; }
+body.slide-anim .rank-card,
+body.slide-anim .match-card,
+body.slide-anim .streak-card { animation:slideIn 0.3s ease-out; }
 
 /* ── Loading ─────────────────────────────────────────── */
 .loading-msg {

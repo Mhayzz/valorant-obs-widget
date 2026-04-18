@@ -940,11 +940,85 @@ input[type="color"]:focus {
       </div>
     </div>
 
-    <!-- AFFICHAGE -->
+    <!-- AFFICHAGE : activer / désactiver chaque module -->
     <div class="card">
       <div class="section-title">Affichage</div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Afficher le compte</div>
+          <div class="opt-sub">Nom#TAG visible sur l'overlay</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showAccount" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Peak Rank</div>
+          <div class="opt-sub">Affiche le meilleur rang atteint</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showPeakRank">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Dernière partie</div>
+          <div class="opt-sub">Agent joué, K/D/A, map et résultat</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showLastMatch" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Streak (5 dernières parties)</div>
+          <div class="opt-sub">Barre de couleur verte/rouge par partie</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showStreak" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Icône de l'agent</div>
+          <div class="opt-sub">Portrait de l'agent joué</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showAgentIcon" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Graphique RR</div>
+          <div class="opt-sub">Courbe de RR de la journée</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="showRRChart" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Notifications temps réel</div>
+          <div class="opt-sub">Animations quand tu rank up/down en jeu</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="realtimeNotifications" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
 
-      <!-- Opacité -->
+    <!-- APPARENCE AVANCÉE : paramétrage des modules activés -->
+    <div class="card">
+      <div class="section-title">Apparence avancée</div>
+
       <div class="field">
         <label>Opacité du fond</label>
         <div class="slider-row">
@@ -953,7 +1027,6 @@ input[type="color"]:focus {
         </div>
       </div>
 
-      <!-- Couleur accent -->
       <div class="field" style="margin-top:14px">
         <label>Couleur d'accent</label>
         <div class="color-row">
@@ -961,17 +1034,13 @@ input[type="color"]:focus {
         </div>
       </div>
 
-      <!-- Couleur des labels -->
-      <div style="margin-top:18px; border-top:1px solid rgba(0,0,0,.06); padding-top:18px;">
-        <div class="field">
-          <label>Couleur des labels</label>
-          <div class="color-row">
-            <input type="color" id="textTertiaryPicker" value="#666666">
-          </div>
+      <div class="field" style="margin-top:14px">
+        <label>Couleur des labels</label>
+        <div class="color-row">
+          <input type="color" id="textTertiaryPicker" value="#666666">
         </div>
       </div>
 
-      <!-- Largeur widget -->
       <div class="field" style="margin-top:14px">
         <label>Largeur widget (px)</label>
         <select id="widgetWidth">
@@ -984,18 +1053,16 @@ input[type="color"]:focus {
         </select>
       </div>
 
-      <!-- Toggles -->
       <div style="margin-top:16px; border-top:1px solid rgba(255,255,255,.06); padding-top:16px;">
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Peak Rank</div>
-            <div class="opt-sub">Affiche le meilleur rang atteint</div>
+            <div class="opt-label">Position du Peak Rank</div>
+            <div class="opt-sub">Visible uniquement si le module est activé</div>
           </div>
           <div style="display:flex; align-items:center; gap:6px;">
             <button class="arrow-btn" id="peakAlignLeft" title="Décaler à gauche">←</button>
             <button class="arrow-btn" id="peakAlignRight" title="Décaler à droite">→</button>
             <select id="peakRankMode" style="width:auto; min-width:130px; padding:8px 12px; font-size:12px;">
-              <option value="off">Désactivé</option>
               <option value="below" selected>Sous le rang</option>
               <option value="inline">À côté du rang</option>
             </select>
@@ -1003,41 +1070,68 @@ input[type="color"]:focus {
         </div>
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Dernière partie</div>
-            <div class="opt-sub">Agent joué, K/D/A, map et résultat (V/D)</div>
+            <div class="opt-label">Taille de l'icône agent</div>
+            <div class="opt-sub">Visible uniquement si le module est activé</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="showLastMatch" checked>
-            <span class="toggle-track"></span>
-          </label>
+          <select id="agentIconSize" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+            <option value="small">Petite</option>
+            <option value="large">Grande</option>
+          </select>
         </div>
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Streak (5 dernières parties)</div>
-            <div class="opt-sub">Barre de couleur verte/rouge par partie</div>
+            <div class="opt-label">Format du taux de victoire</div>
+            <div class="opt-sub">Affichage W-L-D</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="showStreak" checked>
-            <span class="toggle-track"></span>
-          </label>
+          <select id="winrateFormat" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+            <option value="detailed">3-1-2 (60%)</option>
+            <option value="short">3-1-2</option>
+            <option value="percentage">60%</option>
+          </select>
         </div>
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Notifications temps réel</div>
-            <div class="opt-sub">Animations quand tu rank up/down en jeu</div>
+            <div class="opt-label">Jeux affichés sur le graphique RR</div>
+            <div class="opt-sub" id="rrChartGamesLabel">20 jeux</div>
           </div>
-          <label class="toggle">
-            <input type="checkbox" id="realtimeNotifications" checked>
-            <span class="toggle-track"></span>
-          </label>
+          <input type="range" id="rrChartGames" min="5" max="50" value="20" style="flex: 1; cursor: pointer;">
         </div>
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Type d'animation</div>
-            <div class="opt-sub">Choisir quand afficher l'animation</div>
+            <div class="opt-label">Thème</div>
+            <div class="opt-sub">Style global de l'overlay</div>
+          </div>
+          <select id="theme" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+            <option value="default">Par défaut</option>
+            <option value="compact">Compact</option>
+            <option value="dark">Sombre</option>
+          </select>
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Rayon des coins</div>
+            <div class="opt-sub" id="cornerRadiusLabel">10px</div>
+          </div>
+          <input type="range" id="cornerRadius" min="0" max="20" value="10" style="flex: 1; cursor: pointer;">
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Animations des stats</div>
+            <div class="opt-sub">Effet d'apparition des données</div>
+          </div>
+          <select id="statAnimations" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+            <option value="none">Aucune</option>
+            <option value="fade">Fondu</option>
+            <option value="slide">Glissement</option>
+          </select>
+        </div>
+        <div class="opt-row">
+          <div class="opt-info">
+            <div class="opt-label">Type d'animation de notification</div>
+            <div class="opt-sub">Quand afficher l'animation</div>
           </div>
           <select id="animationType" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-            <option value="both">Rank + Match (Les deux)</option>
+            <option value="both">Rank + Match</option>
             <option value="rank">Rank up/down seulement</option>
             <option value="match">Match W/L seulement</option>
           </select>
@@ -1049,96 +1143,6 @@ input[type="color"]:focus {
         <div class="opt-row" style="gap: 8px;">
           <button id="testWin" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Win</button>
           <button id="testLose" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Lose</button>
-        </div>
-
-        <div style="border-top: 1px solid var(--border); margin: 20px 0; padding-top: 20px;">
-          <div class="section-title">Apparence avancée</div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Afficher le compte</div>
-              <div class="opt-sub">Nom#TAG visible sur l'overlay</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" id="showAccount" checked>
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Thème</div>
-              <div class="opt-sub">Style global de l'overlay</div>
-            </div>
-            <select id="theme" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-              <option value="default">Par défaut</option>
-              <option value="compact">Compact</option>
-              <option value="dark">Sombre</option>
-            </select>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Rayon des coins</div>
-              <div class="opt-sub" id="cornerRadiusLabel">10px</div>
-            </div>
-            <input type="range" id="cornerRadius" min="0" max="20" value="10" style="flex: 1; cursor: pointer;">
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Animations des stats</div>
-              <div class="opt-sub">Effet d'apparition des données</div>
-            </div>
-            <select id="statAnimations" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-              <option value="none">Aucune</option>
-              <option value="fade">Fondu</option>
-              <option value="slide">Glissement</option>
-            </select>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Icône de l'agent</div>
-              <div class="opt-sub">Afficher et taille</div>
-            </div>
-            <select id="agentIconSize" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-              <option value="hidden">Cachée</option>
-              <option value="small">Petite</option>
-              <option value="large">Grande</option>
-            </select>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Format du taux de victoire</div>
-              <div class="opt-sub">Affichage de W-L-D</div>
-            </div>
-            <select id="winrateFormat" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-              <option value="detailed">3-1-2 (60%)</option>
-              <option value="short">3-1-2</option>
-              <option value="percentage">60%</option>
-            </select>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Graphique RR</div>
-              <div class="opt-sub">Afficher l'historique des RR</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" id="showRRChart" checked>
-              <span class="toggle-track"></span>
-            </label>
-          </div>
-
-          <div class="opt-row">
-            <div class="opt-info">
-              <div class="opt-label">Jeux affichés</div>
-              <div class="opt-sub" id="rrChartGamesLabel">20 jeux</div>
-            </div>
-            <input type="range" id="rrChartGames" min="5" max="50" value="20" style="flex: 1; cursor: pointer;">
-          </div>
         </div>
       </div>
     </div>
@@ -1253,7 +1257,7 @@ function getDisplayFromForm() {
     text_secondary:  'rgba(255,255,255,0.6)',
     text_tertiary:   $('textTertiaryPicker').value || '#666666',
     widget_width:    parseInt($('widgetWidth').value),
-    show_peak_rank:  $('peakRankMode').value !== 'off',
+    show_peak_rank:  $('showPeakRank').checked,
     peak_inline:     $('peakRankMode').value === 'inline',
     peak_align:      currentPeakAlign,
     show_last_match: $('showLastMatch').checked,
@@ -1264,8 +1268,8 @@ function getDisplayFromForm() {
     theme:           $('theme').value,
     corner_radius:   parseInt($('cornerRadius').value),
     stat_animations: $('statAnimations').value,
-    show_agent_icon: $('agentIconSize').value !== 'hidden',
-    agent_icon_size: $('agentIconSize').value === 'hidden' ? 'small' : $('agentIconSize').value,
+    show_agent_icon: $('showAgentIcon').checked,
+    agent_icon_size: $('agentIconSize').value,
     winrate_format:  $('winrateFormat').value,
     show_rr_chart:   $('showRRChart').checked,
     rr_chart_games:  parseInt($('rrChartGames').value),
@@ -1344,7 +1348,7 @@ $('rrChartGames').addEventListener('input', function() {
   $('rrChartGamesLabel').textContent = this.value + ' jeux';
 });
 
-['showLastMatch', 'showStreak', 'peakRankMode', 'widgetWidth'].forEach(id => {
+['showLastMatch', 'showStreak', 'showPeakRank', 'showRRChart', 'widgetWidth'].forEach(id => {
   $(id).addEventListener('change', updateObsDims);
 });
 
@@ -1486,9 +1490,8 @@ async function loadConfig() {
     if (d.accent_color)   $('accentPicker').value = d.accent_color;
     if (d.text_tertiary)  $('textTertiaryPicker').value = d.text_tertiary;
     if (d.widget_width)   $('widgetWidth').value = d.widget_width;
-    if (d.show_peak_rank !== undefined || d.peak_inline !== undefined) {
-      $('peakRankMode').value = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
-    }
+    if (d.show_peak_rank !== undefined) $('showPeakRank').checked = d.show_peak_rank;
+    $('peakRankMode').value = d.peak_inline ? 'inline' : 'below';
     currentPeakAlign = d.peak_align || 'left';
     $('peakAlignLeft').classList.toggle('active', currentPeakAlign === 'left');
     $('peakAlignRight').classList.toggle('active', currentPeakAlign === 'right');
@@ -1503,9 +1506,8 @@ async function loadConfig() {
       $('cornerRadiusLabel').textContent = d.corner_radius + 'px';
     }
     if (d.stat_animations) $('statAnimations').value = d.stat_animations;
-    if (d.agent_icon_size) {
-      $('agentIconSize').value = d.show_agent_icon === false ? 'hidden' : d.agent_icon_size;
-    }
+    if (d.show_agent_icon !== undefined) $('showAgentIcon').checked = d.show_agent_icon;
+    if (d.agent_icon_size) $('agentIconSize').value = d.agent_icon_size;
     if (d.winrate_format) $('winrateFormat').value = d.winrate_format;
     if (d.show_rr_chart !== undefined) $('showRRChart').checked = d.show_rr_chart;
     if (d.rr_chart_games !== undefined) {

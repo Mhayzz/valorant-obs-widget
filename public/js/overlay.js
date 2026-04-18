@@ -36,18 +36,27 @@ try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') ||
 // ── Utility functions ───────────────────────────────────────
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 function rrHistoryKey() {
   return STORAGE_RR_HISTORY_PREFIX + (playerName || 'default');
 }
 function loadRRHistory() {
   try {
     const raw = localStorage.getItem(rrHistoryKey());
-    const arr = raw ? JSON.parse(raw) : [];
-    return Array.isArray(arr) ? arr.filter(n => typeof n === 'number').slice(-RR_HISTORY_MAX) : [];
+    const obj = raw ? JSON.parse(raw) : null;
+    if (obj?.day === todayKey() && Array.isArray(obj.points)) {
+      return obj.points.filter(n => typeof n === 'number').slice(-RR_HISTORY_MAX);
+    }
+    return [];
   } catch(e) { return []; }
 }
 function saveRRHistory() {
-  try { localStorage.setItem(rrHistoryKey(), JSON.stringify(rrHistory)); } catch(e) {}
+  try {
+    localStorage.setItem(rrHistoryKey(), JSON.stringify({ day: todayKey(), points: rrHistory }));
+  } catch(e) {}
 }
 
 function generatePeakRankHtml(tier) {

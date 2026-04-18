@@ -5,6 +5,8 @@
 const STORAGE_DISPLAY_KEY = window.VALO_KEYS?.DISPLAY || 'valo_display';
 const STORAGE_ACCOUNT_CHANGE_KEY = window.VALO_KEYS?.ACCOUNT_CHANGE || 'valo_account_change';
 const STORAGE_TEST_ANIMATION_KEY = window.VALO_KEYS?.TEST_ANIMATION || 'valo_test_animation';
+const STORAGE_RR_HISTORY_PREFIX = 'valo_rr_history:';
+const RR_HISTORY_MAX = 50;
 const ANIMATION_CLASSES = ['animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose'];
 const ANIMATION_DURATION = 800;
 const VALORANT_TIER_API = 'https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1';
@@ -34,6 +36,20 @@ try { IS_PREVIEW = new URLSearchParams(window.location.search).has('preview') ||
 // ── Utility functions ───────────────────────────────────────
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+function rrHistoryKey() {
+  return STORAGE_RR_HISTORY_PREFIX + (playerName || 'default');
+}
+function loadRRHistory() {
+  try {
+    const raw = localStorage.getItem(rrHistoryKey());
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter(n => typeof n === 'number').slice(-RR_HISTORY_MAX) : [];
+  } catch(e) { return []; }
+}
+function saveRRHistory() {
+  try { localStorage.setItem(rrHistoryKey(), JSON.stringify(rrHistory)); } catch(e) {}
+}
+
 function generatePeakRankHtml(tier) {
   return `<img src="${VALORANT_TIER_API}/${tier}/largeicon.png" alt="" class="peak-icon" onerror="this.src='${VALORANT_TIER_API_FALLBACK}/${tier}/largeicon.png'">`;
 }
@@ -58,7 +74,11 @@ function shouldAnimate(kind) {
 
 // ── Render helpers (shared by HTTP refresh and WebSocket handlers) ──
 function applyRankData(d) {
-  playerName = d.player || "";
+  const newPlayer = d.player || "";
+  if (newPlayer !== playerName) {
+    playerName = newPlayer;
+    rrHistory = loadRRHistory();
+  }
   if (cfg?.display?.show_account) {
     const rankEl = getElement('rankName');
     rankEl.innerHTML = `<span style="display:block;font-size:8px;opacity:0.6;margin-bottom:2px;">${playerName}</span>${d.rank}`;
@@ -68,11 +88,12 @@ function applyRankData(d) {
   getElement('rrLabel').textContent  = d.rr + ' RR';
   getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
 
-  if (rrHistory.length === 0 || rrHistory[rrHistory.length - 1] !== d.rr) {
+  if (typeof d.rr === 'number' && (rrHistory.length === 0 || rrHistory[rrHistory.length - 1] !== d.rr)) {
     rrHistory.push(d.rr);
-    if (rrHistory.length > 50) rrHistory.shift();
-    renderRRChart();
+    if (rrHistory.length > RR_HISTORY_MAX) rrHistory.shift();
+    saveRRHistory();
   }
+  renderRRChart();
 
   if (d.tier > 0) {
     const ico = getElement('ico');
@@ -325,31 +346,38 @@ function renderRRChart() {
 
   const maxGames = cfg?.display?.rr_chart_games ?? 20;
   const dataPoints = rrHistory.slice(-maxGames);
+  const W = 200, H = 40;
+
   if (dataPoints.length === 0) {
-    rrChartEl.innerHTML = '';
+    rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
+      <line x1="10" y1="${H/2}" x2="${W-10}" y2="${H/2}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2,3" opacity="0.3"/>
+    </svg>`;
     return;
   }
 
-  const W = 200, H = 40;
-  let path = '';
-
   if (dataPoints.length === 1) {
-    const x = W / 2;
     const y = H / 2;
-    path = `M ${x} ${y} L ${x + 0.1} ${y}`;
-  } else {
-    const minRR = Math.min(...dataPoints);
-    const maxRR = Math.max(...dataPoints);
-    const rangeRR = maxRR - minRR || 1;
-    for (let i = 0; i < dataPoints.length; i++) {
-      const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
-      const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
-      path += (i === 0 ? 'M' : 'L') + x + ',' + y;
-    }
+    const rr = dataPoints[0];
+    rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
+      <line x1="10" y1="${y}" x2="${W-10}" y2="${y}" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <circle cx="${W-10}" cy="${y}" r="2.5" fill="var(--accent)"/>
+      <text x="${W-14}" y="${y-5}" text-anchor="end" fill="var(--accent)" font-size="8" font-family="DM Mono,monospace" opacity="0.7">${rr} RR</text>
+    </svg>`;
+    return;
+  }
+
+  const minRR = Math.min(...dataPoints);
+  const maxRR = Math.max(...dataPoints);
+  const rangeRR = maxRR - minRR || 1;
+  const pts = [];
+  for (let i = 0; i < dataPoints.length; i++) {
+    const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
+    const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
   }
 
   rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
-    <polyline points="${path}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
   </svg>`;
 }
 

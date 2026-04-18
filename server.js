@@ -112,6 +112,8 @@ const DEFAULT_DISPLAY = {
   show_agent_icon:        true,
   agent_icon_size:        "small",
   winrate_format:         "detailed",
+  show_rr_chart:          true,
+  rr_chart_games:         20,
 };
 
 // ── Input validation ───────────────────────────────────────
@@ -163,6 +165,8 @@ function sanitizeDisplay(d) {
     show_agent_icon:        d.show_agent_icon === undefined ? DEFAULT_DISPLAY.show_agent_icon : !!d.show_agent_icon,
     agent_icon_size:        AGENT_ICON_SIZES.has(d.agent_icon_size) ? d.agent_icon_size : DEFAULT_DISPLAY.agent_icon_size,
     winrate_format:         WINRATE_FORMATS.has(d.winrate_format) ? d.winrate_format : DEFAULT_DISPLAY.winrate_format,
+    show_rr_chart:          d.show_rr_chart === undefined ? DEFAULT_DISPLAY.show_rr_chart : !!d.show_rr_chart,
+    rr_chart_games:         Math.floor(clampNum(d.rr_chart_games, 5, 50, DEFAULT_DISPLAY.rr_chart_games)),
   };
 }
 

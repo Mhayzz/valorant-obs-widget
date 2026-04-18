@@ -20,6 +20,7 @@ let lastMatchId = null;
 let lastStreakSig = null;
 let lastSessionStorageCleared = null;
 let playerName = "";
+let rrHistory = [];
 
 // ── DOM element cache ────────────────────────────────────────
 let domCache = {};
@@ -66,6 +67,12 @@ function applyRankData(d) {
   }
   getElement('rrLabel').textContent  = d.rr + ' RR';
   getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
+
+  if (rrHistory.length === 0 || rrHistory[rrHistory.length - 1] !== d.rr) {
+    rrHistory.push(d.rr);
+    if (rrHistory.length > 50) rrHistory.shift();
+    renderRRChart();
+  }
 
   if (d.tier > 0) {
     const ico = getElement('ico');
@@ -201,6 +208,10 @@ function applyDisplay(d) {
     matchIcon.style.width = (d.agent_icon_size === 'large' ? '50px' : '30px');
     matchIcon.style.height = (d.agent_icon_size === 'large' ? '50px' : '30px');
   }
+
+  // RR chart visibility
+  getElement('rrChartCard').style.display =
+    (d.show_rr_chart ?? true) ? 'flex' : 'none';
 }
 
 // ── Animations ──────────────────────────────────────────────
@@ -296,15 +307,6 @@ async function refreshMatches() {
           dots.appendChild(dot);
         }
 
-        const streak = calculateStreak(matches);
-        const streakEl = getElement('streakCount');
-        if (streak.type && streak.count) {
-          streakEl.textContent = (streak.type === 'w' ? 'W' : 'L') + streak.count;
-          streakEl.style.color = streak.type === 'w' ? '#5fffb5' : '#ff5060';
-        } else {
-          streakEl.textContent = '';
-        }
-
         const wr = calculateWinRate(matches);
         const wrEl = getElement('winRate');
         const fmt = cfg?.display?.winrate_format || 'detailed';
@@ -314,6 +316,35 @@ async function refreshMatches() {
   } catch(e) {
     console.error('refreshMatches error:', e);
   }
+}
+
+function renderRRChart() {
+  if (!cfg?.display?.show_rr_chart) return;
+  const rrChartEl = getElement('rrChart');
+  if (!rrChartEl) return;
+
+  const maxGames = cfg?.display?.rr_chart_games ?? 20;
+  const dataPoints = rrHistory.slice(-maxGames);
+  if (dataPoints.length < 2) {
+    rrChartEl.innerHTML = '';
+    return;
+  }
+
+  const W = 200, H = 40;
+  const minRR = Math.min(...dataPoints);
+  const maxRR = Math.max(...dataPoints);
+  const rangeRR = maxRR - minRR || 1;
+
+  let path = '';
+  for (let i = 0; i < dataPoints.length; i++) {
+    const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
+    const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
+    path += (i === 0 ? 'M' : 'L') + x + ',' + y;
+  }
+
+  rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
+    <polyline points="${path}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
+  </svg>`;
 }
 
 // ── WebSocket connection management ────────────────────────────

@@ -1066,8 +1066,8 @@ input[type="color"]:focus {
         <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
       <div class="preview-btns">
-        <button class="preview-refresh" onclick="refreshPreview()">↻ Actualiser</button>
-        <button class="preview-bg-btn" onclick="cyclePreviewBg()">◐ Changer le fond</button>
+        <button id="refreshPreviewBtn" class="preview-refresh">↻ Actualiser</button>
+        <button id="cycleBgBtn" class="preview-bg-btn">◐ Changer le fond</button>
       </div>
     </div>
 
@@ -1092,20 +1092,49 @@ input[type="color"]:focus {
 
 </div><!-- /layout -->
 
+<script src="/js/valo-constants.js"></script>
 <script>
+const { DISPLAY: LS_DISPLAY, ACCOUNT_CHANGE: LS_ACCOUNT_CHANGE, TEST_ANIMATION: LS_TEST_ANIMATION } = window.VALO_KEYS;
+
+// ── DOM element cache ────────────────────────────────────────
+const $ = (id) => ($._c[id] ||= document.getElementById(id));
+$._c = {};
+
+// ── Preview layout (px contributions of each module) ─────────
+const PREVIEW_H = { base: 88, peak: 16, session: 18, match: 52, streak: 40 };
+const PREVIEW_BG_PAD = 32;
+const PREVIEW_FRAME_PAD = 20;
+
+// ── Render a "Compte ..." status line as safe DOM (avoids XSS) ─
+function renderAccountStatus(name, tag, region) {
+  const text = $('statusText');
+  text.textContent = '';
+  if (!name || !tag) {
+    $('statusDot').className = 'status-dot err';
+    text.textContent = 'Aucun compte configuré — remplis le formulaire';
+    return;
+  }
+  $('statusDot').className = 'status-dot ok';
+  const strongAcc = document.createElement('strong');
+  strongAcc.textContent = `${name}#${tag}`;
+  const strongReg = document.createElement('strong');
+  strongReg.textContent = (region || '').toUpperCase();
+  text.append('Compte actif : ', strongAcc, ' — région ', strongReg);
+}
+
 const base = window.location.origin;
-document.getElementById('overlayLink').textContent = base + '/index.html';
+$('overlayLink').textContent = base + '/index.html';
 
 // Mode client : masque les infos OBS si ?client=1
 if (new URLSearchParams(window.location.search).has('client')) {
-  document.getElementById('obsDimsCard').style.display = 'none';
-  document.getElementById('obsLinkCard').style.display = 'none';
+  $('obsDimsCard').style.display = 'none';
+  $('obsLinkCard').style.display = 'none';
 }
 
 // ── Copy ─────────────────────────────────────────────────────
-document.getElementById('copyBtn').addEventListener('click', () => {
-  const text = document.getElementById('overlayLink').textContent;
-  const btn = document.getElementById('copyBtn');
+$('copyBtn').addEventListener('click', () => {
+  const text = $('overlayLink').textContent;
+  const btn = $('copyBtn');
   const copy = () => {
     btn.textContent = '✓ Copié'; btn.classList.add('copied');
     setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
@@ -1113,192 +1142,142 @@ document.getElementById('copyBtn').addEventListener('click', () => {
   navigator.clipboard?.writeText(text).then(copy).catch(() => {
     const ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta); copy();
+    try { document.execCommand('copy'); copy(); } finally { document.body.removeChild(ta); }
   });
 });
 
-// ── Save to localStorage ──────────────────────────────────────
-// ── Show save notification ────────────────────────────
+// ── Save notification ────────────────────────────────────────
 let saveNotifTimeout;
 function showSaveNotification() {
-  const notif = document.getElementById('saveNotification');
+  const notif = $('saveNotification');
   notif.classList.add('show');
   clearTimeout(saveNotifTimeout);
-  saveNotifTimeout = setTimeout(() => {
-    notif.classList.remove('show');
-  }, 2000);
+  saveNotifTimeout = setTimeout(() => notif.classList.remove('show'), 2000);
 }
 
 function getDisplayFromForm() {
   return {
-    bg_opacity:      parseFloat(document.getElementById('bgOpacity').value),
-    accent_color:    document.getElementById('accentPicker').value || '#ffffff',
+    bg_opacity:      parseFloat($('bgOpacity').value),
+    accent_color:    $('accentPicker').value || '#ffffff',
     text_primary:    '#ffffff',
     text_secondary:  'rgba(255,255,255,0.6)',
-    text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
-    widget_width:    parseInt(document.getElementById('widgetWidth').value),
-    show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
-    peak_inline:     document.getElementById('peakRankMode').value === 'inline',
+    text_tertiary:   $('textTertiaryPicker').value || '#666666',
+    widget_width:    parseInt($('widgetWidth').value),
+    show_peak_rank:  $('peakRankMode').value !== 'off',
+    peak_inline:     $('peakRankMode').value === 'inline',
     peak_align:      currentPeakAlign,
-    show_last_match: document.getElementById('showLastMatch').checked,
-    show_streak:     document.getElementById('showStreak').checked,
-    realtime_notifications: document.getElementById('realtimeNotifications').checked,
-    animation_type:  document.getElementById('animationType').value,
+    show_last_match: $('showLastMatch').checked,
+    show_streak:     $('showStreak').checked,
+    realtime_notifications: $('realtimeNotifications').checked,
+    animation_type:  $('animationType').value,
   };
 }
 
 function saveToLocalStorage() {
-  localStorage.setItem('valo_display', JSON.stringify(getDisplayFromForm()));
+  localStorage.setItem(LS_DISPLAY, JSON.stringify(getDisplayFromForm()));
   showSaveNotification();
 }
 
-// ── Preview ───────────────────────────────────────────────────
 // ── Peak align ────────────────────────────────────────────────
 let currentPeakAlign = 'left';
 
-document.getElementById('peakAlignLeft').addEventListener('click', () => {
+$('peakAlignLeft').addEventListener('click', () => {
   currentPeakAlign = 'left';
-  document.getElementById('peakAlignLeft').classList.add('active');
-  document.getElementById('peakAlignRight').classList.remove('active');
-  saveToLocalStorage();
+  $('peakAlignLeft').classList.add('active');
+  $('peakAlignRight').classList.remove('active');
   scheduleAutoSave();
 });
 
-document.getElementById('peakAlignRight').addEventListener('click', () => {
+$('peakAlignRight').addEventListener('click', () => {
   currentPeakAlign = 'right';
-  document.getElementById('peakAlignRight').classList.add('active');
-  document.getElementById('peakAlignLeft').classList.remove('active');
-  saveToLocalStorage();
+  $('peakAlignRight').classList.add('active');
+  $('peakAlignLeft').classList.remove('active');
   scheduleAutoSave();
 });
 
-// ── Preview background cycle ──────────────────────────────────
+// ── Preview ───────────────────────────────────────────────────
 const previewBgs = ['map4', 'dark', 'map1', 'map2', 'map3'];
 let currentBgIndex = 0;
 
 function cyclePreviewBg() {
   currentBgIndex = (currentBgIndex + 1) % previewBgs.length;
-  document.getElementById('previewBg').setAttribute('data-bg', previewBgs[currentBgIndex]);
+  $('previewBg').setAttribute('data-bg', previewBgs[currentBgIndex]);
 }
 
 function refreshPreview() {
-  const frame = document.getElementById('previewFrame');
-  const w = parseInt(document.getElementById('widgetWidth').value) || 300;
+  const frame = $('previewFrame');
+  const w = parseInt($('widgetWidth').value) || 300;
   const h = calcHeight();
   frame.width = w;
   frame.height = h;
-  document.getElementById('previewBg').style.minHeight = (h + 32) + 'px';
+  $('previewBg').style.minHeight = (h + PREVIEW_BG_PAD) + 'px';
   frame.src = '/index.html?preview=1&t=' + Date.now();
 }
 
-// Delayed refresh (2s after last change)
-let previewRefreshTimeout;
-function scheduleRefreshPreview() {
-  clearTimeout(previewRefreshTimeout);
-  previewRefreshTimeout = setTimeout(refreshPreview, 2000);
-}
+$('refreshPreviewBtn')?.addEventListener('click', refreshPreview);
+$('cycleBgBtn')?.addEventListener('click', cyclePreviewBg);
 
 function calcHeight() {
-  // Always show max height (all modules enabled) for consistent preview size
-  let h = 88;  // Base height
-  h += 16;     // Peak rank (below)
-  h += 18;     // Session RR
-  h += 52;     // Last match
-  h += 40;     // Streak
-  return h;    // Always ~214px
+  // Max height with every module visible — keeps the preview iframe stable
+  return PREVIEW_H.base + PREVIEW_H.peak + PREVIEW_H.session + PREVIEW_H.match + PREVIEW_H.streak;
 }
 
 function updateObsDims() {
-  const w = parseInt(document.getElementById('widgetWidth').value) || 300;
-  document.getElementById('obsDimW').textContent = w;
-  document.getElementById('obsDimH').textContent = '~' + calcHeight();
-  document.getElementById('previewFrame').width  = w;
-  document.getElementById('previewFrame').height = calcHeight() + 20;
+  const w = parseInt($('widgetWidth').value) || 300;
+  const h = calcHeight();
+  $('obsDimW').textContent = w;
+  $('obsDimH').textContent = '~' + h;
+  $('previewFrame').width  = w;
+  $('previewFrame').height = h + PREVIEW_FRAME_PAD;
 }
 
-
-// ── Opacity slider ────────────────────────────────────────────
-document.getElementById('bgOpacity').addEventListener('input', function() {
-  document.getElementById('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
-  saveToLocalStorage();
-  scheduleAutoSave();
+// ── Input handlers (scheduleAutoSave handles save + notify) ───
+$('bgOpacity').addEventListener('input', function() {
+  $('bgOpacityVal').textContent = parseFloat(this.value).toFixed(2);
 });
 
-// ── Color picker sync ─────────────────────────────────────────
-document.getElementById('accentPicker').addEventListener('input', function() {
-  saveToLocalStorage();
-  scheduleAutoSave();
-});
-document.getElementById('textTertiaryPicker').addEventListener('input', function() {
-  saveToLocalStorage();
-  scheduleAutoSave();
-});
-
-// ── Toggle dims update ────────────────────────────────────────
-['showLastMatch','showStreak'].forEach(id => {
-  document.getElementById(id).addEventListener('change', () => {
-    saveToLocalStorage();
-    updateObsDims();
-    scheduleAutoSave();
-  });
-});
-document.getElementById('peakRankMode').addEventListener('change', () => {
-  saveToLocalStorage();
-  updateObsDims();
-  scheduleAutoSave();
-});
-document.getElementById('widgetWidth').addEventListener('change', () => {
-  saveToLocalStorage();
-  updateObsDims();
-  scheduleAutoSave();
+['showLastMatch', 'showStreak', 'peakRankMode', 'widgetWidth'].forEach(id => {
+  $(id).addEventListener('change', updateObsDims);
 });
 
 // ── Account fields ────────────────────────────────────────────
-['riotName', 'riotTag'].forEach(id => {
-  document.getElementById(id).addEventListener('input', () => {
-    updateStatusBar();
-    // Don't refresh on input, wait for blur or auto-save
-  });
-});
-document.getElementById('riotRegion').addEventListener('change', () => {
-  updateStatusBar();
-  // Account fields only save when "Se connecter" is clicked
+['riotName', 'riotTag', 'riotRegion'].forEach(id => {
+  const el = $(id);
+  const update = () => renderAccountStatus(
+    $('riotName').value.trim(),
+    $('riotTag').value.trim(),
+    $('riotRegion').value,
+  );
+  el.addEventListener('input', update);
+  el.addEventListener('change', update);
 });
 
 // ── Account connection ────────────────────────────────────────
-let isAccountConnected = false;
+// Single source of truth: null = disconnected, 'Name#Tag' = connected.
 let connectedAccount = null;
 
 function updateAccountUI() {
-  const connectBtn = document.getElementById('connectBtn');
-  const connectedBtns = document.getElementById('connectedBtns');
-
-  if (isAccountConnected && connectedAccount) {
-    connectBtn.style.display = 'none';
-    connectedBtns.style.display = 'flex';
-  } else {
-    connectBtn.style.display = 'block';
-    connectedBtns.style.display = 'none';
-  }
+  const isConnected = connectedAccount !== null;
+  $('connectBtn').style.display = isConnected ? 'none' : 'block';
+  $('connectedBtns').style.display = isConnected ? 'flex' : 'none';
 }
 
 async function validateAccount() {
-  const riotName = document.getElementById('riotName').value.trim();
-  const riotTag = document.getElementById('riotTag').value.trim();
-  const riotRegion = document.getElementById('riotRegion').value;
+  const riotName = $('riotName').value.trim();
+  const riotTag = $('riotTag').value.trim();
+  const riotRegion = $('riotRegion').value;
 
   if (!riotName || !riotTag) {
     alert('Veuillez remplir le pseudo et le tag');
     return;
   }
 
-  const connectBtn = document.getElementById('connectBtn');
+  const connectBtn = $('connectBtn');
   const originalText = connectBtn.textContent;
   connectBtn.textContent = 'Vérification...';
   connectBtn.disabled = true;
 
   try {
-    // First, save the config to server
     const body = {
       riot_name:   riotName,
       riot_tag:    riotTag,
@@ -1315,217 +1294,139 @@ async function validateAccount() {
     if (!configRes.ok) {
       const error = await configRes.json();
       alert('Erreur de sauvegarde: ' + (error.error || 'Erreur inconnue'));
-      connectBtn.textContent = originalText;
-      connectBtn.disabled = false;
       return;
     }
 
-    // Small delay to ensure server is ready with new config
     await new Promise(r => setTimeout(r, 200));
 
-    // Then test the account by fetching rank data
     const rankRes = await fetch('/api/rank');
     const rankData = await rankRes.json();
 
     if (rankRes.ok) {
-      isAccountConnected = true;
       connectedAccount = `${riotName}#${riotTag}`;
-      lastSavedAccount = connectedAccount;
       updateAccountUI();
-      connectBtn.textContent = originalText;
-      connectBtn.disabled = false;
-
-      // Trigger account change event to notify other pages
-      localStorage.setItem('valo_account_change', Date.now().toString());
-
-      // Refresh preview when account is successfully connected
+      localStorage.setItem(LS_ACCOUNT_CHANGE, Date.now().toString());
       refreshPreview();
     } else {
       alert('Compte introuvable: ' + (rankData.error || 'Vérifiez le pseudo, tag et région'));
-      connectBtn.textContent = originalText;
-      connectBtn.disabled = false;
     }
   } catch(e) {
     alert('Erreur de connexion au serveur');
     console.error(e);
+  } finally {
     connectBtn.textContent = originalText;
     connectBtn.disabled = false;
   }
 }
 
 function changeAccount() {
-  isAccountConnected = false;
   connectedAccount = null;
   updateAccountUI();
-  document.getElementById('riotName').focus();
+  $('riotName').focus();
 }
 
 function disconnectAccount() {
-  if (confirm('Êtes-vous sûr de vouloir déconnecter ce compte?')) {
-    document.getElementById('riotName').value = '';
-    document.getElementById('riotTag').value = '';
-    isAccountConnected = false;
-    connectedAccount = null;
-    updateAccountUI();
-    updateStatusBar();
-    autoSave();
-  }
+  if (!confirm('Êtes-vous sûr de vouloir déconnecter ce compte?')) return;
+  $('riotName').value = '';
+  $('riotTag').value = '';
+  connectedAccount = null;
+  updateAccountUI();
+  renderAccountStatus('', '', $('riotRegion').value);
+  autoSave();
 }
 
-document.getElementById('connectBtn').addEventListener('click', validateAccount);
-document.getElementById('changeAccountBtn').addEventListener('click', changeAccount);
-document.getElementById('disconnectBtn').addEventListener('click', disconnectAccount);
-
-// Check if account is already configured on page load
-function checkAccountStatus() {
-  const riotName = document.getElementById('riotName').value.trim();
-  const riotTag = document.getElementById('riotTag').value.trim();
-  if (riotName && riotTag) {
-    isAccountConnected = true;
-    connectedAccount = `${riotName}#${riotTag}`;
-    updateAccountUI();
-  }
-}
+$('connectBtn').addEventListener('click', validateAccount);
+$('changeAccountBtn').addEventListener('click', changeAccount);
+$('disconnectBtn').addEventListener('click', disconnectAccount);
 
 // ── Test animations ──────────────────────────────────────────
 function sendTestAnimation(type, isMatch = false) {
-  // Send via localStorage (works across all pages/tabs of same origin)
-  localStorage.setItem('valo_test_animation', JSON.stringify({
-    type,
-    isMatch,
-    ts: Date.now()
-  }));
-
-  // Also send to iframe preview
-  const iframe = document.getElementById('previewFrame');
+  localStorage.setItem(LS_TEST_ANIMATION, JSON.stringify({ type, isMatch, ts: Date.now() }));
+  const iframe = $('previewFrame');
   if (iframe?.contentWindow) {
-    const msgType = isMatch ? 'matchtest' : 'ranktest';
     iframe.contentWindow.postMessage({
-      type: msgType,
-      detail: { type }
+      type: isMatch ? 'matchtest' : 'ranktest',
+      detail: { type },
     }, '*');
   }
 }
 
-document.getElementById('testRankUp').addEventListener('click', () => sendTestAnimation('rankup'));
-document.getElementById('testRankDown').addEventListener('click', () => sendTestAnimation('rankdown'));
-document.getElementById('testWin').addEventListener('click', () => sendTestAnimation('win', true));
-document.getElementById('testLose').addEventListener('click', () => sendTestAnimation('lose', true));
+$('testRankUp').addEventListener('click',   () => sendTestAnimation('rankup'));
+$('testRankDown').addEventListener('click', () => sendTestAnimation('rankdown'));
+$('testWin').addEventListener('click',      () => sendTestAnimation('win', true));
+$('testLose').addEventListener('click',     () => sendTestAnimation('lose', true));
 
 // ── Load config ───────────────────────────────────────────────
 async function loadConfig() {
-  const dot  = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
   try {
     const r   = await fetch('/api/config');
     const cfg = await r.json();
 
-    document.getElementById('riotName').value   = cfg.riot_name   || '';
-    document.getElementById('riotTag').value    = cfg.riot_tag    || '';
-    document.getElementById('riotRegion').value = cfg.riot_region || 'eu';
+    $('riotName').value   = cfg.riot_name   || '';
+    $('riotTag').value    = cfg.riot_tag    || '';
+    $('riotRegion').value = cfg.riot_region || 'eu';
 
-    // Initialize lastSavedAccount to track account changes
     if (cfg.riot_name && cfg.riot_tag) {
-      lastSavedAccount = `${cfg.riot_name}#${cfg.riot_tag}`;
+      connectedAccount = `${cfg.riot_name}#${cfg.riot_tag}`;
     }
 
-    // Display
     const d = cfg.display || {};
     if (d.bg_opacity !== undefined) {
-      document.getElementById('bgOpacity').value = d.bg_opacity;
-      document.getElementById('bgOpacityVal').textContent = parseFloat(d.bg_opacity).toFixed(2);
+      $('bgOpacity').value = d.bg_opacity;
+      $('bgOpacityVal').textContent = parseFloat(d.bg_opacity).toFixed(2);
     }
-    if (d.accent_color) {
-      document.getElementById('accentPicker').value = d.accent_color;
-    }
-    if (d.text_tertiary) {
-      document.getElementById('textTertiaryPicker').value = d.text_tertiary;
-    }
-    if (d.widget_width)    document.getElementById('widgetWidth').value   = d.widget_width;
+    if (d.accent_color)   $('accentPicker').value = d.accent_color;
+    if (d.text_tertiary)  $('textTertiaryPicker').value = d.text_tertiary;
+    if (d.widget_width)   $('widgetWidth').value = d.widget_width;
     if (d.show_peak_rank !== undefined || d.peak_inline !== undefined) {
-      const mode = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
-      document.getElementById('peakRankMode').value = mode;
+      $('peakRankMode').value = !d.show_peak_rank ? 'off' : d.peak_inline ? 'inline' : 'below';
     }
-    if (d.peak_align) {
-      currentPeakAlign = d.peak_align;
-      document.getElementById('peakAlignLeft').classList.toggle('active', d.peak_align === 'left');
-      document.getElementById('peakAlignRight').classList.toggle('active', d.peak_align === 'right');
-    } else {
-      document.getElementById('peakAlignLeft').classList.add('active');
-    }
-    if (d.show_last_match !== undefined) document.getElementById('showLastMatch').checked  = d.show_last_match;
-    if (d.show_streak     !== undefined) document.getElementById('showStreak').checked     = d.show_streak;
-    if (d.realtime_notifications !== undefined) document.getElementById('realtimeNotifications').checked = d.realtime_notifications;
-    if (d.animation_type) document.getElementById('animationType').value = d.animation_type;
+    currentPeakAlign = d.peak_align || 'left';
+    $('peakAlignLeft').classList.toggle('active', currentPeakAlign === 'left');
+    $('peakAlignRight').classList.toggle('active', currentPeakAlign === 'right');
+    if (d.show_last_match !== undefined) $('showLastMatch').checked = d.show_last_match;
+    if (d.show_streak     !== undefined) $('showStreak').checked    = d.show_streak;
+    if (d.realtime_notifications !== undefined) $('realtimeNotifications').checked = d.realtime_notifications;
+    if (d.animation_type) $('animationType').value = d.animation_type;
 
-    // Status
-    const hasAccount = !!(cfg.riot_name && cfg.riot_tag);
-    if (hasAccount) {
-      dot.className  = 'status-dot ok';
-      text.innerHTML = `Compte actif : <strong>${cfg.riot_name}#${cfg.riot_tag}</strong> — région <strong>${cfg.riot_region?.toUpperCase()}</strong>`;
-      // Pre-fetch rank and matches to warm up server cache and have Peak Rank ready
-      // When the preview iframe loads or Peak Rank is enabled, data will be cached and instant
-      (async () => {
-        await Promise.all([
-          fetch('/api/rank').catch(() => {}),
-          fetch('/api/matches?size=5').catch(() => {})
-        ]);
-      })();
-    } else {
-      dot.className  = 'status-dot err';
-      text.innerHTML = 'Aucun compte configuré — remplis le formulaire';
+    renderAccountStatus(cfg.riot_name, cfg.riot_tag, cfg.riot_region);
+
+    if (cfg.riot_name && cfg.riot_tag) {
+      // Warm server cache so the preview iframe has data ready
+      Promise.all([
+        fetch('/api/rank').catch(() => {}),
+        fetch('/api/matches?size=5').catch(() => {}),
+      ]);
     }
 
     updateObsDims();
     saveToLocalStorage();
     refreshPreview();
-    // Update account connection UI
-    checkAccountStatus();
+    updateAccountUI();
   } catch(e) {
-    dot.className  = 'status-dot err';
-    text.textContent = 'Impossible de contacter le serveur';
+    $('statusDot').className  = 'status-dot err';
+    $('statusText').textContent = 'Impossible de contacter le serveur';
   }
 }
 
-// ── Update status bar (called when inputs change) ────────
-function updateStatusBar() {
-  const dot  = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  const riotName = document.getElementById('riotName').value.trim();
-  const riotTag = document.getElementById('riotTag').value.trim();
-  const riotRegion = document.getElementById('riotRegion').value;
-
-  const hasAccount = !!(riotName && riotTag);
-  if (hasAccount) {
-    dot.className  = 'status-dot ok';
-    text.innerHTML = `Compte actif : <strong>${riotName}#${riotTag}</strong> — région <strong>${riotRegion.toUpperCase()}</strong>`;
-  } else {
-    dot.className  = 'status-dot err';
-    text.innerHTML = 'Aucun compte configuré — remplis le formulaire';
-  }
-}
-
-// ── Auto-save ─────────────────────────────────────────────
+// ── Auto-save ─────────────────────────────────────────────────
 let autoSaveTimeout;
-let lastSavedAccount = null;
 
 async function autoSave() {
-  const riotName = document.getElementById('riotName').value.trim();
-  const riotTag  = document.getElementById('riotTag').value.trim();
-
-  if (!riotName || !riotTag) return; // Don't save incomplete config
+  const riotName = $('riotName').value.trim();
+  const riotTag  = $('riotTag').value.trim();
+  if (!riotName || !riotTag) return;
 
   const currentAccount = `${riotName}#${riotTag}`;
-  const accountChanged = lastSavedAccount !== currentAccount;
+  const accountChanged = connectedAccount !== currentAccount;
 
   const body = {
     riot_name:   riotName,
     riot_tag:    riotTag,
-    riot_region: document.getElementById('riotRegion').value,
+    riot_region: $('riotRegion').value,
     display:     getDisplayFromForm(),
   };
 
-  saveToLocalStorage();
   try {
     const res = await fetch('/api/config', {
       method:  'POST',
@@ -1539,17 +1440,15 @@ async function autoSave() {
       return;
     }
 
-    lastSavedAccount = currentAccount;
+    connectedAccount = currentAccount;
 
-    // Pre-fetch to warm up server cache after config change
-    fetch('/api/rank').catch(() => {});
-    fetch('/api/matches?size=5').catch(() => {});
-
-    // Notify widget pages of account change for instant refresh (after small delay to ensure server is ready)
     if (accountChanged) {
-      setTimeout(() => {
-        localStorage.setItem('valo_account_change', Date.now().toString());
-      }, 100);
+      // Warm server cache for the new account, then notify widgets
+      Promise.all([
+        fetch('/api/rank').catch(() => {}),
+        fetch('/api/matches?size=5').catch(() => {}),
+      ]);
+      setTimeout(() => localStorage.setItem(LS_ACCOUNT_CHANGE, Date.now().toString()), 100);
     }
   } catch(e) {
     console.error('Error during config save:', e);
@@ -1557,29 +1456,16 @@ async function autoSave() {
 }
 
 function scheduleAutoSave() {
+  saveToLocalStorage();              // sync preview iframe immediately
   clearTimeout(autoSaveTimeout);
-  autoSaveTimeout = setTimeout(autoSave, 300); // Save 300ms after last change
+  autoSaveTimeout = setTimeout(autoSave, 300);
 }
 
-// Add auto-save to all inputs (except account fields which only save when "Se connecter" is clicked)
+// Auto-save on any form input (except account fields, which save via "Se connecter")
 document.querySelectorAll('input[type=text], input[type=password], input[type=color], input[type=range], select, input[type=checkbox]').forEach(el => {
-  // Skip account fields (riotName, riotTag, riotRegion)
   if (el.id === 'riotName' || el.id === 'riotTag' || el.id === 'riotRegion') return;
-
   el.addEventListener('change', scheduleAutoSave);
   el.addEventListener('input', scheduleAutoSave);
-});
-
-// Ensure animationType also triggers auto-save
-document.getElementById('animationType').addEventListener('change', () => {
-  saveToLocalStorage();
-  scheduleAutoSave();
-});
-
-// Update status bar when account fields change
-['riotName', 'riotTag', 'riotRegion'].forEach(id => {
-  document.getElementById(id).addEventListener('input', updateStatusBar);
-  document.getElementById(id).addEventListener('change', updateStatusBar);
 });
 
 loadConfig();

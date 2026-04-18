@@ -106,7 +106,6 @@ const DEFAULT_DISPLAY = {
   realtime_notifications: true,
   animation_type:         "both",
   show_account:           true,
-  theme:                  "default",
   stat_animations:        "fade",
   corner_radius:          10,
   show_agent_icon:        true,
@@ -120,7 +119,6 @@ const DEFAULT_DISPLAY = {
 const REGIONS = new Set(["eu", "na", "ap", "kr", "latam", "br"]);
 const ANIMATION_TYPES = new Set(["rank", "match", "both", "none"]);
 const PEAK_ALIGN = new Set(["left", "right"]);
-const THEMES = new Set(["default", "compact", "dark"]);
 const STAT_ANIMATIONS = new Set(["none", "fade", "slide"]);
 const AGENT_ICON_SIZES = new Set(["small", "large"]);
 const WINRATE_FORMATS = new Set(["detailed", "short", "percentage"]);
@@ -159,7 +157,6 @@ function sanitizeDisplay(d) {
     realtime_notifications: d.realtime_notifications === undefined ? DEFAULT_DISPLAY.realtime_notifications : !!d.realtime_notifications,
     animation_type:         ANIMATION_TYPES.has(d.animation_type) ? d.animation_type : DEFAULT_DISPLAY.animation_type,
     show_account:           d.show_account            === undefined ? DEFAULT_DISPLAY.show_account            : !!d.show_account,
-    theme:                  THEMES.has(d.theme) ? d.theme : DEFAULT_DISPLAY.theme,
     stat_animations:        STAT_ANIMATIONS.has(d.stat_animations) ? d.stat_animations : DEFAULT_DISPLAY.stat_animations,
     corner_radius:          Math.floor(clampNum(d.corner_radius, 0, 20, DEFAULT_DISPLAY.corner_radius)),
     show_agent_icon:        d.show_agent_icon === undefined ? DEFAULT_DISPLAY.show_agent_icon : !!d.show_agent_icon,

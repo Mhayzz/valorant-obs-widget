@@ -1098,17 +1098,6 @@ input[type="color"]:focus {
         </div>
         <div class="opt-row">
           <div class="opt-info">
-            <div class="opt-label">Thème</div>
-            <div class="opt-sub">Style global de l'overlay</div>
-          </div>
-          <select id="theme" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-            <option value="default">Par défaut</option>
-            <option value="compact">Compact</option>
-            <option value="dark">Sombre</option>
-          </select>
-        </div>
-        <div class="opt-row">
-          <div class="opt-info">
             <div class="opt-label">Rayon des coins</div>
             <div class="opt-sub" id="cornerRadiusLabel">10px</div>
           </div>
@@ -1265,7 +1254,6 @@ function getDisplayFromForm() {
     realtime_notifications: $('realtimeNotifications').checked,
     animation_type:  $('animationType').value,
     show_account:    $('showAccount').checked,
-    theme:           $('theme').value,
     corner_radius:   parseInt($('cornerRadius').value),
     stat_animations: $('statAnimations').value,
     show_agent_icon: $('showAgentIcon').checked,
@@ -1500,7 +1488,6 @@ async function loadConfig() {
     if (d.realtime_notifications !== undefined) $('realtimeNotifications').checked = d.realtime_notifications;
     if (d.animation_type) $('animationType').value = d.animation_type;
     if (d.show_account !== undefined) $('showAccount').checked = d.show_account;
-    if (d.theme) $('theme').value = d.theme;
     if (d.corner_radius !== undefined) {
       $('cornerRadius').value = d.corner_radius;
       $('cornerRadiusLabel').textContent = d.corner_radius + 'px';

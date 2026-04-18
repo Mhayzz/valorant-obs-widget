@@ -19,6 +19,7 @@ let lastRankTier = null;
 let lastMatchId = null;
 let lastStreakSig = null;
 let lastSessionStorageCleared = null;
+let playerName = "";
 
 // ── DOM element cache ────────────────────────────────────────
 let domCache = {};
@@ -56,7 +57,13 @@ function shouldAnimate(kind) {
 
 // ── Render helpers (shared by HTTP refresh and WebSocket handlers) ──
 function applyRankData(d) {
-  getElement('rankName').textContent = d.rank;
+  playerName = d.player || "";
+  if (cfg?.display?.show_account) {
+    const rankEl = getElement('rankName');
+    rankEl.innerHTML = `<span style="display:block;font-size:8px;opacity:0.6;margin-bottom:2px;">${playerName}</span>${d.rank}`;
+  } else {
+    getElement('rankName').textContent = d.rank;
+  }
   getElement('rrLabel').textContent  = d.rr + ' RR';
   getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
 
@@ -137,6 +144,16 @@ function calculateWinRate(matches) {
   return { wins, losses, draws, pct };
 }
 
+function formatWinRate(wr, format) {
+  if (wr.wins + wr.losses + wr.draws === 0) return '';
+  switch (format) {
+    case 'percentage': return wr.pct + '%';
+    case 'short': return `${wr.wins}-${wr.losses}${wr.draws > 0 ? '-' + wr.draws : ''}`;
+    case 'detailed':
+    default: return `${wr.wins}-${wr.losses}${wr.draws > 0 ? '-' + wr.draws : ''} (${wr.pct}%)`;
+  }
+}
+
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
   const r = document.documentElement;
@@ -150,7 +167,11 @@ function applyDisplay(d) {
   r.style.setProperty('--text-secondary', d.text_secondary || 'rgba(255,255,255,0.6)');
   r.style.setProperty('--text-tertiary', d.text_tertiary || 'rgba(255,255,255,0.3)');
   r.style.setProperty('--w', (d.widget_width || 300) + 'px');
+  r.style.setProperty('--radius', (d.corner_radius ?? 10) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
+
+  // Theme
+  document.body.className = 'overlay ' + (d.theme || 'default') + '-theme ' + (d.stat_animations ? d.stat_animations + '-anim' : '');
 
   // Peak rank: inline (next to rank name) or below
   const peakInline = d.peak_inline ?? false;
@@ -170,6 +191,16 @@ function applyDisplay(d) {
     (d.show_last_match ?? true) ? 'flex' : 'none';
   getElement('streakCard').style.display =
     (d.show_streak ?? true) ? 'flex' : 'none';
+
+  // Agent icon visibility
+  const matchIcon = getElement('matchIcon');
+  if (d.show_agent_icon === false) {
+    matchIcon.style.display = 'none';
+  } else {
+    matchIcon.style.display = 'block';
+    matchIcon.style.width = (d.agent_icon_size === 'large' ? '50px' : '30px');
+    matchIcon.style.height = (d.agent_icon_size === 'large' ? '50px' : '30px');
+  }
 }
 
 // ── Animations ──────────────────────────────────────────────
@@ -276,11 +307,8 @@ async function refreshMatches() {
 
         const wr = calculateWinRate(matches);
         const wrEl = getElement('winRate');
-        if (wr.wins + wr.losses + wr.draws > 0) {
-          wrEl.textContent = `${wr.wins}-${wr.losses}${wr.draws > 0 ? '-' + wr.draws : ''} (${wr.pct}%)`;
-        } else {
-          wrEl.textContent = '';
-        }
+        const fmt = cfg?.display?.winrate_format || 'detailed';
+        wrEl.textContent = formatWinRate(wr, fmt);
       }
     }
   } catch(e) {

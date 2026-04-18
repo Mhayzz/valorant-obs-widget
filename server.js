@@ -92,25 +92,36 @@ async function fetchWithRetry(url, options = {}, retries = MAX_RETRIES) {
 const CONFIG_PATH = path.join(__dirname, "data", "config.json");
 
 const DEFAULT_DISPLAY = {
-  bg_opacity:           0.50,
-  accent_color:         "#ffffff",
-  text_primary:         "#ffffff",
-  text_secondary:       "rgba(255,255,255,0.6)",
-  text_tertiary:        "rgba(255,255,255,0.3)",
-  show_peak_rank:       false,
-  peak_inline:          false,
-  peak_align:           "left",
-  show_last_match:      true,
-  show_streak:          true,
-  widget_width:         300,
+  bg_opacity:             0.50,
+  accent_color:           "#ffffff",
+  text_primary:           "#ffffff",
+  text_secondary:         "rgba(255,255,255,0.6)",
+  text_tertiary:          "rgba(255,255,255,0.3)",
+  show_peak_rank:         false,
+  peak_inline:            false,
+  peak_align:             "left",
+  show_last_match:        true,
+  show_streak:            true,
+  widget_width:           300,
   realtime_notifications: true,
-  animation_type:       "both",
+  animation_type:         "both",
+  show_account:           true,
+  theme:                  "default",
+  stat_animations:        "fade",
+  corner_radius:          10,
+  show_agent_icon:        true,
+  agent_icon_size:        "small",
+  winrate_format:         "detailed",
 };
 
 // ── Input validation ───────────────────────────────────────
 const REGIONS = new Set(["eu", "na", "ap", "kr", "latam", "br"]);
 const ANIMATION_TYPES = new Set(["rank", "match", "both", "none"]);
 const PEAK_ALIGN = new Set(["left", "right"]);
+const THEMES = new Set(["default", "compact", "dark"]);
+const STAT_ANIMATIONS = new Set(["none", "fade", "slide"]);
+const AGENT_ICON_SIZES = new Set(["small", "large"]);
+const WINRATE_FORMATS = new Set(["detailed", "short", "percentage"]);
 // Accepts #RGB/#RGBA/#RRGGBB/#RRGGBBAA or rgb()/rgba() with 0-255 components.
 const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\))$/;
 const CONTROL_CHARS = /[\x00-\x1f\x7f]/;
@@ -145,6 +156,13 @@ function sanitizeDisplay(d) {
     widget_width:           Math.floor(clampNum(d.widget_width, 100, 2000, DEFAULT_DISPLAY.widget_width)),
     realtime_notifications: d.realtime_notifications === undefined ? DEFAULT_DISPLAY.realtime_notifications : !!d.realtime_notifications,
     animation_type:         ANIMATION_TYPES.has(d.animation_type) ? d.animation_type : DEFAULT_DISPLAY.animation_type,
+    show_account:           d.show_account            === undefined ? DEFAULT_DISPLAY.show_account            : !!d.show_account,
+    theme:                  THEMES.has(d.theme) ? d.theme : DEFAULT_DISPLAY.theme,
+    stat_animations:        STAT_ANIMATIONS.has(d.stat_animations) ? d.stat_animations : DEFAULT_DISPLAY.stat_animations,
+    corner_radius:          Math.floor(clampNum(d.corner_radius, 0, 20, DEFAULT_DISPLAY.corner_radius)),
+    show_agent_icon:        d.show_agent_icon === undefined ? DEFAULT_DISPLAY.show_agent_icon : !!d.show_agent_icon,
+    agent_icon_size:        AGENT_ICON_SIZES.has(d.agent_icon_size) ? d.agent_icon_size : DEFAULT_DISPLAY.agent_icon_size,
+    winrate_format:         WINRATE_FORMATS.has(d.winrate_format) ? d.winrate_format : DEFAULT_DISPLAY.winrate_format,
   };
 }
 

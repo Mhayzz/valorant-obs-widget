@@ -179,93 +179,32 @@ body.obs-mode .card {
 .overlay-content.hidden { display:none; }
 
 /* ── Rank animations ─────────────────────────────────────── */
-@keyframes rankup-glow {
+@keyframes rank-glow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
 
-@keyframes rankdown-glow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.rank-card.animate-rankup {
+.card.rank-card.animate-rankup,
+.card.rank-card.animate-win {
   position: relative;
   background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
               linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5);
   background-size: 100% 100%, 200% 200%;
-  animation: rankup-glow 0.8s ease-in-out;
+  animation: rank-glow 0.8s ease-in-out;
   border: 2px solid #5fffb5;
   box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
 }
 
-.rank-card.animate-rankdown {
+.card.rank-card.animate-rankdown,
+.card.rank-card.animate-lose {
   position: relative;
   background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
               linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060);
   background-size: 100% 100%, 200% 200%;
-  animation: rankdown-glow 0.8s ease-in-out;
+  animation: rank-glow 0.8s ease-in-out;
   border: 2px solid #ff5060;
   box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
-}
-
-.rank-card.animate-win {
-  position: relative;
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5);
-  background-size: 100% 100%, 200% 200%;
-  animation: rankup-glow 0.8s ease-in-out;
-  border: 2px solid #5fffb5;
-  box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2);
-}
-
-.rank-card.animate-lose {
-  position: relative;
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060);
-  background-size: 100% 100%, 200% 200%;
-  animation: rankdown-glow 0.8s ease-in-out;
-  border: 2px solid #ff5060;
-  box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2);
-}
-
-/* OBS-specific animation styles (higher specificity to override .card styles) */
-body.obs-mode .rank-card.animate-rankup {
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5) !important;
-  background-size: 100% 100%, 200% 200% !important;
-  animation: rankup-glow 0.8s ease-in-out !important;
-  border: 2px solid #5fffb5 !important;
-  box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2) !important;
-}
-
-body.obs-mode .rank-card.animate-rankdown {
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060) !important;
-  background-size: 100% 100%, 200% 200% !important;
-  animation: rankdown-glow 0.8s ease-in-out !important;
-  border: 2px solid #ff5060 !important;
-  box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2) !important;
-}
-
-body.obs-mode .rank-card.animate-win {
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #5fffb5, rgba(95, 255, 181, 0.3), #5fffb5) !important;
-  background-size: 100% 100%, 200% 200% !important;
-  animation: rankup-glow 0.8s ease-in-out !important;
-  border: 2px solid #5fffb5 !important;
-  box-shadow: 0 0 30px rgba(95, 255, 181, 0.6), inset 0 0 30px rgba(95, 255, 181, 0.2) !important;
-}
-
-body.obs-mode .rank-card.animate-lose {
-  background: linear-gradient(90deg, rgba(0,0,0,0.75), rgba(0,0,0,0.75)),
-              linear-gradient(135deg, #ff5060, rgba(255, 80, 96, 0.3), #ff5060) !important;
-  background-size: 100% 100%, 200% 200% !important;
-  animation: rankdown-glow 0.8s ease-in-out !important;
-  border: 2px solid #ff5060 !important;
-  box-shadow: 0 0 30px rgba(255, 80, 96, 0.6), inset 0 0 30px rgba(255, 80, 96, 0.2) !important;
 }
 </style>
 <script src="/socket.io/socket.io.js"></script>

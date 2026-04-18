@@ -1137,7 +1137,6 @@ function getDisplayFromForm() {
     text_secondary:  'rgba(255,255,255,0.6)',
     text_tertiary:   document.getElementById('textTertiaryPicker').value || '#666666',
     widget_width:    parseInt(document.getElementById('widgetWidth').value),
-    refresh_rank:    120,
     show_peak_rank:  document.getElementById('peakRankMode').value !== 'off',
     peak_inline:     document.getElementById('peakRankMode').value === 'inline',
     peak_align:      currentPeakAlign,
@@ -1480,8 +1479,6 @@ async function loadConfig() {
     updateObsDims();
     saveToLocalStorage();
     refreshPreview();
-    // Force sync form state back to API to fix any stale config
-    autoSave();
     // Update account connection UI
     checkAccountStatus();
   } catch(e) {

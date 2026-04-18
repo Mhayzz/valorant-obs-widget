@@ -18,6 +18,7 @@ let IS_PREVIEW = false;
 let socket = null;
 let lastRankTier = null;
 let lastMatchId = null;
+let lastStreakSig = null;
 let lastSessionStorageCleared = null;
 
 // ── DOM element cache ────────────────────────────────────────
@@ -222,17 +223,21 @@ async function refreshMatches() {
 
     if (showStreak) {
       getElement('streakCard').style.display = 'flex';
-      const dots = getElement('streakDots');
-      dots.innerHTML = '';
       const filled = matches.slice(0, 5).reverse();
-      for (let i = 0; i < 5; i++) {
-        const dot = document.createElement('div');
-        const m = filled[i];
-        if (!m)                     dot.className = 's-dot empty';
-        else if (m.won === true)    dot.className = 's-dot win';
-        else if (m.won === false)   dot.className = 's-dot loss';
-        else                        dot.className = 's-dot draw';
-        dots.appendChild(dot);
+      const sig = filled.map(m => m ? (m.won === true ? 'w' : m.won === false ? 'l' : 'd') : 'e').join('') + '|' + filled.length;
+      if (sig !== lastStreakSig) {
+        lastStreakSig = sig;
+        const dots = getElement('streakDots');
+        dots.innerHTML = '';
+        for (let i = 0; i < 5; i++) {
+          const dot = document.createElement('div');
+          const m = filled[i];
+          if (!m)                     dot.className = 's-dot empty';
+          else if (m.won === true)    dot.className = 's-dot win';
+          else if (m.won === false)   dot.className = 's-dot loss';
+          else                        dot.className = 's-dot draw';
+          dots.appendChild(dot);
+        }
       }
     }
   } catch(e) {
@@ -331,8 +336,10 @@ function connectWebSocket() {
         renderMatchResult(res2, msg.won);
       }
 
-      // Also refresh for streak and full sync
-      lastMatchId = null;
+      // Set lastMatchId from the event so refreshMatches only updates streak
+      if (msg.agent && msg.kills !== undefined) {
+        lastMatchId = `${msg.agent}${msg.kills}${msg.deaths}${msg.assists}`;
+      }
       refreshMatches().catch(e => console.error('refreshMatches error:', e));
     } catch(e) {
       console.error('Match parse error:', e);
@@ -460,43 +467,6 @@ async function init() {
 
   // Connect to WebSocket for real-time updates (polling handled server-side)
   connectWebSocket();
-
-  // Reload config from API every 1 second (instant account/data updates in OBS)
-  // Storage events are listened to above for config changes
-  let lastConfigAccount = `${cfg?.riot_name}#${cfg?.riot_tag}`;
-  setInterval(async () => {
-    try {
-      const res = await fetch('/api/config');
-      if (res.ok) {
-        const newCfg = await res.json();
-        const currentAccount = `${newCfg?.riot_name}#${newCfg?.riot_tag}`;
-
-        // Check if account changed
-        const accountChanged = lastConfigAccount !== currentAccount;
-
-        cfg = newCfg;
-        applyDisplay(cfg.display || {});
-
-        // Only reconnect WebSocket if account actually changed
-        if (accountChanged) {
-          connectWebSocket();
-        }
-
-        // Refresh data if account changed
-        if (accountChanged) {
-          lastConfigAccount = currentAccount;
-          sessionStorage.clear();
-          lastRankTier = null;
-          lastMatchId = null;
-          // Show loading message and ensure overlay is visible
-          getElement('loadingMsg').textContent = 'Chargement des données...';
-          getElement('loadingMsg').classList.remove('hidden');
-          refreshRank();
-          refreshMatches();
-        }
-      }
-    } catch(e) {}
-  }, 1000);
 }
 
 // Initialize on page load

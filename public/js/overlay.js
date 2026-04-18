@@ -2,9 +2,9 @@
 // Main client-side logic for the overlay widget
 
 // ── Constants ────────────────────────────────────────────────
-const STORAGE_DISPLAY_KEY = 'valo_display';
-const STORAGE_ACCOUNT_CHANGE_KEY = 'valo_account_change';
-const STORAGE_TEST_ANIMATION_KEY = 'valo_test_animation';
+const STORAGE_DISPLAY_KEY = window.VALO_KEYS?.DISPLAY || 'valo_display';
+const STORAGE_ACCOUNT_CHANGE_KEY = window.VALO_KEYS?.ACCOUNT_CHANGE || 'valo_account_change';
+const STORAGE_TEST_ANIMATION_KEY = window.VALO_KEYS?.TEST_ANIMATION || 'valo_test_animation';
 const ANIMATION_CLASSES = ['animate-rankup', 'animate-rankdown', 'animate-win', 'animate-lose'];
 const ANIMATION_DURATION = 800;
 const VALORANT_TIER_API = 'https://media.valorant-api.com/competitivetiers/564d8e28-c226-3180-6285-e48a390db8b1';

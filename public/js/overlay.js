@@ -208,7 +208,7 @@ function applyDisplay(d) {
   document.body.style.width = (d.widget_width || 300) + 'px';
 
   // Theme
-  document.body.className = 'overlay ' + (d.theme || 'default') + '-theme ' + (d.stat_animations ? d.stat_animations + '-anim' : '');
+  document.body.className = 'overlay ' + (d.stat_animations ? d.stat_animations + '-anim' : '');
 
   // Peak rank: inline (next to rank name) or below
   const peakInline = d.peak_inline ?? false;
@@ -336,12 +336,11 @@ async function refreshMatches() {
           else                        dot.className = 's-dot draw';
           dots.appendChild(dot);
         }
-
-        const wr = calculateWinRate(matches);
-        const wrEl = getElement('winRate');
-        const fmt = cfg?.display?.winrate_format || 'detailed';
-        wrEl.textContent = formatWinRate(wr, fmt);
       }
+      const wr = calculateWinRate(matches);
+      const wrEl = getElement('winRate');
+      const fmt = cfg?.display?.winrate_format || 'detailed';
+      wrEl.textContent = formatWinRate(wr, fmt);
     }
   } catch(e) {
     console.error('refreshMatches error:', e);

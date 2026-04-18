@@ -110,6 +110,33 @@ function matchKeyOf(m) {
   return `${m.agent}|${m.kills}|${m.deaths}|${m.assists}`;
 }
 
+function calculateStreak(matches) {
+  if (!matches?.length) return { type: '', count: 0 };
+  const first = matches[0];
+  if (first.won === null) return { type: '', count: 0 };
+  const firstType = first.won ? 'w' : 'l';
+  let count = 0;
+  for (const m of matches) {
+    const t = m.won === null ? null : m.won ? 'w' : 'l';
+    if (t === firstType) count++;
+    else break;
+  }
+  return { type: firstType, count };
+}
+
+function calculateWinRate(matches) {
+  if (!matches?.length) return { wins: 0, losses: 0, draws: 0, pct: 0 };
+  let wins = 0, losses = 0, draws = 0;
+  for (const m of matches) {
+    if (m.won === true) wins++;
+    else if (m.won === false) losses++;
+    else draws++;
+  }
+  const total = wins + losses + draws;
+  const pct = total ? Math.round(wins * 100 / total) : 0;
+  return { wins, losses, draws, pct };
+}
+
 // ── Applique les options d'affichage ────────────────────────
 function applyDisplay(d) {
   const r = document.documentElement;
@@ -236,6 +263,23 @@ async function refreshMatches() {
           else if (m.won === false)   dot.className = 's-dot loss';
           else                        dot.className = 's-dot draw';
           dots.appendChild(dot);
+        }
+
+        const streak = calculateStreak(matches);
+        const streakEl = getElement('streakCount');
+        if (streak.type && streak.count) {
+          streakEl.textContent = (streak.type === 'w' ? 'W' : 'L') + streak.count;
+          streakEl.style.color = streak.type === 'w' ? '#5fffb5' : '#ff5060';
+        } else {
+          streakEl.textContent = '';
+        }
+
+        const wr = calculateWinRate(matches);
+        const wrEl = getElement('winRate');
+        if (wr.wins + wr.losses + wr.draws > 0) {
+          wrEl.textContent = `${wr.wins}-${wr.losses}${wr.draws > 0 ? '-' + wr.draws : ''} (${wr.pct}%)`;
+        } else {
+          wrEl.textContent = '';
         }
       }
     }

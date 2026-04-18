@@ -1,4 +1,6 @@
 const express = require("express");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const fetch = require("node-fetch");
 const path = require("path");
 const fs = require("fs");
@@ -23,8 +25,29 @@ const io = new Server(httpServer, {
 });
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(helmet({
+  // Inline <script> in index.html/setup.html would be blocked by the default CSP,
+  // and the setup preview iframes '/' so frameguard must allow same-origin.
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+  frameguard: { action: "sameorigin" },
+}));
+app.use(express.json({ limit: "16kb" }));
 app.use(express.static(path.join(__dirname, "public")));
+
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 120,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+const configWriteLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+app.use("/api/", apiLimiter);
 
 // ── Utility functions ───────────────────────────────────────
 function getApiHeaders(apiKey) {
@@ -84,6 +107,47 @@ const DEFAULT_DISPLAY = {
   animation_type:       "both",
 };
 
+// ── Input validation ───────────────────────────────────────
+const REGIONS = new Set(["eu", "na", "ap", "kr", "latam", "br"]);
+const ANIMATION_TYPES = new Set(["rank", "match", "both", "none"]);
+const PEAK_ALIGN = new Set(["left", "right"]);
+// Accepts #RGB/#RGBA/#RRGGBB/#RRGGBBAA or rgb()/rgba() with 0-255 components.
+const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\))$/;
+const CONTROL_CHARS = /[\x00-\x1f\x7f]/;
+
+function cleanStr(v, max) {
+  if (typeof v !== "string") return null;
+  const t = v.trim();
+  if (!t || t.length > max || CONTROL_CHARS.test(t)) return null;
+  return t;
+}
+function cleanColor(v, fallback) {
+  return typeof v === "string" && v.length <= 48 && COLOR_RE.test(v.trim()) ? v.trim() : fallback;
+}
+function clampNum(v, lo, hi, fallback) {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : fallback;
+}
+
+function sanitizeDisplay(d) {
+  if (!d || typeof d !== "object") return { ...DEFAULT_DISPLAY };
+  return {
+    bg_opacity:             clampNum(d.bg_opacity, 0, 1, DEFAULT_DISPLAY.bg_opacity),
+    accent_color:           cleanColor(d.accent_color,   DEFAULT_DISPLAY.accent_color),
+    text_primary:           cleanColor(d.text_primary,   DEFAULT_DISPLAY.text_primary),
+    text_secondary:         cleanColor(d.text_secondary, DEFAULT_DISPLAY.text_secondary),
+    text_tertiary:          cleanColor(d.text_tertiary,  DEFAULT_DISPLAY.text_tertiary),
+    show_peak_rank:         !!d.show_peak_rank,
+    peak_inline:            !!d.peak_inline,
+    peak_align:             PEAK_ALIGN.has(d.peak_align) ? d.peak_align : DEFAULT_DISPLAY.peak_align,
+    show_last_match:        d.show_last_match        === undefined ? DEFAULT_DISPLAY.show_last_match        : !!d.show_last_match,
+    show_streak:            d.show_streak            === undefined ? DEFAULT_DISPLAY.show_streak            : !!d.show_streak,
+    widget_width:           Math.floor(clampNum(d.widget_width, 100, 2000, DEFAULT_DISPLAY.widget_width)),
+    realtime_notifications: d.realtime_notifications === undefined ? DEFAULT_DISPLAY.realtime_notifications : !!d.realtime_notifications,
+    animation_type:         ANIMATION_TYPES.has(d.animation_type) ? d.animation_type : DEFAULT_DISPLAY.animation_type,
+  };
+}
+
 function loadFileConfig() {
   try {
     return JSON.parse(fs.readFileSync(CONFIG_PATH, "utf8"));
@@ -104,12 +168,13 @@ function saveFileConfig(cfg) {
 let fileConfig = loadFileConfig();
 
 function getCfg() {
+  const region = fileConfig.riot_region || process.env.RIOT_REGION || "eu";
   return {
     riot_name:      fileConfig.riot_name      || process.env.RIOT_NAME      || "",
     riot_tag:       fileConfig.riot_tag       || process.env.RIOT_TAG       || "",
-    riot_region:    fileConfig.riot_region    || process.env.RIOT_REGION    || "eu",
+    riot_region:    REGIONS.has(region) ? region : "eu",
     henrik_api_key: fileConfig.henrik_api_key || process.env.HENRIK_API_KEY || "",
-    display: { ...DEFAULT_DISPLAY, ...(fileConfig.display || {}) },
+    display: sanitizeDisplay(fileConfig.display),
   };
 }
 
@@ -260,24 +325,44 @@ app.get("/api/config", (req, res) => {
   });
 });
 
-app.post("/api/config", (req, res) => {
+app.post("/api/config", configWriteLimiter, (req, res) => {
   if (SETUP_PASSWORD && req.body.password !== SETUP_PASSWORD) {
     return res.status(401).json({ error: "Mot de passe incorrect" });
   }
   const { riot_name, riot_tag, riot_region, henrik_api_key, display } = req.body;
+  const patch = {};
+  const reject = (msg) => res.status(400).json({ error: msg });
+
+  if (riot_name !== undefined) {
+    const v = cleanStr(riot_name, 32);
+    if (v === null) return reject("riot_name invalide");
+    patch.riot_name = v;
+  }
+  if (riot_tag !== undefined) {
+    const v = cleanStr(riot_tag, 16);
+    if (v === null) return reject("riot_tag invalide");
+    patch.riot_tag = v;
+  }
+  if (riot_region !== undefined) {
+    if (!REGIONS.has(riot_region)) return reject("riot_region invalide");
+    patch.riot_region = riot_region;
+  }
+  if (henrik_api_key !== undefined && henrik_api_key !== "") {
+    const v = cleanStr(henrik_api_key, 256);
+    if (v === null) return reject("henrik_api_key invalide");
+    patch.henrik_api_key = v;
+  }
+  if (display !== undefined) {
+    patch.display = sanitizeDisplay(display);
+  }
+
   const accountChanged =
-    (riot_name      !== undefined && riot_name      !== fileConfig.riot_name) ||
-    (riot_tag       !== undefined && riot_tag       !== fileConfig.riot_tag) ||
-    (riot_region    !== undefined && riot_region    !== fileConfig.riot_region) ||
-    (henrik_api_key !== undefined && henrik_api_key !== "" && henrik_api_key !== fileConfig.henrik_api_key);
-  const newCfg = {
-    ...fileConfig,
-    ...(riot_name      !== undefined && { riot_name }),
-    ...(riot_tag       !== undefined && { riot_tag }),
-    ...(riot_region    !== undefined && { riot_region }),
-    ...(henrik_api_key !== undefined && henrik_api_key !== "" && { henrik_api_key }),
-    ...(display        !== undefined && { display: { ...DEFAULT_DISPLAY, ...display } }),
-  };
+    (patch.riot_name      !== undefined && patch.riot_name      !== fileConfig.riot_name) ||
+    (patch.riot_tag       !== undefined && patch.riot_tag       !== fileConfig.riot_tag) ||
+    (patch.riot_region    !== undefined && patch.riot_region    !== fileConfig.riot_region) ||
+    (patch.henrik_api_key !== undefined && patch.henrik_api_key !== fileConfig.henrik_api_key);
+
+  const newCfg = { ...fileConfig, ...patch };
   if (!saveFileConfig(newCfg)) return res.status(500).json({ error: "Erreur de sauvegarde" });
   fileConfig = newCfg;
   if (accountChanged) invalidateCaches();

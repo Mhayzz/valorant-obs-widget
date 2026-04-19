@@ -58,7 +58,7 @@ const apiLimiter = rateLimit({
 });
 const configWriteLimiter = rateLimit({
   windowMs: 60_000,
-  limit: 10,
+  limit: parseInt(process.env.CONFIG_WRITE_LIMIT) || 10,
   standardHeaders: "draft-7",
   legacyHeaders: false,
 });

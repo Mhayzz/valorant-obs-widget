@@ -359,9 +359,16 @@ async function refreshMatches() {
 }
 
 function renderRRChart() {
-  if (!cfg?.display?.show_rr_chart || rrSessionHistory.length === 0) return;
   const rrChartEl = getElement('rrChart');
   if (!rrChartEl) return;
+  if (!cfg?.display?.show_rr_chart || rrSessionHistory.length === 0) {
+    // Reset to empty when disabled or no data (otherwise a stale SVG sticks)
+    rrChartEl.innerHTML = '';
+    const parent = rrChartEl.parentElement;
+    const sessionEl = parent?.querySelector('.rr-session-gain');
+    if (sessionEl) sessionEl.textContent = '';
+    return;
+  }
 
   const maxGames = cfg?.display?.rr_chart_games ?? 20;
   const dataPoints = rrSessionHistory.slice(-maxGames);
@@ -503,7 +510,9 @@ function connectWebSocket() {
     }
   });
 
-  // Test triggers from setup (rank/match animation, RR chart buttons)
+  // Test triggers from setup (rank/match animation, RR chart buttons).
+  // Test events bypass shouldAnimate on purpose so users can always preview
+  // the animation regardless of their animation_type setting.
   socket.on('test', (msg) => {
     try {
       if (msg.type === 'ranktest' && msg.detail?.type) {

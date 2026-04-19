@@ -198,6 +198,32 @@ body.slide-anim .rank-card,
 body.slide-anim .match-card,
 body.slide-anim .streak-card { animation:slideIn 0.3s ease-out; }
 
+/* ── Layout Presets ──────────────────────────────────── */
+/* Compact: smaller vertical stack */
+body.layout-compact { --w: 220px; }
+body.layout-compact .rank-card { padding:8px 10px 8px 8px; }
+body.layout-compact .rank-icon { width:36px; height:36px; }
+body.layout-compact .rank-icon img { width:36px; height:36px; }
+body.layout-compact .rank-name { font-size:14px; }
+body.layout-compact .rr-label { font-size:10px; }
+body.layout-compact .rr-badge { font-size:11px; }
+
+/* Horizontal: rank + match side by side */
+body.layout-horizontal .container { display:grid; grid-template-columns:1fr 1fr; gap:3px; }
+body.layout-horizontal .rank-card { grid-column:1; grid-row:1/3; }
+body.layout-horizontal .match-card { grid-column:2; grid-row:1; }
+body.layout-horizontal .streak-card { grid-column:2; grid-row:2; }
+body.layout-horizontal .rr-chart-card { grid-column:1/3; }
+
+/* Minimal: only rank and RR */
+body.layout-minimal .match-card { display:none !important; }
+body.layout-minimal .streak-card { display:none !important; }
+body.layout-minimal .rr-chart-card { display:none !important; }
+
+/* Wide: maximize width */
+body.layout-wide { --w: 400px; }
+body.layout-wide .rank-card { padding:12px 16px; }
+
 /* ── Loading ─────────────────────────────────────────── */
 .loading-msg {
   padding:16px;

@@ -217,8 +217,9 @@ function applyDisplay(d) {
   r.style.setProperty('--radius', (d.corner_radius ?? 10) + 'px');
   document.body.style.width = (d.widget_width || 300) + 'px';
 
-  // Theme
-  document.body.className = 'overlay ' + (d.stat_animations ? d.stat_animations + '-anim' : '');
+  // Theme and layout
+  const layoutClass = d.layout_preset ? 'layout-' + d.layout_preset : '';
+  document.body.className = 'overlay ' + (d.stat_animations ? d.stat_animations + '-anim' : '') + ' ' + layoutClass;
 
   // Peak rank: inline (next to rank name) or below
   const peakInline = d.peak_inline ?? false;

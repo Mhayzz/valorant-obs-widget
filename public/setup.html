@@ -1052,6 +1052,19 @@ input[type="color"]:focus {
           <span class="toggle-track"></span>
         </label>
       </div>
+      <div class="opt-row">
+        <div class="opt-info">
+          <div class="opt-label">Disposition du widget</div>
+          <div class="opt-sub">Arrange les éléments du widget</div>
+        </div>
+        <select id="layoutPreset" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
+          <option value="default">Défaut (Vertical)</option>
+          <option value="compact">Compact</option>
+          <option value="horizontal">Horizontal</option>
+          <option value="minimal">Minimal</option>
+          <option value="wide">Large</option>
+        </select>
+      </div>
     </div>
 
     <!-- APPARENCE AVANCÉE : paramétrage des modules activés -->
@@ -1310,6 +1323,7 @@ function getDisplayFromForm() {
     winrate_format:  $('winrateFormat').value,
     show_rr_chart:   $('showRRChart').checked,
     rr_chart_games:  parseInt($('rrChartGames').value),
+    layout_preset:   $('layoutPreset').value,
   };
 }
 
@@ -1552,6 +1566,7 @@ async function loadConfig() {
       $('rrChartGames').value = d.rr_chart_games;
       $('rrChartGamesLabel').textContent = d.rr_chart_games + ' jeux';
     }
+    if (d.layout_preset) $('layoutPreset').value = d.layout_preset;
 
     renderAccountStatus(cfg.riot_name, cfg.riot_tag, cfg.riot_region);
 

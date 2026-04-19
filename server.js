@@ -8,8 +8,8 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 
 // ── Constants ────────────────────────────────────────────────
-const RANK_POLL_INTERVAL = 30000;   // 30 seconds
-const MATCH_POLL_INTERVAL = 10000;  // 10 seconds
+const RANK_POLL_INTERVAL = 15000;   // 15 seconds
+const MATCH_POLL_INTERVAL = 6000;   // 6 seconds
 const FETCH_TIMEOUT = 10000;        // 10 seconds
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000;           // 1 second
@@ -218,6 +218,10 @@ function invalidateCaches() {
 // ── WebSocket connections ────────────────────────────────────
 io.on("connection", (socket) => {
   console.log(`[WebSocket] Client connected: ${socket.id}`);
+  // Push current state immediately so new clients don't wait for next poll
+  if (rankCache.data) {
+    socket.emit("rank", { ...rankCache.data, animation: null });
+  }
   socket.on("disconnect", () => {
     console.log(`[WebSocket] Client disconnected: ${socket.id}`);
   });
@@ -256,23 +260,25 @@ setInterval(async () => {
     const rankChanged = lastRank && (lastRank.tier !== newTier || lastRank.rank !== newRank);
     const rrChanged = lastRank && lastRank.rr !== newRR;
 
+    // Always keep rankCache up to date so new socket clients get fresh data
+    const fresh = {
+      rank: current.tier?.name || "Unranked",
+      rr: newRR,
+      rr_change: current.last_change ?? null,
+      tier: newTier,
+      rank_icon: current.images?.large || current.images?.small ||
+        `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
+      peak_rank: peak?.tier?.name || null,
+      peak_tier: peak?.tier?.id ?? 0,
+      peak_season: peak?.season?.short || null,
+      player: `${cfg.riot_name}#${cfg.riot_tag}`,
+    };
+    rankCache = { data: fresh, ts: Date.now() };
+
     if (rankChanged || rrChanged) {
       const change = rankChanged && newTier > lastRank.tier ? "rankup" : rankChanged && newTier < lastRank.tier ? "rankdown" : null;
       rankHistory[accountKey] = { tier: newTier, rank: newRank, rr: newRR };
-      const msg = {
-        rank: current.tier?.name || "Unranked",
-        rr: newRR,
-        rr_change: current.last_change ?? null,
-        tier: newTier,
-        rank_icon: current.images?.large || current.images?.small ||
-          `https://media.valorant-api.com/competitivetiers/03621f52-342b-cf4e-4f86-9350a49c6d04/${newTier}/largeicon.png`,
-        peak_rank: peak?.tier?.name || null,
-        peak_tier: peak?.tier?.id ?? 0,
-        peak_season: peak?.season?.short || null,
-        player: `${cfg.riot_name}#${cfg.riot_tag}`,
-        animation: change,
-      };
-      io.emit("rank", msg);
+      io.emit("rank", { ...fresh, animation: change });
     } else if (!lastRank) {
       rankHistory[accountKey] = { tier: newTier, rank: newRank, rr: newRR };
     }

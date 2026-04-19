@@ -442,6 +442,11 @@ function connectWebSocket() {
 
   socket.on('connect', () => {
     console.log('WebSocket connected');
+    // Refresh via HTTP on (re)connect so we don't rely solely on server push
+    if (!IS_PREVIEW) {
+      refreshRank().catch(() => {});
+      refreshMatches().catch(() => {});
+    }
   });
 
   socket.on('rank', (data) => {
@@ -608,6 +613,20 @@ async function init() {
 
   // Connect to WebSocket for real-time updates (polling handled server-side)
   connectWebSocket();
+
+  // Safety-net HTTP polling in case the WebSocket silently drops (OBS CEF can
+  // lose the connection when the source is hidden/minimized). Server endpoints
+  // are cached so this is cheap.
+  setInterval(() => { refreshRank().catch(() => {}); }, 20000);
+  setInterval(() => { refreshMatches().catch(() => {}); }, 10000);
+
+  // Force a fresh fetch when the browser source regains focus/visibility
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      refreshRank().catch(() => {});
+      refreshMatches().catch(() => {});
+    }
+  });
 }
 
 // Initialize on page load

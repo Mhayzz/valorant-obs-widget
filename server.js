@@ -113,6 +113,7 @@ const DEFAULT_DISPLAY = {
   winrate_format:         "detailed",
   show_rr_chart:          true,
   rr_chart_games:         20,
+  layout_preset:          "default",
 };
 
 // ── Input validation ───────────────────────────────────────
@@ -122,6 +123,7 @@ const PEAK_ALIGN = new Set(["left", "right"]);
 const STAT_ANIMATIONS = new Set(["none", "fade", "slide"]);
 const AGENT_ICON_SIZES = new Set(["small", "large"]);
 const WINRATE_FORMATS = new Set(["detailed", "short", "percentage"]);
+const LAYOUT_PRESETS = new Set(["default", "compact", "horizontal", "minimal", "wide"]);
 // Accepts #RGB/#RGBA/#RRGGBB/#RRGGBBAA or rgb()/rgba() with 0-255 components.
 const COLOR_RE = /^(#[0-9a-fA-F]{3,8}|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\))$/;
 const CONTROL_CHARS = /[\x00-\x1f\x7f]/;
@@ -164,6 +166,7 @@ function sanitizeDisplay(d) {
     winrate_format:         WINRATE_FORMATS.has(d.winrate_format) ? d.winrate_format : DEFAULT_DISPLAY.winrate_format,
     show_rr_chart:          d.show_rr_chart === undefined ? DEFAULT_DISPLAY.show_rr_chart : !!d.show_rr_chart,
     rr_chart_games:         Math.floor(clampNum(d.rr_chart_games, 5, 50, DEFAULT_DISPLAY.rr_chart_games)),
+    layout_preset:          LAYOUT_PRESETS.has(d.layout_preset) ? d.layout_preset : DEFAULT_DISPLAY.layout_preset,
   };
 }
 

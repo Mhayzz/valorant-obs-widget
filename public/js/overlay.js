@@ -558,6 +558,23 @@ async function init() {
     if (e.data?.type === 'matchtest' && e.data?.detail?.type) {
       triggerAnimation(e.data.detail.type);
     }
+    if (e.data?.type === 'rr_addgame') {
+      const delta = Math.floor(Math.random() * 51) - 25;
+      if (rrSessionStart === null) {
+        rrSessionStart = 0;
+        rrSessionHistory = [delta];
+      } else {
+        rrSessionHistory.push(rrSessionHistory[rrSessionHistory.length - 1] + delta);
+        if (rrSessionHistory.length > RR_HISTORY_MAX) rrSessionHistory.shift();
+      }
+      renderRRChart();
+    }
+    if (e.data?.type === 'rr_reset') {
+      rrSessionStart = null;
+      rrSessionHistory = [];
+      localStorage.removeItem(rrHistoryKey());
+      renderRRChart();
+    }
   });
 
   // Listen for custom events (direct page mode)

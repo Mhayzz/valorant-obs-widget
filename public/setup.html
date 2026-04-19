@@ -1139,6 +1139,10 @@ input[type="color"]:focus {
           <button id="testWin" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Win</button>
           <button id="testLose" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Lose</button>
         </div>
+        <div class="opt-row" style="gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06);">
+          <button id="testRRGame" class="test-btn" style="flex: 1; padding: 10px; background: rgba(95, 255, 181, 0.1); border: 1px solid rgba(95, 255, 181, 0.3); border-radius: 8px; color: #5fffb5; cursor: pointer; font-size: 12px; font-weight: 600;">Test RR +Game</button>
+          <button id="resetRRChart" class="test-btn" style="flex: 1; padding: 10px; background: rgba(255, 80, 96, 0.1); border: 1px solid rgba(255, 80, 96, 0.3); border-radius: 8px; color: #ff5060; cursor: pointer; font-size: 12px; font-weight: 600;">Reset RR</button>
+        </div>
       </div>
     </div>
 
@@ -1461,6 +1465,21 @@ $('testRankUp').addEventListener('click',   () => sendTestAnimation('rankup'));
 $('testRankDown').addEventListener('click', () => sendTestAnimation('rankdown'));
 $('testWin').addEventListener('click',      () => sendTestAnimation('win', true));
 $('testLose').addEventListener('click',     () => sendTestAnimation('lose', true));
+
+// ── RR chart test ────────────────────────────────────────────
+function sendRRTest(cmd) {
+  localStorage.setItem('valo_rr_test', JSON.stringify({ cmd, ts: Date.now() }));
+  const iframe = $('previewFrame');
+  if (iframe?.contentWindow) {
+    iframe.contentWindow.postMessage({
+      type: 'rr_' + cmd,
+      ts: Date.now(),
+    }, '*');
+  }
+}
+
+$('testRRGame').addEventListener('click',  () => sendRRTest('addgame'));
+$('resetRRChart').addEventListener('click', () => sendRRTest('reset'));
 
 // ── Load config ───────────────────────────────────────────────
 async function loadConfig() {

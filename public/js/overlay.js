@@ -387,15 +387,18 @@ function renderRRChart() {
   // Grid line at 0
   svg += `<line x1="${padding}" y1="${centerY}" x2="${W - padding}" y2="${centerY}" stroke="var(--accent)" stroke-width="0.5" opacity="0.2"/>`;
 
-  // Polyline
+  // Polyline with color based on positive/negative
   const divisor = Math.max(1, dataPoints.length - 1);
   const pts = dataPoints.map((val, i) => {
     const x = padding + (i / divisor) * chartW;
     const y = padding + chartH - ((val - minVal) / range) * chartH;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
+    return { x: x.toFixed(1), y: y.toFixed(1), val };
   });
-  if (pts.length > 0) {
-    svg += `<polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
+
+  // Draw line segments with colors based on value
+  for (let i = 0; i < pts.length - 1; i++) {
+    const segColor = pts[i].val >= 0 ? '#5fffb5' : '#ff5060';
+    svg += `<line x1="${pts[i].x}" y1="${pts[i].y}" x2="${pts[i + 1].x}" y2="${pts[i + 1].y}" stroke="${segColor}" stroke-width="1.5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
   }
 
   // Dots at each point

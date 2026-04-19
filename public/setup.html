@@ -1541,14 +1541,20 @@ $('changeAccountBtn').addEventListener('click', changeAccount);
 $('disconnectBtn').addEventListener('click', disconnectAccount);
 
 // ── Test animations & RR chart ──────────────────────────────
+// 1) postMessage to the preview iframe (same browser, instant)
+// 2) POST to server which broadcasts via WebSocket so OBS (different
+//    browser) also receives the event
 function sendTest(messageType, detailData = null) {
-  const storageKey = messageType.startsWith('rr_') ? window.VALO_KEYS.RR_TEST : LS_TEST_ANIMATION;
-  const payload = detailData ? { type: messageType, detail: detailData, ts: Date.now() } : { type: messageType, ts: Date.now() };
-  localStorage.setItem(storageKey, JSON.stringify(payload));
+  const payload = detailData
+    ? { type: messageType, detail: detailData, ts: Date.now() }
+    : { type: messageType, ts: Date.now() };
   const iframe = $('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage(payload, '*');
-  }
+  if (iframe?.contentWindow) iframe.contentWindow.postMessage(payload, '*');
+  fetch('/api/test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: messageType, detail: detailData }),
+  }).catch(() => {});
 }
 
 $('testRankUp').addEventListener('click',   () => sendTest('ranktest', { type: 'rankup' }));

@@ -409,6 +409,20 @@ app.post("/api/config", configWriteLimiter, (req, res) => {
   if (!saveFileConfig(newCfg)) return res.status(500).json({ error: "Erreur de sauvegarde" });
   fileConfig = newCfg;
   if (accountChanged) invalidateCaches();
+  // Broadcast config changes to all connected widgets (including OBS) so they
+  // update without the user needing to refresh the source
+  if (patch.display !== undefined) io.emit("display", patch.display);
+  if (accountChanged) io.emit("account_change", {});
+  res.json({ ok: true });
+});
+
+// Test animations triggered from the setup page. Broadcast to all widgets
+// (cross-browser, so OBS receives it even though setup was in Chrome).
+app.post("/api/test", configWriteLimiter, (req, res) => {
+  const { type, detail } = req.body || {};
+  const ALLOWED = new Set(["ranktest", "matchtest", "rr_addgame", "rr_reset"]);
+  if (!ALLOWED.has(type)) return res.status(400).json({ error: "type invalide" });
+  io.emit("test", { type, detail: detail || null, ts: Date.now() });
   res.json({ ok: true });
 });
 

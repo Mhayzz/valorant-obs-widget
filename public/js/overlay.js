@@ -364,69 +364,62 @@ function renderRRChart() {
 
   const maxGames = cfg?.display?.rr_chart_games ?? 20;
   const dataPoints = rrSessionHistory.slice(-maxGames);
-  const sessionGain = dataPoints.length > 0 ? dataPoints[dataPoints.length - 1] : 0;
+  const sessionGain = dataPoints[dataPoints.length - 1];
 
   const W = 240, H = 50;
   const padding = 15;
   const chartW = W - 2 * padding;
   const chartH = H - 2 * padding;
 
-  // Find min/max with 0 always included (baseline)
   const allVals = [0, ...dataPoints];
   const minVal = Math.min(...allVals);
   const maxVal = Math.max(...allVals);
   const range = maxVal - minVal || 1;
-  const centerY = padding + chartH - ((0 - minVal) / range) * chartH;
 
-  // Build SVG with line, dots, and text
-  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;overflow:visible;"><defs><style>
-    .rr-dot { fill: var(--accent); transition: r 0.2s; }
-    .rr-dot:hover { r: 3.5 !important; }
-  </style></defs>`;
+  const yForVal = (val) => padding + chartH - ((val - minVal) / range) * chartH;
+  const zeroY = yForVal(0);
 
-  // Grid line at 0
-  svg += `<line x1="${padding}" y1="${centerY}" x2="${W - padding}" y2="${centerY}" stroke="var(--accent)" stroke-width="0.5" opacity="0.2"/>`;
-
-  // Polyline with color based on positive/negative
   const divisor = Math.max(1, dataPoints.length - 1);
-  const pts = dataPoints.map((val, i) => {
-    const x = padding + (i / divisor) * chartW;
-    const y = padding + chartH - ((val - minVal) / range) * chartH;
-    return { x: x.toFixed(1), y: y.toFixed(1), val };
-  });
+  const pts = dataPoints.map((val, i) => ({
+    x: padding + (i / divisor) * chartW,
+    y: yForVal(val),
+    val,
+  }));
+  const pointsStr = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
-  // Draw line segments with colors based on value
-  for (let i = 0; i < pts.length - 1; i++) {
-    const segColor = pts[i].val >= 0 ? '#5fffb5' : '#ff5060';
-    svg += `<line x1="${pts[i].x}" y1="${pts[i].y}" x2="${pts[i + 1].x}" y2="${pts[i + 1].y}" stroke="${segColor}" stroke-width="1.5" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  const clipAbove = 'rrclip-above';
+  const clipBelow = 'rrclip-below';
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;overflow:visible;">`;
+  svg += `<defs>
+    <clipPath id="${clipAbove}"><rect x="0" y="0" width="${W}" height="${zeroY.toFixed(2)}"/></clipPath>
+    <clipPath id="${clipBelow}"><rect x="0" y="${zeroY.toFixed(2)}" width="${W}" height="${(H - zeroY).toFixed(2)}"/></clipPath>
+  </defs>`;
+
+  svg += `<line x1="${padding}" y1="${zeroY.toFixed(2)}" x2="${W - padding}" y2="${zeroY.toFixed(2)}" stroke="var(--accent)" stroke-width="0.5" opacity="0.2"/>`;
+
+  if (pts.length > 1) {
+    svg += `<polyline points="${pointsStr}" fill="none" stroke="#5fffb5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" clip-path="url(#${clipAbove})"/>`;
+    svg += `<polyline points="${pointsStr}" fill="none" stroke="#ff5060" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" clip-path="url(#${clipBelow})"/>`;
   }
 
-  // Dots at each point
-  dataPoints.forEach((val, i) => {
-    const x = padding + (i / divisor) * chartW;
-    const y = padding + chartH - ((val - minVal) / range) * chartH;
-    const color = val > 0 ? '#5fffb5' : val < 0 ? '#ff5060' : 'var(--accent)';
-    svg += `<circle cx="${x}" cy="${y}" r="2" class="rr-dot" fill="${color}" opacity="0.8"/>`;
+  pts.forEach(p => {
+    const color = p.val > 0 ? '#5fffb5' : p.val < 0 ? '#ff5060' : 'var(--text-tertiary)';
+    svg += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2" fill="${color}"/>`;
   });
 
-  // Session gain text
-  const lastX = padding + chartW;
-  const lastY = padding + chartH - ((sessionGain - minVal) / range) * chartH;
   const gainText = sessionGain > 0 ? `+${sessionGain}` : `${sessionGain}`;
-  svg += `<text x="${lastX - 3}" y="${lastY - 8}" text-anchor="end" fill="var(--text-tertiary)" font-size="9" font-family="DM Mono,monospace" font-weight="600">${gainText}</text>`;
-
   svg += `</svg>`;
 
-  // Create container with session info
   const parent = rrChartEl.parentElement;
-  const sessionEl = parent.querySelector('.rr-session-gain');
+  let sessionEl = parent.querySelector('.rr-session-gain');
   if (!sessionEl) {
-    const el = document.createElement('div');
-    el.className = 'rr-session-gain';
-    el.style.cssText = 'font-size:9px;margin-top:4px;text-align:right;font-family:DM Mono,monospace;color:var(--text-tertiary);';
-    parent.appendChild(el);
+    sessionEl = document.createElement('div');
+    sessionEl.className = 'rr-session-gain';
+    sessionEl.style.cssText = 'font-size:9px;margin-top:4px;text-align:right;font-family:DM Mono,monospace;color:var(--text-tertiary);';
+    parent.appendChild(sessionEl);
   }
-  parent.querySelector('.rr-session-gain').textContent = `Session: ${sessionGain > 0 ? '+' : ''}${sessionGain} RR`;
+  sessionEl.textContent = `Session: ${gainText} RR`;
 
   rrChartEl.innerHTML = svg;
 }

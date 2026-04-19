@@ -23,6 +23,8 @@ let lastStreakSig = null;
 let lastSessionStorageCleared = null;
 let playerName = "";
 let rrHistory = [];
+let rrSessionStart = null;
+let rrSessionHistory = [];
 
 // ── DOM element cache ────────────────────────────────────────
 let domCache = {};
@@ -87,7 +89,10 @@ function applyRankData(d) {
   if (newPlayer !== playerName) {
     playerName = newPlayer;
     rrHistory = loadRRHistory();
+    rrSessionStart = null;
+    rrSessionHistory = [];
   }
+
   if (cfg?.display?.show_account) {
     const rankEl = getElement('rankName');
     rankEl.innerHTML = `<span style="display:block;font-size:8px;opacity:0.6;margin-bottom:2px;">${playerName}</span>${d.rank}`;
@@ -97,10 +102,15 @@ function applyRankData(d) {
   getElement('rrLabel').textContent  = d.rr + ' RR';
   getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
 
-  if (typeof d.rr === 'number' && (rrHistory.length === 0 || rrHistory[rrHistory.length - 1] !== d.rr)) {
-    rrHistory.push(d.rr);
-    if (rrHistory.length > RR_HISTORY_MAX) rrHistory.shift();
-    saveRRHistory();
+  if (typeof d.rr === 'number') {
+    if (rrSessionStart === null) {
+      rrSessionStart = d.rr;
+      rrSessionHistory = [0];
+    } else if (rrSessionHistory.length === 0 || rrSessionHistory[rrSessionHistory.length - 1] !== d.rr - rrSessionStart) {
+      rrSessionHistory.push(d.rr - rrSessionStart);
+      if (rrSessionHistory.length > RR_HISTORY_MAX) rrSessionHistory.shift();
+    }
+    renderRRChart();
   }
   renderRRChart();
 
@@ -348,45 +358,74 @@ async function refreshMatches() {
 }
 
 function renderRRChart() {
-  if (!cfg?.display?.show_rr_chart) return;
+  if (!cfg?.display?.show_rr_chart || rrSessionHistory.length === 0) return;
   const rrChartEl = getElement('rrChart');
   if (!rrChartEl) return;
 
   const maxGames = cfg?.display?.rr_chart_games ?? 20;
-  const dataPoints = rrHistory.slice(-maxGames);
-  const W = 200, H = 40;
+  const dataPoints = rrSessionHistory.slice(-maxGames);
+  const sessionGain = dataPoints.length > 0 ? dataPoints[dataPoints.length - 1] : 0;
 
-  if (dataPoints.length === 0) {
-    rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
-      <line x1="10" y1="${H/2}" x2="${W-10}" y2="${H/2}" stroke="var(--accent)" stroke-width="1" stroke-dasharray="2,3" opacity="0.3"/>
-    </svg>`;
-    return;
+  const W = 240, H = 50;
+  const padding = 15;
+  const chartW = W - 2 * padding;
+  const chartH = H - 2 * padding;
+
+  // Find min/max with 0 always included (baseline)
+  const allVals = [0, ...dataPoints];
+  const minVal = Math.min(...allVals);
+  const maxVal = Math.max(...allVals);
+  const range = maxVal - minVal || 1;
+  const centerY = padding + ((0 - minVal) / range) * chartH;
+
+  // Build SVG with line, dots, and text
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;overflow:visible;"><defs><style>
+    .rr-dot { fill: var(--accent); transition: r 0.2s; }
+    .rr-dot:hover { r: 3.5 !important; }
+  </style></defs>`;
+
+  // Grid line at 0
+  svg += `<line x1="${padding}" y1="${centerY}" x2="${W - padding}" y2="${centerY}" stroke="var(--accent)" stroke-width="0.5" opacity="0.2"/>`;
+
+  // Polyline
+  const pts = dataPoints.map((val, i) => {
+    const x = padding + (i / (dataPoints.length - 1)) * chartW;
+    const y = padding + ((val - minVal) / range) * chartH;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  if (pts.length > 0) {
+    svg += `<polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`;
   }
 
-  if (dataPoints.length === 1) {
-    const y = H / 2;
-    const rr = dataPoints[0];
-    rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
-      <line x1="10" y1="${y}" x2="${W-10}" y2="${y}" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-      <circle cx="${W-10}" cy="${y}" r="2.5" fill="var(--accent)"/>
-      <text x="${W-14}" y="${y-5}" text-anchor="end" fill="var(--accent)" font-size="8" font-family="DM Mono,monospace" opacity="0.7">${rr} RR</text>
-    </svg>`;
-    return;
-  }
+  // Dots at each point
+  dataPoints.forEach((val, i) => {
+    const x = padding + (i / (dataPoints.length - 1)) * chartW;
+    const y = padding + ((val - minVal) / range) * chartH;
+    const color = val > 0 ? '#5fffb5' : val < 0 ? '#ff5060' : 'var(--accent)';
+    svg += `<circle cx="${x}" cy="${y}" r="2" class="rr-dot" fill="${color}" opacity="0.8"/>`;
+  });
 
-  const minRR = Math.min(...dataPoints);
-  const maxRR = Math.max(...dataPoints);
-  const rangeRR = maxRR - minRR || 1;
-  const pts = [];
-  for (let i = 0; i < dataPoints.length; i++) {
-    const x = (i / (dataPoints.length - 1)) * (W - 20) + 10;
-    const y = H - 10 - ((dataPoints[i] - minRR) / rangeRR) * (H - 20);
-    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
-  }
+  // Session gain text
+  const lastX = padding + chartW;
+  const lastY = padding + ((sessionGain - minVal) / range) * chartH;
+  const gainText = sessionGain > 0 ? `+${sessionGain}` : `${sessionGain}`;
+  const gainColor = sessionGain > 0 ? '#5fffb5' : sessionGain < 0 ? '#ff5060' : 'var(--accent)';
+  svg += `<text x="${lastX - 3}" y="${lastY - 8}" text-anchor="end" fill="${gainColor}" font-size="9" font-family="DM Mono,monospace" font-weight="600">${gainText}</text>`;
 
-  rrChartEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:40px;overflow:visible;">
-    <polyline points="${pts.join(' ')}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>
-  </svg>`;
+  svg += `</svg>`;
+
+  // Create container with session info
+  const parent = rrChartEl.parentElement;
+  const sessionEl = parent.querySelector('.rr-session-gain');
+  if (!sessionEl) {
+    const el = document.createElement('div');
+    el.className = 'rr-session-gain';
+    el.style.cssText = 'font-size:9px;margin-top:4px;text-align:right;font-family:DM Mono,monospace;opacity:0.7;';
+    parent.appendChild(el);
+  }
+  parent.querySelector('.rr-session-gain').textContent = `Session: ${sessionGain > 0 ? '+' : ''}${sessionGain} RR`;
+
+  rrChartEl.innerHTML = svg;
 }
 
 // ── WebSocket connection management ────────────────────────────

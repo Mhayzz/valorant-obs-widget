@@ -376,7 +376,7 @@ function renderRRChart() {
   const minVal = Math.min(...allVals);
   const maxVal = Math.max(...allVals);
   const range = maxVal - minVal || 1;
-  const centerY = padding + ((0 - minVal) / range) * chartH;
+  const centerY = padding + chartH - ((0 - minVal) / range) * chartH;
 
   // Build SVG with line, dots, and text
   let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:50px;overflow:visible;"><defs><style>
@@ -391,7 +391,7 @@ function renderRRChart() {
   const divisor = Math.max(1, dataPoints.length - 1);
   const pts = dataPoints.map((val, i) => {
     const x = padding + (i / divisor) * chartW;
-    const y = padding + ((val - minVal) / range) * chartH;
+    const y = padding + chartH - ((val - minVal) / range) * chartH;
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   if (pts.length > 0) {
@@ -401,17 +401,16 @@ function renderRRChart() {
   // Dots at each point
   dataPoints.forEach((val, i) => {
     const x = padding + (i / divisor) * chartW;
-    const y = padding + ((val - minVal) / range) * chartH;
+    const y = padding + chartH - ((val - minVal) / range) * chartH;
     const color = val > 0 ? '#5fffb5' : val < 0 ? '#ff5060' : 'var(--accent)';
     svg += `<circle cx="${x}" cy="${y}" r="2" class="rr-dot" fill="${color}" opacity="0.8"/>`;
   });
 
   // Session gain text
   const lastX = padding + chartW;
-  const lastY = padding + ((sessionGain - minVal) / range) * chartH;
+  const lastY = padding + chartH - ((sessionGain - minVal) / range) * chartH;
   const gainText = sessionGain > 0 ? `+${sessionGain}` : `${sessionGain}`;
-  const gainColor = sessionGain > 0 ? '#5fffb5' : sessionGain < 0 ? '#ff5060' : 'var(--accent)';
-  svg += `<text x="${lastX - 3}" y="${lastY - 8}" text-anchor="end" fill="${gainColor}" font-size="9" font-family="DM Mono,monospace" font-weight="600">${gainText}</text>`;
+  svg += `<text x="${lastX - 3}" y="${lastY - 8}" text-anchor="end" fill="var(--text-tertiary)" font-size="9" font-family="DM Mono,monospace" font-weight="600">${gainText}</text>`;
 
   svg += `</svg>`;
 
@@ -421,7 +420,7 @@ function renderRRChart() {
   if (!sessionEl) {
     const el = document.createElement('div');
     el.className = 'rr-session-gain';
-    el.style.cssText = 'font-size:9px;margin-top:4px;text-align:right;font-family:DM Mono,monospace;opacity:0.7;';
+    el.style.cssText = 'font-size:9px;margin-top:4px;text-align:right;font-family:DM Mono,monospace;color:var(--text-tertiary);';
     parent.appendChild(el);
   }
   parent.querySelector('.rr-session-gain').textContent = `Session: ${sessionGain > 0 ? '+' : ''}${sessionGain} RR`;

@@ -1387,10 +1387,19 @@ function updateObsDims() {
   const preset = $('layoutPreset').value;
   const w = LAYOUT_WIDTHS[preset] || parseInt($('widgetWidth').value) || 300;
   const h = calcHeight();
+  const frameH = h + PREVIEW_FRAME_PAD;
   $('obsDimW').textContent = w;
   $('obsDimH').textContent = '~' + h;
-  $('previewFrame').width  = w;
-  $('previewFrame').height = h + PREVIEW_FRAME_PAD;
+  const frame = $('previewFrame');
+  const bg = $('previewBg');
+  frame.width  = w;
+  frame.height = frameH;
+
+  // Scale iframe down if wider than preview container, preserving aspect
+  const availW = bg.clientWidth - 40; // minus preview-bg padding
+  const scale = availW > 0 && w > availW ? availW / w : 1;
+  frame.style.zoom = scale < 1 ? scale : '';
+  bg.style.minHeight = '';
 }
 
 // ── Input handlers (scheduleAutoSave handles save + notify) ───

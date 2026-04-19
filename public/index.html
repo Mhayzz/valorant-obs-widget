@@ -241,22 +241,30 @@ body.layout-split .match-kda-map { white-space: normal; }
 body.layout-split .s-dot { width: 16px; }
 
 /* ROW - everything in a single horizontal row (chart on second line) */
-body.layout-row { --w: 780px !important; width: 780px !important; }
+body.layout-row { --w: 600px !important; width: 600px !important; }
 body.layout-row .container {
   display: grid;
-  grid-template-columns: 250px 220px 1fr;
+  grid-template-columns: 210px 180px 1fr;
   grid-template-areas:
     "rank  match streak"
     "chart chart chart";
   gap: 4px;
 }
-body.layout-row .rank-card { grid-area: rank; }
-body.layout-row .match-card { grid-area: match; padding: 7px 10px 7px 8px; }
-body.layout-row .streak-card { grid-area: streak; padding: 8px 12px; }
-body.layout-row .rr-chart-card { grid-area: chart; }
-body.layout-row .match-kda-map { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-body.layout-row .s-dot { width: 16px; height: 4px; }
+body.layout-row .rank-card { grid-area: rank; padding: 8px 10px 8px 6px; gap: 8px; }
+body.layout-row .rank-icon,
+body.layout-row .rank-icon img { width: 38px; height: 38px; }
+body.layout-row .rank-name { font-size: 14px; }
+body.layout-row .match-card { grid-area: match; padding: 6px 8px 6px 6px; gap: 6px; }
+body.layout-row .match-agent-wrap,
+body.layout-row .match-agent-wrap img { width: 26px; height: 26px; }
+body.layout-row .match-agent-name { font-size: 11px; }
+body.layout-row .match-kda-map { font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.layout-row .streak-card { grid-area: streak; padding: 6px 10px; }
+body.layout-row .streak-label { font-size: 8px; }
+body.layout-row .s-dot { width: 14px; height: 4px; }
 body.layout-row .streak-dots { gap: 3px; }
+body.layout-row .win-rate { font-size: 8px; }
+body.layout-row .rr-chart-card { grid-area: chart; }
 
 /* GRID - 2x2 arrangement: rank+match top, streak wide, chart wide */
 body.layout-grid { --w: 400px !important; width: 400px !important; }

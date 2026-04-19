@@ -199,65 +199,118 @@ body.slide-anim .match-card,
 body.slide-anim .streak-card { animation:slideIn 0.3s ease-out; }
 
 /* ── Layout Presets ──────────────────────────────────── */
-/* Compact: smaller vertical stack */
-body.layout-compact { --w: 220px; }
-body.layout-compact .rank-card { padding:8px 10px 8px 8px; }
-body.layout-compact .rank-icon { width:36px; height:36px; }
-body.layout-compact .rank-icon img { width:36px; height:36px; }
-body.layout-compact .rank-name { font-size:14px; }
-body.layout-compact .rr-label { font-size:10px; }
-body.layout-compact .rr-badge { font-size:11px; }
+/* All preset layouts override --w and body width via !important
+   so the widget_width setting doesn't conflict with preset sizing */
 
-/* Horizontal: rank on left, match+streak on right */
-body.layout-horizontal { --w: 420px; }
-body.layout-horizontal .container { display:grid; grid-template-columns:200px 1fr; gap:4px; }
-body.layout-horizontal .rank-card { grid-column:1; grid-row:1/4; }
-body.layout-horizontal .match-card { grid-column:2; grid-row:1; padding:8px 10px; }
-body.layout-horizontal .streak-card { grid-column:2; grid-row:2; padding:6px 10px; }
-body.layout-horizontal .rr-chart-card { grid-column:1/3; margin-top:4px; }
-body.layout-horizontal .match-kda-map { white-space:normal; overflow:visible; text-overflow:clip; }
-body.layout-horizontal .streak-dots { gap:3px; }
-body.layout-horizontal .s-dot { width:18px; height:4px; }
+/* COMPACT - tight vertical stack, smaller elements */
+body.layout-compact { --w: 220px !important; width: 220px !important; }
+body.layout-compact .container { gap: 3px; }
+body.layout-compact .rank-card { padding: 6px 10px 6px 6px; gap: 7px; }
+body.layout-compact .rank-icon,
+body.layout-compact .rank-icon img { width: 32px; height: 32px; }
+body.layout-compact .rank-name { font-size: 13px; }
+body.layout-compact .rr-label { font-size: 10px; min-width: 28px; }
+body.layout-compact .rr-badge { font-size: 11px; min-width: 28px; }
+body.layout-compact .match-card { padding: 5px 10px 5px 6px; gap: 6px; }
+body.layout-compact .match-agent-wrap,
+body.layout-compact .match-agent-wrap img { width: 24px; height: 24px; }
+body.layout-compact .match-agent-name { font-size: 11px; }
+body.layout-compact .match-kda-map { font-size: 8px; }
+body.layout-compact .match-result { font-size: 9px; padding: 2px 6px; }
+body.layout-compact .streak-card { padding: 4px 10px; }
+body.layout-compact .s-dot { width: 16px; height: 4px; }
+body.layout-compact .rr-chart-card { padding: 6px 10px; }
+body.layout-compact #rrChart { height: 32px; }
 
-/* Horizontal Compact: smaller horizontal version */
-body.layout-h-compact { --w: 320px; }
-body.layout-h-compact .container { display:grid; grid-template-columns:140px 1fr; gap:3px; }
-body.layout-h-compact .rank-card { grid-column:1; grid-row:1/3; padding:8px 8px; }
-body.layout-h-compact .match-card { grid-column:2; grid-row:1; padding:6px 8px; }
-body.layout-h-compact .streak-card { grid-column:2; grid-row:2; padding:4px 8px; }
-body.layout-h-compact .rr-chart-card { display:none !important; }
-body.layout-h-compact .rank-icon { width:32px; height:32px; }
-body.layout-h-compact .rank-icon img { width:32px; height:32px; }
-body.layout-h-compact .rank-name { font-size:13px; }
+/* SPLIT - rank card on left (spans vertically), stats stack on right */
+body.layout-split { --w: 440px !important; width: 440px !important; }
+body.layout-split .container {
+  display: grid;
+  grid-template-columns: 210px 1fr;
+  grid-template-areas:
+    "rank  match"
+    "rank  streak"
+    "chart chart";
+  gap: 4px;
+}
+body.layout-split .rank-card { grid-area: rank; align-self: stretch; }
+body.layout-split .match-card { grid-area: match; padding: 8px 12px 8px 8px; }
+body.layout-split .streak-card { grid-area: streak; padding: 6px 12px; }
+body.layout-split .rr-chart-card { grid-area: chart; }
+body.layout-split .match-kda-map { white-space: normal; }
+body.layout-split .s-dot { width: 16px; }
 
-/* Grid: 2 columns with all elements */
-body.layout-grid { --w: 400px; }
-body.layout-grid .container { display:grid; grid-template-columns:1fr 1fr; gap:4px; }
-body.layout-grid .rank-card { grid-column:1; grid-row:1; }
-body.layout-grid .match-card { grid-column:2; grid-row:1; }
-body.layout-grid .streak-card { grid-column:1/3; grid-row:2; }
-body.layout-grid .rr-chart-card { grid-column:1/3; grid-row:3; }
+/* ROW - everything in a single horizontal row (chart on second line) */
+body.layout-row { --w: 780px !important; width: 780px !important; }
+body.layout-row .container {
+  display: grid;
+  grid-template-columns: 250px 220px 1fr;
+  grid-template-areas:
+    "rank  match streak"
+    "chart chart chart";
+  gap: 4px;
+}
+body.layout-row .rank-card { grid-area: rank; }
+body.layout-row .match-card { grid-area: match; padding: 7px 10px 7px 8px; }
+body.layout-row .streak-card { grid-area: streak; padding: 8px 12px; }
+body.layout-row .rr-chart-card { grid-area: chart; }
+body.layout-row .match-kda-map { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.layout-row .s-dot { width: 16px; height: 4px; }
+body.layout-row .streak-dots { gap: 3px; }
 
-/* Minimal: only rank and RR */
-body.layout-minimal .match-card { display:none !important; }
-body.layout-minimal .streak-card { display:none !important; }
-body.layout-minimal .rr-chart-card { display:none !important; }
+/* GRID - 2x2 arrangement: rank+match top, streak wide, chart wide */
+body.layout-grid { --w: 400px !important; width: 400px !important; }
+body.layout-grid .container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "rank  match"
+    "streak streak"
+    "chart chart";
+  gap: 4px;
+}
+body.layout-grid .rank-card { grid-area: rank; padding: 8px 10px 8px 6px; gap: 6px; }
+body.layout-grid .rank-icon,
+body.layout-grid .rank-icon img { width: 36px; height: 36px; }
+body.layout-grid .rank-name { font-size: 13px; }
+body.layout-grid .match-card { grid-area: match; padding: 6px 8px 6px 6px; }
+body.layout-grid .match-agent-wrap,
+body.layout-grid .match-agent-wrap img { width: 26px; height: 26px; }
+body.layout-grid .match-agent-name { font-size: 11px; }
+body.layout-grid .match-kda-map { font-size: 8px; }
+body.layout-grid .streak-card { grid-area: streak; }
+body.layout-grid .rr-chart-card { grid-area: chart; }
 
-/* Tall: vertical stack, maximize height */
-body.layout-tall { --w: 180px; }
-body.layout-tall .rank-card { padding:6px 8px; }
-body.layout-tall .rank-icon { width:32px; height:32px; }
-body.layout-tall .rank-icon img { width:32px; height:32px; }
-body.layout-tall .rank-name { font-size:12px; }
+/* MINIMAL - only the rank card, nothing else, tight */
+body.layout-minimal { --w: 260px !important; width: 260px !important; }
+body.layout-minimal .match-card,
+body.layout-minimal .streak-card,
+body.layout-minimal .rr-chart-card { display: none !important; }
+body.layout-minimal .rank-card { padding: 8px 12px 8px 8px; }
 
-/* Wide: maximize width */
-body.layout-wide { --w: 480px; }
-body.layout-wide .rank-card { padding:12px 16px; }
-body.layout-wide .match-kda-map { white-space:normal; }
-
-/* Full: all elements visible, optimized layout */
-body.layout-full { --w: 340px; }
-body.layout-full .container { display:grid; grid-template-columns:1fr; gap:4px; }
+/* TALL - very narrow, for side-of-stream placement (icons focused) */
+body.layout-tall { --w: 160px !important; width: 160px !important; }
+body.layout-tall .container { gap: 3px; }
+body.layout-tall .rank-card { padding: 6px 8px 6px 6px; gap: 6px; }
+body.layout-tall .rank-icon,
+body.layout-tall .rank-icon img { width: 28px; height: 28px; }
+body.layout-tall .rank-name { font-size: 11px; }
+body.layout-tall .rr-label { font-size: 9px; min-width: 26px; }
+body.layout-tall .rr-badge { font-size: 10px; min-width: 24px; }
+body.layout-tall .rr-badge .sub { font-size: 7px; }
+body.layout-tall .match-card { padding: 4px 8px; flex-wrap: wrap; gap: 5px; }
+body.layout-tall .match-agent-wrap,
+body.layout-tall .match-agent-wrap img { width: 22px; height: 22px; }
+body.layout-tall .match-agent-name { font-size: 10px; }
+body.layout-tall .match-kda-map { font-size: 7px; white-space: normal; }
+body.layout-tall .match-result { font-size: 8px; padding: 2px 5px; }
+body.layout-tall .streak-card { padding: 4px 6px; flex-wrap: wrap; gap: 3px; }
+body.layout-tall .streak-label { font-size: 7px; }
+body.layout-tall .s-dot { width: 10px; height: 3px; }
+body.layout-tall .win-rate { font-size: 7px; }
+body.layout-tall .rr-chart-card { padding: 5px 6px; }
+body.layout-tall .rr-chart-label { font-size: 7px; }
+body.layout-tall #rrChart { height: 28px; }
 
 /* ── Loading ─────────────────────────────────────────── */
 .loading-msg {

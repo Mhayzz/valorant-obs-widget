@@ -1058,15 +1058,13 @@ input[type="color"]:focus {
           <div class="opt-sub">Arrange les éléments du widget</div>
         </div>
         <select id="layoutPreset" style="padding: 8px 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 12px; cursor: pointer;">
-          <option value="default">Défaut (Vertical)</option>
-          <option value="compact">Compact</option>
-          <option value="horizontal">Horizontal</option>
-          <option value="h-compact">Horizontal Compact</option>
-          <option value="grid">Grille (2 colonnes)</option>
-          <option value="minimal">Minimal</option>
-          <option value="tall">Tall (Mince)</option>
-          <option value="wide">Large</option>
-          <option value="full">Complet</option>
+          <option value="default">Défaut (Vertical 300px)</option>
+          <option value="compact">Compact (220px)</option>
+          <option value="split">Split (Rank à gauche, 440px)</option>
+          <option value="row">Row (Tout sur une ligne, 720px)</option>
+          <option value="grid">Grille (2x2, 400px)</option>
+          <option value="minimal">Minimal (Rank seul, 260px)</option>
+          <option value="tall">Tall (Mince 160px)</option>
         </select>
       </div>
     </div>
@@ -1381,8 +1379,13 @@ function calcHeight() {
   return h;
 }
 
+const LAYOUT_WIDTHS = {
+  default: null, compact: 220, split: 440, row: 780, grid: 400, minimal: 260, tall: 160,
+};
+
 function updateObsDims() {
-  const w = parseInt($('widgetWidth').value) || 300;
+  const preset = $('layoutPreset').value;
+  const w = LAYOUT_WIDTHS[preset] || parseInt($('widgetWidth').value) || 300;
   const h = calcHeight();
   $('obsDimW').textContent = w;
   $('obsDimH').textContent = '~' + h;
@@ -1403,7 +1406,7 @@ $('rrChartGames').addEventListener('input', function() {
   $('rrChartGamesLabel').textContent = this.value + ' jeux';
 });
 
-['showLastMatch', 'showStreak', 'showPeakRank', 'showRRChart', 'widgetWidth'].forEach(id => {
+['showLastMatch', 'showStreak', 'showPeakRank', 'showRRChart', 'widgetWidth', 'layoutPreset'].forEach(id => {
   $(id).addEventListener('change', updateObsDims);
 });
 

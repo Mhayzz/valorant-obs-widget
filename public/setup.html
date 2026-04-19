@@ -648,12 +648,34 @@ input[type=color]::-moz-color-swatch {
   background-color: var(--bg-tertiary);
 }
 
-/* Background themes */
-.preview-bg[data-bg="dark"]  { background-image: none; background-color: var(--bg-tertiary); }
-.preview-bg[data-bg="map1"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608166847058031/HyANINP4aUkTAAAAAElFTkSuQmCC.png?ex=69dbf32e&is=69daa1ae&hm=3e702f4e0514c8d8846088e02a415d32f7a81f70bce7f47910880e60357e3d54&=&format=webp&quality=lossless'); }
-.preview-bg[data-bg="map2"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608167316820044/wbReFnY6ScHGAAAAABJRU5ErkJggg.png?ex=69dbf32e&is=69daa1ae&hm=942e0d3a7dca7df2fff4a76d3a8e5739dcd5ee575ecb58ec833c0d7be4c73657&=&format=webp&quality=lossless'); }
-.preview-bg[data-bg="map3"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608168021328104/DUqtUtWYwxAAAAAElFTkSuQmCC.png?ex=69dbf32e&is=69daa1ae&hm=8f3f948d2dcba51009e1d56dc13925220619b39158c3af78a1985fbea9e2a677&=&format=webp&quality=lossless'); }
-.preview-bg[data-bg="map4"]  { background-image: url('https://media.discordapp.net/attachments/333631788918505482/1492608168742883429/wdSLRdICS6sdQAAAABJRU5ErkJggg.png?ex=69dbf32e&is=69daa1ae&hm=3f4c98bec0c3ba411953381ec3643cfe16795d9c9c973cb3aa058e0794df0fb2&=&format=webp&quality=lossless'); }
+/* Background themes - Valorant-inspired */
+.preview-bg[data-bg="dark"]  {
+  background-image: none;
+  background-color: var(--bg-tertiary);
+}
+.preview-bg[data-bg="valo-red"]  {
+  background-image: radial-gradient(ellipse at top left, #ff4655 0%, #bd3944 30%, #0f1923 70%, #0a0f14 100%);
+}
+.preview-bg[data-bg="valo-cyan"]  {
+  background-image: radial-gradient(ellipse at bottom right, #3fdbdb 0%, #1a6d7a 35%, #0f1923 75%, #06101c 100%);
+}
+.preview-bg[data-bg="valo-gold"]  {
+  background-image: linear-gradient(135deg, #3a2820 0%, #6b4a2e 25%, #c9a961 55%, #6b4a2e 80%, #2a1d15 100%);
+}
+.preview-bg[data-bg="valo-violet"]  {
+  background-image: radial-gradient(ellipse at top, #7c3aed 0%, #3b2465 40%, #1a0f2e 75%, #0a0510 100%);
+}
+.preview-bg[data-bg="valo-abyss"]  {
+  background-image:
+    radial-gradient(ellipse at 30% 40%, rgba(255,70,85,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 60%, rgba(63,219,219,0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #0f1923 0%, #050a12 100%);
+}
+.preview-bg[data-bg="valo-ranked"]  {
+  background-image:
+    radial-gradient(ellipse at 20% 30%, rgba(255,215,0,0.2) 0%, transparent 40%),
+    linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1923 100%);
+}
 
 #previewFrame {
   border: none;
@@ -1209,7 +1231,7 @@ input[type="color"]:focus {
     <!-- Preview -->
     <div class="preview-wrap">
       <div class="preview-title">Aperçu</div>
-      <div class="preview-bg" id="previewBg" data-bg="map4">
+      <div class="preview-bg" id="previewBg" data-bg="valo-abyss">
         <iframe id="previewFrame" src="/index.html?preview=1" scrolling="no" height="220"></iframe>
       </div>
       <div class="preview-btns">
@@ -1352,7 +1374,7 @@ $('peakAlignRight').addEventListener('click', () => {
 });
 
 // ── Preview ───────────────────────────────────────────────────
-const previewBgs = ['map4', 'dark', 'map1', 'map2', 'map3'];
+const previewBgs = ['valo-abyss', 'valo-red', 'valo-cyan', 'valo-gold', 'valo-violet', 'valo-ranked', 'dark'];
 let currentBgIndex = 0;
 
 function cyclePreviewBg() {
@@ -1380,7 +1402,7 @@ function calcHeight() {
 }
 
 const LAYOUT_WIDTHS = {
-  default: null, compact: 220, split: 440, row: 780, grid: 400, minimal: 260, tall: 160,
+  default: null, compact: 220, split: 440, row: 600, grid: 400, minimal: 260, tall: 160,
 };
 
 function updateObsDims() {

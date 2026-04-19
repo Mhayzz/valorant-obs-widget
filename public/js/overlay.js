@@ -388,8 +388,9 @@ function renderRRChart() {
   svg += `<line x1="${padding}" y1="${centerY}" x2="${W - padding}" y2="${centerY}" stroke="var(--accent)" stroke-width="0.5" opacity="0.2"/>`;
 
   // Polyline
+  const divisor = Math.max(1, dataPoints.length - 1);
   const pts = dataPoints.map((val, i) => {
-    const x = padding + (i / (dataPoints.length - 1)) * chartW;
+    const x = padding + (i / divisor) * chartW;
     const y = padding + ((val - minVal) / range) * chartH;
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
@@ -399,7 +400,7 @@ function renderRRChart() {
 
   // Dots at each point
   dataPoints.forEach((val, i) => {
-    const x = padding + (i / (dataPoints.length - 1)) * chartW;
+    const x = padding + (i / divisor) * chartW;
     const y = padding + ((val - minVal) / range) * chartH;
     const color = val > 0 ? '#5fffb5' : val < 0 ? '#ff5060' : 'var(--accent)';
     svg += `<circle cx="${x}" cy="${y}" r="2" class="rr-dot" fill="${color}" opacity="0.8"/>`;
@@ -558,21 +559,19 @@ async function init() {
     if (e.data?.type === 'matchtest' && e.data?.detail?.type) {
       triggerAnimation(e.data.detail.type);
     }
-    if (e.data?.type === 'rr_addgame') {
-      const delta = Math.floor(Math.random() * 51) - 25;
-      if (rrSessionStart === null) {
-        rrSessionStart = 0;
+    if (e.data?.type === window.VALO_MESSAGE_TYPES?.RR_ADDGAME) {
+      const delta = Math.floor(Math.random() * (window.VALO_RR_DELTA_MAX * 2 + 1)) - window.VALO_RR_DELTA_MAX;
+      if (rrSessionHistory.length === 0) {
         rrSessionHistory = [delta];
       } else {
-        rrSessionHistory.push(rrSessionHistory[rrSessionHistory.length - 1] + delta);
+        rrSessionHistory.push((rrSessionHistory.at(-1) ?? 0) + delta);
         if (rrSessionHistory.length > RR_HISTORY_MAX) rrSessionHistory.shift();
       }
       renderRRChart();
     }
-    if (e.data?.type === 'rr_reset') {
+    if (e.data?.type === window.VALO_MESSAGE_TYPES?.RR_RESET) {
       rrSessionStart = null;
       rrSessionHistory = [];
-      localStorage.removeItem(rrHistoryKey());
       renderRRChart();
     }
   });

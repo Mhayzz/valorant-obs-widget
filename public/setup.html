@@ -877,6 +877,45 @@ input[type="color"]:focus {
   flex: 1 !important;
 }
 
+.test-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  transition: opacity 0.2s;
+}
+
+.test-btn:hover {
+  opacity: 0.8;
+}
+
+.test-btn--success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.test-btn--error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.test-btn--rr-add {
+  background: rgba(95, 255, 181, 0.1);
+  border-color: rgba(95, 255, 181, 0.3);
+  color: #5fffb5;
+}
+
+.test-btn--rr-reset {
+  background: rgba(255, 80, 96, 0.1);
+  border-color: rgba(255, 80, 96, 0.3);
+  color: #ff5060;
+}
+
 #disconnectBtn {
   flex: 1 !important;
 }
@@ -1132,16 +1171,16 @@ input[type="color"]:focus {
           </select>
         </div>
         <div class="opt-row" style="gap: 8px;">
-          <button id="testRankUp" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Up</button>
-          <button id="testRankDown" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Rank Down</button>
+          <button id="testRankUp" class="test-btn test-btn--success">Test Rank Up</button>
+          <button id="testRankDown" class="test-btn test-btn--error">Test Rank Down</button>
         </div>
         <div class="opt-row" style="gap: 8px;">
-          <button id="testWin" class="test-btn" style="flex: 1; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #10b981; cursor: pointer; font-size: 12px; font-weight: 600;">Test Win</button>
-          <button id="testLose" class="test-btn" style="flex: 1; padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; color: #ef4444; cursor: pointer; font-size: 12px; font-weight: 600;">Test Lose</button>
+          <button id="testWin" class="test-btn test-btn--success">Test Win</button>
+          <button id="testLose" class="test-btn test-btn--error">Test Lose</button>
         </div>
         <div class="opt-row" style="gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.06);">
-          <button id="testRRGame" class="test-btn" style="flex: 1; padding: 10px; background: rgba(95, 255, 181, 0.1); border: 1px solid rgba(95, 255, 181, 0.3); border-radius: 8px; color: #5fffb5; cursor: pointer; font-size: 12px; font-weight: 600;">Test RR +Game</button>
-          <button id="resetRRChart" class="test-btn" style="flex: 1; padding: 10px; background: rgba(255, 80, 96, 0.1); border: 1px solid rgba(255, 80, 96, 0.3); border-radius: 8px; color: #ff5060; cursor: pointer; font-size: 12px; font-weight: 600;">Reset RR</button>
+          <button id="testRRGame" class="test-btn test-btn--rr-add">Test RR +Game</button>
+          <button id="resetRRChart" class="test-btn test-btn--rr-reset">Reset RR</button>
         </div>
       </div>
     </div>
@@ -1449,37 +1488,24 @@ $('connectBtn').addEventListener('click', validateAccount);
 $('changeAccountBtn').addEventListener('click', changeAccount);
 $('disconnectBtn').addEventListener('click', disconnectAccount);
 
-// ── Test animations ──────────────────────────────────────────
-function sendTestAnimation(type, isMatch = false) {
-  localStorage.setItem(LS_TEST_ANIMATION, JSON.stringify({ type, isMatch, ts: Date.now() }));
+// ── Test animations & RR chart ──────────────────────────────
+function sendTest(messageType, detailData = null) {
+  const storageKey = messageType.startsWith('rr_') ? window.VALO_KEYS.RR_TEST : LS_TEST_ANIMATION;
+  const payload = detailData ? { type: messageType, detail: detailData, ts: Date.now() } : { type: messageType, ts: Date.now() };
+  localStorage.setItem(storageKey, JSON.stringify(payload));
   const iframe = $('previewFrame');
   if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({
-      type: isMatch ? 'matchtest' : 'ranktest',
-      detail: { type },
-    }, '*');
+    iframe.contentWindow.postMessage(payload, '*');
   }
 }
 
-$('testRankUp').addEventListener('click',   () => sendTestAnimation('rankup'));
-$('testRankDown').addEventListener('click', () => sendTestAnimation('rankdown'));
-$('testWin').addEventListener('click',      () => sendTestAnimation('win', true));
-$('testLose').addEventListener('click',     () => sendTestAnimation('lose', true));
+$('testRankUp').addEventListener('click',   () => sendTest('ranktest', { type: 'rankup' }));
+$('testRankDown').addEventListener('click', () => sendTest('ranktest', { type: 'rankdown' }));
+$('testWin').addEventListener('click',      () => sendTest('matchtest', { type: 'win' }));
+$('testLose').addEventListener('click',     () => sendTest('matchtest', { type: 'lose' }));
 
-// ── RR chart test ────────────────────────────────────────────
-function sendRRTest(cmd) {
-  localStorage.setItem('valo_rr_test', JSON.stringify({ cmd, ts: Date.now() }));
-  const iframe = $('previewFrame');
-  if (iframe?.contentWindow) {
-    iframe.contentWindow.postMessage({
-      type: 'rr_' + cmd,
-      ts: Date.now(),
-    }, '*');
-  }
-}
-
-$('testRRGame').addEventListener('click',  () => sendRRTest('addgame'));
-$('resetRRChart').addEventListener('click', () => sendRRTest('reset'));
+$('testRRGame').addEventListener('click',  () => sendTest(window.VALO_MESSAGE_TYPES.RR_ADDGAME));
+$('resetRRChart').addEventListener('click', () => sendTest(window.VALO_MESSAGE_TYPES.RR_RESET));
 
 // ── Load config ───────────────────────────────────────────────
 async function loadConfig() {

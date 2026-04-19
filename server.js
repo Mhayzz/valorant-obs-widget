@@ -22,6 +22,9 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"]
   },
   transports: ["websocket", "polling"],
+  // OBS CEF can silently lose the connection; shorter ping catches it fast
+  pingInterval: 8000,
+  pingTimeout: 6000,
 });
 const PORT = process.env.PORT || 3000;
 
@@ -33,7 +36,19 @@ app.use(helmet({
   frameguard: { action: "sameorigin" },
 }));
 app.use(express.json({ limit: "16kb" }));
-app.use(express.static(path.join(__dirname, "public")));
+// OBS's CEF caches aggressively; force a fresh fetch every load so users
+// don't have to "Refresh cache of current page" after a redeploy.
+app.use(express.static(path.join(__dirname, "public"), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res, filePath) => {
+    if (/\.(html|js|css)$/i.test(filePath)) {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    }
+  },
+}));
 
 const apiLimiter = rateLimit({
   windowMs: 60_000,

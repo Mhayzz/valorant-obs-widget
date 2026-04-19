@@ -25,6 +25,7 @@ let playerName = "";
 let rrHistory = [];
 let rrSessionStart = null;
 let rrSessionHistory = [];
+let lastRankData = null;
 
 // ── DOM element cache ────────────────────────────────────────
 let domCache = {};
@@ -84,7 +85,18 @@ function shouldAnimate(kind) {
 }
 
 // ── Render helpers (shared by HTTP refresh and WebSocket handlers) ──
+function renderRankName(rank) {
+  const rankEl = getElement('rankName');
+  if (!rankEl) return;
+  if (cfg?.display?.show_account && playerName) {
+    rankEl.innerHTML = `<span style="display:block;font-size:8px;opacity:0.6;margin-bottom:2px;">${playerName}</span>${rank}`;
+  } else {
+    rankEl.textContent = rank;
+  }
+}
+
 function applyRankData(d) {
+  lastRankData = d;
   const newPlayer = d.player || "";
   if (newPlayer !== playerName) {
     playerName = newPlayer;
@@ -93,12 +105,7 @@ function applyRankData(d) {
     rrSessionHistory = [];
   }
 
-  if (cfg?.display?.show_account) {
-    const rankEl = getElement('rankName');
-    rankEl.innerHTML = `<span style="display:block;font-size:8px;opacity:0.6;margin-bottom:2px;">${playerName}</span>${d.rank}`;
-  } else {
-    getElement('rankName').textContent = d.rank;
-  }
+  renderRankName(d.rank);
   getElement('rrLabel').textContent  = d.rr + ' RR';
   getElement('fill').style.width     = clamp(d.rr, 0, 100) + '%';
 
@@ -253,6 +260,20 @@ function applyDisplay(d) {
   // RR chart visibility
   getElement('rrChartCard').style.display =
     (d.show_rr_chart ?? true) ? 'flex' : 'none';
+
+  // Re-render anything whose markup depends on display settings, so toggles
+  // apply live without waiting for the next rank/match fetch.
+  if (lastRankData) {
+    renderRankName(lastRankData.rank);
+    const peakEl = getElement('peakRank');
+    const peakInline = getElement('peakInline');
+    if (lastRankData.peak_rank && (d.show_peak_rank ?? true)) {
+      const peakImg = generatePeakRankHtml(lastRankData.peak_tier);
+      peakEl.innerHTML = `PEAK ${peakImg}`;
+      peakInline.innerHTML = 'PEAK ' + peakImg;
+    }
+  }
+  renderRRChart();
 }
 
 // ── Animations ──────────────────────────────────────────────

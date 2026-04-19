@@ -477,6 +477,55 @@ function connectWebSocket() {
     }
   });
 
+  // Display settings changed in setup (cross-browser via server)
+  socket.on('display', (newDisplay) => {
+    try {
+      cfg.display = { ...(cfg.display || {}), ...newDisplay };
+      applyDisplay(cfg.display);
+      if (!IS_PREVIEW) {
+        refreshRank().catch(() => {});
+        refreshMatches().catch(() => {});
+      }
+    } catch(e) { console.error('display update error:', e); }
+  });
+
+  // Account changed in setup
+  socket.on('account_change', () => {
+    lastRankTier = null;
+    lastMatchId = null;
+    rrSessionStart = null;
+    rrSessionHistory = [];
+    getElement('loadingMsg').textContent = 'Chargement des données...';
+    getElement('loadingMsg').classList.remove('hidden');
+    if (!IS_PREVIEW) {
+      refreshRank().catch(() => {});
+      refreshMatches().catch(() => {});
+    }
+  });
+
+  // Test triggers from setup (rank/match animation, RR chart buttons)
+  socket.on('test', (msg) => {
+    try {
+      if (msg.type === 'ranktest' && msg.detail?.type) {
+        triggerAnimation(msg.detail.type);
+      } else if (msg.type === 'matchtest' && msg.detail?.type) {
+        triggerAnimation(msg.detail.type);
+      } else if (msg.type === 'rr_addgame') {
+        const delta = Math.floor(Math.random() * (window.VALO_RR_DELTA_MAX * 2 + 1)) - window.VALO_RR_DELTA_MAX;
+        if (rrSessionHistory.length === 0) rrSessionHistory = [delta];
+        else {
+          rrSessionHistory.push((rrSessionHistory.at(-1) ?? 0) + delta);
+          if (rrSessionHistory.length > RR_HISTORY_MAX) rrSessionHistory.shift();
+        }
+        renderRRChart();
+      } else if (msg.type === 'rr_reset') {
+        rrSessionStart = null;
+        rrSessionHistory = [];
+        renderRRChart();
+      }
+    } catch(e) { console.error('test event error:', e); }
+  });
+
   socket.on('disconnect', () => {
     console.log('WebSocket disconnected');
   });
